@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any
+import os
+from collections.abc import MutableMapping
+from typing import Any, Final
 
 import structlog
 
@@ -11,26 +13,53 @@ from ace_core.app.container import Container, build_container
 from ace_core.app.health import HealthStatus
 from ace_core.app.lifecycle import App
 from ace_core.app.paths import AppPaths
+from ace_core.app.version import __version__
 from ace_core.db.database import StartReport
 from ace_core.db.events import DatabaseRecovered
+from ace_core.ipc.runtime_file import IpcEndpoint, remove_runtime_file, write_runtime_file
+from ace_core.ipc.server import IpcServer
 
 log = structlog.stdlib.get_logger(__name__)
 
+# The desktop shell passes the per-run IPC token in this variable (§5.6).
+IPC_TOKEN_ENV: Final = "ACE_IPC_TOKEN"  # noqa: S105 - the variable's name, not a secret
 
-def create_app(settings: Settings, paths: AppPaths, **app_options: Any) -> App:
+
+def create_app(
+    settings: Settings,
+    paths: AppPaths,
+    *,
+    environ: MutableMapping[str, str] = os.environ,
+    **app_options: Any,
+) -> App:
     """``app_options`` are passed to :class:`App` (tests inject the READY writer, for example)."""
     container = build_container(settings, paths)
     app = App(container, **app_options)
+    # pop(): the token must not leak into processes the core starts later.
+    ipc = IpcServer(container, port=settings.ipc_port, token=environ.pop(IPC_TOKEN_ENV, None))
 
     async def start_database() -> None:
         report = await container.db.start()
         await _announce_database(container, report)
 
+    async def start_ipc() -> None:
+        app.port = await ipc.start()
+        write_runtime_file(
+            paths.runtime,
+            IpcEndpoint(port=app.port, token=ipc.token, pid=os.getpid(), version=__version__),
+        )
+
+    async def stop_ipc() -> None:
+        remove_runtime_file(paths.runtime, pid=os.getpid())
+        await ipc.stop()
+
     app.on_startup("database", start_database)
     app.on_startup("maintenance", container.maintenance.start)
-    # Shutdown hooks run in reverse: maintenance stops first, then the database closes.
+    app.on_startup("ipc", start_ipc)
+    # Shutdown hooks run in reverse: IPC closes first, then maintenance, then the database.
     app.on_shutdown("database", container.db.close)
     app.on_shutdown("maintenance", container.maintenance.stop)
+    app.on_shutdown("ipc", stop_ipc)
     return app
 
 

@@ -147,15 +147,20 @@ class SettingsStore:
         self._audit = audit
         self._clock = clock
 
-    async def get(self, key: str, default: JsonValue = None) -> JsonValue:
-        """The stored value for ``key``, or ``default`` when it is not set."""
+    async def lookup(self, key: str) -> tuple[bool, JsonValue]:
+        """``(found, value)`` - tells a missing key apart from a stored ``null``."""
 
         def load(session: Session) -> str | None:
             setting = SettingsRepository.get(session, key)
             return setting.value_json if setting is not None else None
 
         raw = await self._db.run(load)
-        return default if raw is None else json.loads(raw)
+        return (False, None) if raw is None else (True, json.loads(raw))
+
+    async def get(self, key: str, default: JsonValue = None) -> JsonValue:
+        """The stored value for ``key``, or ``default`` when it is not set."""
+        found, value = await self.lookup(key)
+        return value if found else default
 
     async def set(self, key: str, value: JsonValue, *, actor: Actor = "system") -> None:
         """Store ``value`` (any JSON value) under ``key`` and record it in the audit log."""

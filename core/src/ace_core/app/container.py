@@ -8,6 +8,7 @@ from ace_core.app.config import Settings
 from ace_core.app.events import EventBus
 from ace_core.app.health import HealthRegistry
 from ace_core.app.paths import AppPaths
+from ace_core.app.state import StateStore
 from ace_core.db.backup import BackupKind, BackupStore
 from ace_core.db.database import Database
 from ace_core.db.maintenance import Maintenance, audit_retention_job
@@ -22,6 +23,7 @@ class Container:
     paths: AppPaths
     bus: EventBus
     health: HealthRegistry
+    state: StateStore
     db: Database
     audit: AuditLog
     settings_store: SettingsStore
@@ -43,6 +45,7 @@ def build_container(settings: Settings, paths: AppPaths) -> Container:
         paths=paths,
         bus=bus,
         health=HealthRegistry(bus),
+        state=StateStore(bus),
         db=db,
         audit=audit,
         settings_store=SettingsStore(db, audit),
