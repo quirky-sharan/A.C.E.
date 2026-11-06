@@ -1,14 +1,13 @@
-"""S00 placeholder tests: the package installs, imports and exposes its entry point."""
-
-import pytest
+"""The package installs, imports and exposes its entry points."""
 
 import ace_core
+from ace_core.app import main as app_main
 
 
 def test_package_exposes_a_version() -> None:
     assert ace_core.__version__
 
 
-def test_entry_point_is_a_placeholder_until_s01() -> None:
-    with pytest.raises(SystemExit):
-        ace_core.main()
+def test_console_entry_points_exist() -> None:
+    assert callable(ace_core.main)
+    assert callable(app_main.main)
