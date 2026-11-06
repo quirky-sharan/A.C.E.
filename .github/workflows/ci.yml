@@ -1,0 +1,70 @@
+# ACE continuous integration (ACE_MASTER_PLAN.md §16.7). Hardware / UI-automation tests never run here.
+name: CI
+
+on:
+  push:
+    branches: [main, "stage/**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core:
+    name: Core (Python)
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: core
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.3
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+      - run: uv run pytest -m "not hardware and not windows_ui"
+
+  web:
+    name: UI + extension (TypeScript)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v6.1.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm format:check
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+  shell:
+    name: Desktop shell (Rust)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v6.1.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # tauri::generate_context!() embeds ../dist at compile time, so build the UI first.
+      - run: pnpm --filter ace-desktop build
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2.9.3
+        with:
+          workspaces: apps/desktop/src-tauri
+      - run: cargo fmt --manifest-path apps/desktop/src-tauri/Cargo.toml --check
+      - run: cargo clippy --manifest-path apps/desktop/src-tauri/Cargo.toml --all-targets -- -D warnings
+      - run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml

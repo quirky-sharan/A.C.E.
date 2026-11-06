@@ -1,0 +1,19 @@
+{
+  "name": "ace-bridge-extension",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "description": "ACE Bridge: Chrome MV3 extension that lets ACE operate Chrome on Sharan's command (ACE_MASTER_PLAN.md section 11).",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.7",
+    "typescript": "~6.0.3",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
+  }
+}
