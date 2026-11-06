@@ -1,0 +1,46 @@
+[project]
+name = "ace-core"
+version = "0.0.1"
+description = "ACE core service: voice, brain, verification council and PC-control skills (see ACE_MASTER_PLAN.md)."
+license = "Apache-2.0"
+requires-python = ">=3.12,<3.13"
+dependencies = []
+
+[project.scripts]
+ace-core = "ace_core:main"
+
+[build-system]
+requires = ["uv_build>=0.13.6,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.1",
+    "pytest>=9.2.0",
+    "ruff>=0.17.4",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+# E/W pycodestyle, F pyflakes, I isort, B bugbear, UP pyupgrade, S bandit (incl. S608 string-built SQL),
+# N naming, SIM simplify, RUF ruff-specific.
+select = ["E", "W", "F", "I", "B", "UP", "S", "N", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"] # assert is expected in tests
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "hardware: needs real devices (mic, speakers, GPU); local only, never in CI",
+    "windows_ui: drives real Windows apps through UI Automation; local only, never in CI",
+]

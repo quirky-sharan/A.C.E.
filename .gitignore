@@ -1,0 +1,46 @@
+# --- OS / editors ---
+Thumbs.db
+Desktop.ini
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# --- Secrets & local env (never commit — ACE_MASTER_PLAN.md R8) ---
+.env
+.env.*
+!.env.example
+*.pem
+*.pfx
+*.key
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.egg-info/
+
+# --- Node / JS ---
+node_modules/
+dist/
+*.tsbuildinfo
+npm-debug.log*
+pnpm-debug.log*
+
+# --- Rust / Tauri ---
+target/
+
+# --- ACE runtime data that must never be committed ---
+# Models are downloaded at runtime (§7.8); Sharan's own recordings stay local (§16.3).
+*.onnx
+*.gguf
+*.safetensors
+core/tests/fixtures/audio/local/
+logs/
+*.log

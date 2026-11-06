@@ -1,0 +1,65 @@
+# Git hooks for ACE (ACE_MASTER_PLAN.md S00, §16.7). Run everything: pre-commit run --all-files
+# Local hooks call uv / pnpm / cargo from PATH (inside Claude's shells, load E:\.cache\ace-setup\env.ps1 first).
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: \.md$
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: ["--allow-multiple-documents"] # pnpm 12 writes pnpm-lock.yaml as several YAML documents
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+      - id: mixed-line-ending
+        args: ["--fix=no"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.4
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+        files: ^core/
+      - id: ruff-format
+        files: ^core/
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+        exclude: (pnpm-lock\.yaml|uv\.lock|Cargo\.lock)$
+
+  - repo: local
+    hooks:
+      - id: mypy-core
+        name: mypy (core, strict)
+        entry: uv run --directory core mypy
+        language: system
+        pass_filenames: false
+        files: ^core/.*\.py$
+      - id: eslint
+        name: eslint
+        entry: pnpm exec eslint --max-warnings=0
+        language: system
+        files: \.(ts|tsx|js|mjs|cjs)$
+        exclude: ^core/
+      - id: prettier
+        name: prettier --check
+        entry: pnpm exec prettier --check --ignore-unknown
+        language: system
+        types_or: [ts, tsx, javascript, json, yaml, css, html]
+      - id: cargo-fmt
+        name: cargo fmt --check (desktop shell)
+        entry: cargo fmt --manifest-path apps/desktop/src-tauri/Cargo.toml --check
+        language: system
+        pass_filenames: false
+        files: \.rs$
+      - id: cargo-clippy
+        name: cargo clippy -D warnings (desktop shell)
+        entry: cargo clippy --manifest-path apps/desktop/src-tauri/Cargo.toml --all-targets -- -D warnings
+        language: system
+        pass_filenames: false
+        files: \.rs$

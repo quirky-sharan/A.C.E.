@@ -1,0 +1,8 @@
+# Markdown is hand-formatted (the master plan must never be reflowed).
+*.md
+pnpm-lock.yaml
+**/dist/
+**/target/
+**/node_modules/
+apps/desktop/src-tauri/gen/
+core/

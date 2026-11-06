@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "ACE Bridge",
+  "version": "0.0.1",
+  "description": "Lets ACE operate Chrome tabs on your command. Skeleton only - real features arrive in stage S24.",
+  "minimum_chrome_version": "120",
+  "background": {
+    "service_worker": "service-worker.js",
+    "type": "module"
+  }
+}
