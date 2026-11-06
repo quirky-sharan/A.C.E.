@@ -12,10 +12,11 @@
 | Last updated | 2026-11-06 |
 | Owner / client | Sharan (ACE addresses Sharan as "Sharan" or "boss") |
 | Project folder | `E:\A.C.E` |
-| Current stage | **S02 — Database foundation** (in progress, branch `stage/s02-database`) |
-| Last completed stage | S01 — Core service skeleton (approved by Sharan 2026-11-06) |
+| Current stage | **S03 — IPC API** (in progress, branch `stage/s03-ipc`) |
+| Last completed stage | S02 — Database foundation (approved by Sharan 2026-11-06) |
 | Next milestone | M1 — Typed commands control the PC |
-| Blocking user actions | none · pending, non-blocking: [USER-ACTION] run `tools/dev/set-dev-env.ps1` once in a normal PowerShell window (§17.4); create the GitHub repo to activate CI |
+| Blocking user actions | none · pending, non-blocking: [USER-ACTION] run `tools/dev/set-dev-env.ps1` once in a normal PowerShell window (§17.4) |
+| Repository | GitHub `quirky-sharan/A.C.E.` (private), created by Sharan 2026-11-06; `main` = approved stages (pushed by Sharan); stage branches are local until Sharan asks to push |
 
 ---
 
@@ -324,6 +325,9 @@ Status values: **Decided** = confirmed by Sharan in the 2026-11-06 Q&A. **Defaul
 | D-44 | Quality gates: pre-commit (pre-commit-hooks, ruff, detect-secrets with `.secrets.baseline`, local mypy / eslint / prettier / cargo fmt / clippy hooks); CI on `windows-latest` with GitHub Actions pinned to exact release tags. | Engineering | §16.7; exact tags are reproducible (SHA pinning reviewed at S43). |
 | D-45 | Core configuration: typed `Settings` (pydantic-settings). Priority, highest first: command-line flags > `ACE_*` environment variables > `<root>\config.toml` (optional, TOML) > defaults. Unknown keys in `config.toml` are rejected. A DB-backed settings layer joins in a later stage. | Engineering | S01; typos fail loudly instead of being silently ignored. |
 | D-46 | Core logging and process protocol: every record (structlog and stdlib) passes the redaction processor (§15.1); file = one JSON object per line in `logs\core-YYYYMMDD.jsonl` (one file per local day, `ts` in UTC, 14-day retention); `--dev` adds readable stderr output; **stdout is reserved for protocol lines** (`ACE_READY port=<n>`). Exit codes: 0 ok · 1 startup failed · 2 usage error · 3 not implemented yet (native host before S24) · 130 forced. | Engineering | S01; the desktop shell (S04) parses stdout, so nothing else may print there. |
+| D-47 | Database access: SQLAlchemy 2.x sync engine with `connect_args={"autocommit": False}` (Python 3.12 PEP 249 transactions, so migrations are all-or-nothing); PRAGMAs applied on connect with autocommit briefly on; ALL database work runs on one dedicated `ace-db` thread via `Database.run()` (single writer, no cross-thread connections); no `aiosqlite`. | Engineering | S02; SQLAlchemy's documented setup for Python 3.12+; one local user doesn't need parallel DB access. |
+| D-48 | IDs and timestamps: record IDs are UUIDv7 strings (RFC 9562, monotonic within a millisecond; switch to `uuid.uuid7()` on Python ≥ 3.14). Timestamps are stored as fixed-width UTC text `YYYY-MM-DDTHH:MM:SS.ffffffZ` (`UtcDateTime`), so text order = time order. | Engineering | S02 (§13.2). |
+| D-49 | Backups and recovery: regular backups `ace-YYYYMMDD-HHMMSS.db` (daily + on demand) keep 7; `ace-premigration-*` and `ace-prerestore-*` keep 5 each. On a failed `quick_check` the damaged file is moved to `data\ace-corrupt-*.db` (never auto-deleted), the newest valid backup is restored, and the `database` health turns DEGRADED with an audit entry and a `DatabaseRecovered` event (UI and notifications surface it in later stages). | Engineering | S02; refines §13.4's "7 kept + one before every migration" so pre-migration copies can't pile up forever. |
 
 ---
 
@@ -438,7 +442,10 @@ Main transitions: ASLEEP —wake/hotkey→ LISTENING —speech end→ TRANSCRIBI
 %LOCALAPPDATA%\ACE\                 (portable mode: <app folder>\data\)
   config.toml                       (optional settings file, see D-45)
   data\ace.db  (+ -wal, -shm)
-  data\backups\ace-YYYYMMDD.db      (7 kept + one before every migration)
+  data\backups\ace-YYYYMMDD-HHMMSS.db               (regular: daily + on demand, 7 kept)
+  data\backups\ace-premigration-YYYYMMDD-HHMMSS.db  (before each schema upgrade, 5 kept)
+  data\backups\ace-prerestore-YYYYMMDD-HHMMSS.db    (safety copy before a restore, 5 kept)
+  data\ace-corrupt-YYYYMMDD-HHMMSS.db               (damaged file moved aside; never auto-deleted)
   logs\core-YYYYMMDD.jsonl, desktop-YYYYMMDD.log   (14 days)
   runtime\ipc.json                  (port + token; ACL: current user only; deleted on exit)
   cache\
@@ -874,14 +881,14 @@ SQLite FTS5 first. Embeddings (a small local embedding model + `sqlite-vec`) onl
 - SQLite 3 (bundled with Python), file `ace.db` (§5.8).
 - PRAGMAs on every connection: `journal_mode=WAL`, `synchronous=NORMAL`, `foreign_keys=ON`, `busy_timeout=5000`.
 - **Single-writer pattern:** all writes go through one async queue / worker to avoid "database is locked". Reads may run concurrently.
-- SQLAlchemy 2.0 (typed ORM). Sync engine in a worker thread vs `aiosqlite` async engine — decided at S02 and recorded.
+- SQLAlchemy 2.x (typed ORM): sync engine with `autocommit=False` on one dedicated database thread (D-47); no `aiosqlite`.
 - Alembic migrations ship with the app and run automatically on start, after a pre-migration backup. Every schema change = one Alembic revision, referenced in that stage's Progress Log entry.
 - On start: `PRAGMA quick_check`. On failure → restore the latest backup, notify Sharan, keep the corrupt file for diagnostics.
 
 ### 13.2 Rules
 - Parameterized queries only (ORM, or `text()` with bound parameters). No f-strings, `%` formatting or concatenation in SQL — enforced by ruff rule `S608` and review.
 - Input validated by Pydantic before reaching repositories. Repositories are the only DB access layer.
-- Timestamps in UTC ISO-8601. IDs: UUIDv7 or ULID strings (decided at S02).
+- Timestamps in UTC ISO-8601, stored as fixed-width text (D-48). IDs: UUIDv7 strings (D-48).
 - Secrets are never stored in the DB (Credential Manager only).
 
 ### 13.3 Schema (v1 tables created at S02; later tables added by migrations in the listed stage)
@@ -920,7 +927,7 @@ SQLite FTS5 first. Embeddings (a small local embedding model + `sqlite-vec`) onl
 Indexes (minimum): `messages(conversation_id, ts)`, `tasks(status, created_at)`, `task_steps(task_id, idx)`, `alarms(status, fire_at_utc)`, `provider_usage(window_start)`, `app_index(normalized_name)`, `verifications(step_id)`.
 
 ### 13.4 Backups
-Daily online backup (SQLite backup API) to `data\backups\` (keep 7) + one before every migration. Restore from Control Center → Diagnostics.
+Online backups with the SQLite backup API to `data\backups\` (D-49): regular backups (daily + on demand) keep the newest 7; a pre-migration backup before every schema upgrade and a safety copy before every restore keep the newest 5 each. Restore from Control Center → Diagnostics (the core API exists since S02; the UI comes later).
 
 ### 13.5 Retention (D-26)
 `messages` 30 days (after the episode summary exists) · `audit_log` 90 days · `verifications` 30 days · `tasks` / `task_steps` 90 days · `notifications` 30 days · `episodes` kept (compacted). Implemented as scheduled jobs (framework at S02, rules at S31).
@@ -2119,6 +2126,36 @@ Template for every entry:
 - Tests: `uv run pytest --cov` → 76 passed, 93.6 % · `ruff check`, `ruff format --check`, `mypy` (strict + pydantic plugin) → clean · `pre-commit run --all-files` → 15/15 (two deliberate fake secrets in the redaction tests are marked `pragma: allowlist secret`) · `python tools/dev/check_plan.py` → all checks passed.
 - Next step: Sharan reviews S01 and approves → `[S01]` commit → S02 (database foundation).
 - Approval: Sharan approved S01 on 2026-11-06 ("continue") → committed as `[S01] Core service skeleton` on branch `stage/s01-core-service`; S02 continues on `stage/s02-database`.
+
+### PL-0004 — 2026-11-06 — S02 — Database foundation
+- Done:
+  - `ace_core.db`: `engine` (D-47 settings; PRAGMAs WAL, synchronous=NORMAL, foreign_keys, busy_timeout), `models` (`settings`, `audit_log` with a naming convention and CHECK constraints), `types.UtcDateTime`, `ids` (UUIDv7, D-48), `migrate` (programmatic Alembic), `migrations/` (`env.py`, revision `0001`), `database` (single `ace-db` thread; start = integrity check → recovery → pre-migration backup → upgrade; backup / restore / daily backup), `backup` (naming, listing, pruning, SQLite backup-API copy, integrity check), `repositories` (the only DB access path, bound parameters only), `stores` (`SettingsStore`, `AuditLog`: Pydantic validation, redaction, setting change + audit row in one transaction), `maintenance` (daily backup + retention jobs with isolated failures; the D-26 `audit_log` 90-day rule), `events.DatabaseRecovered`.
+  - App wiring: `app/bootstrap.create_app` registers the database and maintenance startup / shutdown hooks; health subsystem `database`; new settings `db_backups_keep`, `audit_retention_days`; `core/alembic.ini` for developers (throwaway `.dev-db/`).
+  - 123 tests (47 new); coverage 95.9 %.
+- Not done / known issues:
+  - Nothing committed yet — the `[S02]` commit waits for Sharan's approval.
+  - Corruption recovery is reported through health, audit, an event and the logs only; a visible notification arrives with the UI (S05+) and notifications (S37).
+  - All DB work is serialized on one thread (by design, D-47), so a long job delays the others. Fine for one local user; revisit if a later stage needs heavy DB work.
+  - The only retention rule so far is the `audit_log` 90-day rule (it ships with its table); other rules arrive with their tables (S31).
+  - Started from Claude's shell, the database lives in Claude's sandboxed `%LOCALAPPDATA%\ACE` (R-16).
+  - Repository event: at 21:50 Sharan created the private GitHub repo `quirky-sharan/A.C.E.`, added it as `origin` and pushed `main` (= S01, `5e45b8a`). GitHub's `git branch -M main` step renamed the in-progress `stage/s02-database` branch to `main`; S02's uncommitted work was moved back to a recreated local `stage/s02-database` (no files changed, nothing pushed). CI now runs on GitHub for pushes to `main` and `stage/**`; results are not visible from here (private repo).
+- [VERIFY] results (2026-11-06):
+  - SQLAlchemy 2 + SQLite → installed 2.1.8: for Python 3.12+ use `connect_args={"autocommit": False}`; PRAGMAs such as `foreign_keys` must run with autocommit temporarily on (documented example); file databases get `QueuePool` and `check_same_thread=False` automatically — https://docs.sqlalchemy.org/en/21/dialects/sqlite.html
+  - Alembic programmatic API → installed 1.20.1: pass the connection through `config.attributes["connection"]` inside `engine.begin()`, then `command.upgrade(cfg, "head")` — https://alembic.sqlalchemy.org/en/latest/cookbook.html ; `script.py.mako` copied from the installed Alembic's own `generic` template.
+  - SQLite backup API from Python → `Connection.backup(target, ...)` works while the source is in use; a connection used as a context manager is NOT closed (use `contextlib.closing`) — https://docs.python.org/3.12/library/sqlite3.html ; bundled SQLite 3.53.1.
+  - UUIDv7 → layout and counter method (random seed per millisecond; handle rollover and clock steps) per RFC 9562 §5.7 and §6.2 — https://www.rfc-editor.org/rfc/rfc9562.html
+- Acceptance evidence:
+  - Fresh `ace-core` run → `%LOCALAPPDATA%\ACE\data\ace.db` created (`created: true`), `journal_mode: wal`, tables `settings`, `audit_log`, `alembic_version`, revision `0001`; startup maintenance made `data\backups\ace-20261106-214927.db`; a real Ctrl+C → exit 0 in 0.22 s.
+  - Migration round trip upgrade → downgrade → upgrade, and models == migrations (`compare_metadata` is empty) — `tests/db/test_migrations.py`.
+  - Backup → change → restore brings the old value back; a damaged backup is refused; a damaged database is moved aside and restored from the newest valid backup (or started empty) — `tests/db/test_database.py`.
+  - Eight SQL-injection payloads (e.g. `'; DROP TABLE settings;--`) used as setting keys, values and audit text come back literally, with all tables intact — `tests/db/test_stores.py`.
+  - 50 concurrent jobs ran on a single `ace-db` thread, never two at once; 100 concurrent writes all landed.
+  - Developer CLI: `uv run alembic upgrade head` then `alembic current` → `0001 (head)` on the throwaway dev database.
+- New dependencies: runtime — SQLAlchemy 2.1.8 (MIT), Alembic 1.20.1 (MIT), plus transitive Mako 1.4.3 (MIT) and MarkupSafe 3.0.4 (BSD-3-Clause).
+- Decisions added: D-47 (database access), D-48 (IDs and timestamps), D-49 (backups and recovery); §5.8, §13.1, §13.2 and §13.4 updated to match.
+- Tests: `uv run pytest --cov` → 123 passed, 95.9 % · `ruff check`, `ruff format --check`, `mypy` (strict) → clean · `pre-commit run --all-files` → all passed · `python tools/dev/check_plan.py` → all checks passed.
+- Next step: Sharan reviews S02 and approves → `[S02]` commit → S03 (IPC API).
+- Approval: Sharan approved S02 on 2026-11-06 ("continue") → committed as `[S02] Database foundation` on branch `stage/s02-database`; S03 continues on `stage/s03-ipc`.
 
 ---
 

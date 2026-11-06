@@ -42,5 +42,6 @@ target/
 *.gguf
 *.safetensors
 core/tests/fixtures/audio/local/
+core/.dev-db/
 logs/
 *.log
