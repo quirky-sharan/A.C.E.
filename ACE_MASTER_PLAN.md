@@ -12,8 +12,8 @@
 | Last updated | 2026-11-06 |
 | Owner / client | Sharan (ACE addresses Sharan as "Sharan" or "boss") |
 | Project folder | `E:\A.C.E` |
-| Current stage | **S01 — Core service skeleton** (in progress, branch `stage/s01-core-service`) |
-| Last completed stage | S00 — Workspace & repository setup (approved by Sharan 2026-11-06) |
+| Current stage | **S02 — Database foundation** (in progress, branch `stage/s02-database`) |
+| Last completed stage | S01 — Core service skeleton (approved by Sharan 2026-11-06) |
 | Next milestone | M1 — Typed commands control the PC |
 | Blocking user actions | none · pending, non-blocking: [USER-ACTION] run `tools/dev/set-dev-env.ps1` once in a normal PowerShell window (§17.4); create the GitHub repo to activate CI |
 
@@ -322,6 +322,8 @@ Status values: **Decided** = confirmed by Sharan in the 2026-11-06 Q&A. **Defaul
 | D-42 | Build toolchain, all on E: (§17.4): VS 2022 Build Tools (MSVC v143) + standalone Windows 11 SDK 10.0.26100; Rust stable via rustup (minimal profile + rustfmt + clippy); pnpm 12 installed with npm; uv-managed CPython 3.12. Exact versions in PL-0002. | Engineering | rustup's MSVC docs cover VS 2022 (2026 not yet documented); Sharan asked for everything on E:. |
 | D-43 | Workspace layout: one pnpm workspace (`apps/*`, single `pnpm-lock.yaml`); the Python core is its own uv project in `core/`; shared ESLint flat config (`defineConfig`) + Prettier at the repo root; Markdown is excluded from Prettier. | Engineering | One lockfile per ecosystem; the master plan is never reflowed. |
 | D-44 | Quality gates: pre-commit (pre-commit-hooks, ruff, detect-secrets with `.secrets.baseline`, local mypy / eslint / prettier / cargo fmt / clippy hooks); CI on `windows-latest` with GitHub Actions pinned to exact release tags. | Engineering | §16.7; exact tags are reproducible (SHA pinning reviewed at S43). |
+| D-45 | Core configuration: typed `Settings` (pydantic-settings). Priority, highest first: command-line flags > `ACE_*` environment variables > `<root>\config.toml` (optional, TOML) > defaults. Unknown keys in `config.toml` are rejected. A DB-backed settings layer joins in a later stage. | Engineering | S01; typos fail loudly instead of being silently ignored. |
+| D-46 | Core logging and process protocol: every record (structlog and stdlib) passes the redaction processor (§15.1); file = one JSON object per line in `logs\core-YYYYMMDD.jsonl` (one file per local day, `ts` in UTC, 14-day retention); `--dev` adds readable stderr output; **stdout is reserved for protocol lines** (`ACE_READY port=<n>`). Exit codes: 0 ok · 1 startup failed · 2 usage error · 3 not implemented yet (native host before S24) · 130 forced. | Engineering | S01; the desktop shell (S04) parses stdout, so nothing else may print there. |
 
 ---
 
@@ -434,6 +436,7 @@ Main transitions: ASLEEP —wake/hotkey→ LISTENING —speech end→ TRANSCRIBI
 
 ```
 %LOCALAPPDATA%\ACE\                 (portable mode: <app folder>\data\)
+  config.toml                       (optional settings file, see D-45)
   data\ace.db  (+ -wal, -shm)
   data\backups\ace-YYYYMMDD.db      (7 kept + one before every migration)
   logs\core-YYYYMMDD.jsonl, desktop-YYYYMMDD.log   (14 days)
@@ -2092,6 +2095,30 @@ Template for every entry:
 - Tests: `uv run pytest` → 2 passed · `ruff check`, `ruff format --check`, `mypy` (strict) → clean · `pnpm lint`, `pnpm format:check`, `pnpm typecheck` → clean · `pnpm test` → 2 passed · `pnpm build` → extension `dist/` (manifest.json + service-worker.js) and desktop UI built · `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test` → clean · `pre-commit run --all-files` → 15/15 passed · `pnpm tauri dev` → window "ACE" opened, then closed cleanly · inside Claude's shells `cargo` resolves to `E:\.toolchains\cargo\bin\cargo.exe` and `uv cache dir` is `E:\.cache\uv` · `python tools/dev/check_plan.py` → all checks passed.
 - Next step: [USER-ACTION] Sharan runs `tools/dev/set-dev-env.ps1`, reviews S00 and approves → `[S00]` commit → S01 (core service skeleton).
 - Approval: Sharan approved S00 on 2026-11-06 → committed as `[S00] Workspace and repository setup` on branch `stage/s00-workspace`; S01 continues on `stage/s01-core-service`.
+
+### PL-0003 — 2026-11-06 — S01 — Core service skeleton
+- Done:
+  - `ace_core.app`: `cli` (`--dev`, `--portable`, `--log-level`, `--native-host`, `--version`; a `chrome-extension://` first argument selects native-host mode), `config` (D-45), `paths` (normal / portable, `config.toml`), `logging_setup` (D-46: daily JSONL handler with retention, redaction on every record, dev console), `events` (typed async bus: subscription order, base-class matching, per-subscriber error isolation, background delivery + `drain`), `health` (ok / degraded / down, worst-of overall, change events), `container` (explicit dependencies, no singletons), `lifecycle` (startup / shutdown hooks, READY line, bounded shutdown, Windows-safe SIGINT / SIGBREAK handling, forced exit on a second signal), `main` + `python -m ace_core`.
+  - `ace_core.security.redaction`: sensitive keys match on the last word (`ipc_token` hidden, `token_count` visible) + text rules (provider key formats, bearer tokens, `key=value` secrets, emails, phone numbers).
+  - 76 tests (unit + one real-process test); coverage 93.6 %; a ≥ 80 % gate added to the pytest config and the CI step.
+- Not done / known issues:
+  - Nothing committed yet — the `[S01]` commit waits for Sharan's approval.
+  - Started from Claude's shell, the core writes to Claude's sandboxed `%LOCALAPPDATA%\ACE` (R-16); `ace-core` run from a normal terminal uses the real folder.
+  - `__main__.py` and the `asyncio.run` path of `main()` run only in the subprocess test, which coverage does not count.
+  - The real-process test skips itself when the runner has no console to deliver Ctrl+Break (possible on some CI machines).
+- [VERIFY] results (2026-11-06):
+  - pydantic-settings v2 API → confirmed with installed 2.16.2: `settings_customise_sources(settings_cls, init_settings, env_settings, dotenv_settings, file_secret_settings)`, `TomlConfigSettingsSource(settings_cls, toml_file=...)`; the first returned source has the highest priority (library merge code + tests); env vars matching no field are ignored even with `extra="forbid"` — https://pydantic.dev/docs/validation/latest/concepts/pydantic_settings/
+  - asyncio signals on Windows → `loop.add_signal_handler()` is not supported on Windows — https://docs.python.org/3.12/library/asyncio-platforms.html ; `signal.signal()` works only on the main thread, SIGBREAK is Windows-only, handlers run on the main thread between bytecodes — https://docs.python.org/3.12/library/signal.html . Implemented with `signal.signal()` + `call_soon_threadsafe`.
+  - structlog JSON + rotation → the `ProcessorFormatter` pattern (`foreign_pre_chain`, `remove_processors_meta`, `wrap_for_formatter`, stdlib `LoggerFactory`) confirmed for structlog 26.1.0 — https://www.structlog.org/en/stable/standard-library.html ; rotation is ACE's own daily handler to keep the `core-YYYYMMDD.jsonl` naming of §5.8.
+- Acceptance evidence:
+  - `ace-core --dev` → stdout `ACE_READY port=0`; JSON lines in `%LOCALAPPDATA%\ACE\logs\core-20261106.jsonl`; readable dev lines on stderr.
+  - A real Ctrl+C (CTRL_C_EVENT raised in the core's own hidden console) → `shutdown requested` (`signal:SIGINT`) → `shutdown complete` → exit code 0, 0.09 s after Ctrl+C.
+  - Logging a fake Groq key, a bearer token and a phone number → `"api_key": "[REDACTED]"`, `Bearer [REDACTED]`, `[REDACTED:phone]`.
+- New dependencies: runtime — pydantic 2.14.3 (MIT), pydantic-settings 2.16.2 (MIT), structlog 26.1.0 (MIT OR Apache-2.0), plus transitive pydantic-core (MIT), python-dotenv (BSD-3-Clause), annotated-types (MIT), typing-inspection (MIT); dev — pytest-asyncio 1.4.1 (Apache-2.0), pytest-cov 7.1.0 (MIT), coverage 7.17.2 (Apache-2.0).
+- Decisions added: D-45 (configuration), D-46 (logging, stdout protocol, exit codes).
+- Tests: `uv run pytest --cov` → 76 passed, 93.6 % · `ruff check`, `ruff format --check`, `mypy` (strict + pydantic plugin) → clean · `pre-commit run --all-files` → 15/15 (two deliberate fake secrets in the redaction tests are marked `pragma: allowlist secret`) · `python tools/dev/check_plan.py` → all checks passed.
+- Next step: Sharan reviews S01 and approves → `[S01]` commit → S02 (database foundation).
+- Approval: Sharan approved S01 on 2026-11-06 ("continue") → committed as `[S01] Core service skeleton` on branch `stage/s01-core-service`; S02 continues on `stage/s02-database`.
 
 ---
 
