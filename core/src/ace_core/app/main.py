@@ -9,10 +9,10 @@ from typing import Any, Final
 
 from pydantic import ValidationError
 
+from ace_core.app.bootstrap import create_app
 from ace_core.app.cli import CliOptions, parse_args
 from ace_core.app.config import load_settings
-from ace_core.app.container import build_container
-from ace_core.app.lifecycle import EXIT_FORCED, EXIT_STARTUP_FAILED, App
+from ace_core.app.lifecycle import EXIT_FORCED, EXIT_STARTUP_FAILED
 from ace_core.app.logging_setup import configure_logging
 from ace_core.app.paths import AppPaths, resolve_paths
 
@@ -41,7 +41,7 @@ def main(argv: Sequence[str] | None = None, *, paths: AppPaths | None = None) ->
         retention_days=settings.log_retention_days,
     )
     try:
-        return asyncio.run(App(build_container(settings, resolved)).run())
+        return asyncio.run(create_app(settings, resolved).run())
     except KeyboardInterrupt:  # Ctrl+C before the signal handlers were installed
         return EXIT_FORCED
     finally:

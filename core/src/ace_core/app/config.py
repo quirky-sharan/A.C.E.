@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     log_retention_days: int = Field(default=14, ge=1, le=365)
     shutdown_timeout_s: float = Field(default=5.0, gt=0, le=5.0)
     dev: bool = False
+    db_backups_keep: int = Field(default=7, ge=1, le=100)  # regular backups kept (§13.4)
+    audit_retention_days: int = Field(default=90, ge=1, le=3650)  # D-26
 
 
 def load_settings(
