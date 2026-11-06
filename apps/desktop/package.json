@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "gen:ipc": "json2ts -i src/ipc/ipc.schema.json -o src/ipc/generated.ts --unknownAny"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
@@ -24,6 +25,7 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^6.0.2",
+    "json-schema-to-typescript": "^16.0.0",
     "typescript": "~6.0.3",
     "vite": "^8.0.16",
     "vitest": "^5.1.0"

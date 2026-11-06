@@ -9,11 +9,11 @@
 |---|---|
 | Doc version | 1.1.0 |
 | Doc created | 2026-11-06 |
-| Last updated | 2026-11-06 |
+| Last updated | 2026-11-07 |
 | Owner / client | Sharan (ACE addresses Sharan as "Sharan" or "boss") |
 | Project folder | `E:\A.C.E` |
-| Current stage | **S03 — IPC API** (in progress, branch `stage/s03-ipc`) |
-| Last completed stage | S02 — Database foundation (approved by Sharan 2026-11-06) |
+| Current stage | **S04 — Tauri desktop shell** (in progress, branch `stage/s04-tauri-shell`) |
+| Last completed stage | S03 — IPC API (approved by Sharan 2026-11-07) |
 | Next milestone | M1 — Typed commands control the PC |
 | Blocking user actions | none · pending, non-blocking: [USER-ACTION] run `tools/dev/set-dev-env.ps1` once in a normal PowerShell window (§17.4) |
 | Repository | GitHub `quirky-sharan/A.C.E.` (private), created by Sharan 2026-11-06; `main` = approved stages (pushed by Sharan); stage branches are local until Sharan asks to push |
@@ -328,6 +328,8 @@ Status values: **Decided** = confirmed by Sharan in the 2026-11-06 Q&A. **Defaul
 | D-47 | Database access: SQLAlchemy 2.x sync engine with `connect_args={"autocommit": False}` (Python 3.12 PEP 249 transactions, so migrations are all-or-nothing); PRAGMAs applied on connect with autocommit briefly on; ALL database work runs on one dedicated `ace-db` thread via `Database.run()` (single writer, no cross-thread connections); no `aiosqlite`. | Engineering | S02; SQLAlchemy's documented setup for Python 3.12+; one local user doesn't need parallel DB access. |
 | D-48 | IDs and timestamps: record IDs are UUIDv7 strings (RFC 9562, monotonic within a millisecond; switch to `uuid.uuid7()` on Python ≥ 3.14). Timestamps are stored as fixed-width UTC text `YYYY-MM-DDTHH:MM:SS.ffffffZ` (`UtcDateTime`), so text order = time order. | Engineering | S02 (§13.2). |
 | D-49 | Backups and recovery: regular backups `ace-YYYYMMDD-HHMMSS.db` (daily + on demand) keep 7; `ace-premigration-*` and `ace-prerestore-*` keep 5 each. On a failed `quick_check` the damaged file is moved to `data\ace-corrupt-*.db` (never auto-deleted), the newest valid backup is restored, and the `database` health turns DEGRADED with an audit entry and a `DatabaseRecovered` event (UI and notifications surface it in later stages). | Engineering | S02; refines §13.4's "7 kept + one before every migration" so pre-migration copies can't pile up forever. |
+| D-50 | IPC server (§5.5): FastAPI on Uvicorn started in-process (`ws="websockets-sansio"`, no access log or `Server` header, Uvicorn's signal handlers disabled so the App lifecycle keeps them), bound to `127.0.0.1` on an exclusive socket (`SO_EXCLUSIVEADDRUSE`); the Host header must be `127.0.0.1`. Limits: auth within 2 s · ≤ 8 clients · ≤ 1 MiB per frame · 30 messages/s per connection (burst 60) · 256 queued frames per client (events are dropped for a stuck client; a response waits ≤ 5 s, then the client is disconnected). Close codes: 4401 auth missing / wrong / late · HTTP 403 for a foreign Origin or too many clients · 1009 frame too big · 1001 core stopping (queued frames are flushed first, ≤ 0.5 s). Token: `ACE_IPC_TOKEN` from the shell (removed from the environment at once), else generated (256-bit). `runtime\ipc.json` = port, token, pid, version, with a protected current-user-only DACL; removed on exit only by the process that wrote it. Clients see only allowlisted events (`ipc/events.py`); `session.ready` is always a client's first frame. | Engineering | S03; §15.1 baseline. |
+| D-51 | IPC types for the UI: the Pydantic models are the single source → one JSON Schema `apps/desktop/src/ipc/ipc.schema.json` (no per-field titles; outgoing fields with defaults marked required) → json-schema-to-typescript 16 (`--unknownAny`) → `apps/desktop/src/ipc/generated.ts`. Both files are committed and skipped by Prettier / ESLint; `pnpm gen:ipc` regenerates them; CI fails if either is stale. | Engineering | S03; the exporter imports the models, so it lives in `core/` (`ace_core.ipc.export_schema`), not `tools/`. |
 
 ---
 
@@ -407,7 +409,7 @@ Main transitions: ASLEEP —wake/hotkey→ LISTENING —speech end→ TRANSCRIBI
 ### 5.5 IPC protocol (core ↔ UI, core ↔ native host, core ↔ dev CLI)
 - **Transport:** WebSocket `ws://127.0.0.1:<port>/ws` for commands and events; REST `http://127.0.0.1:<port>/api/v1/...` for settings / CRUD. Bound to `127.0.0.1` only.
 - **Auth:** per-run 256-bit random token. WebSocket: the first message must be `{"type":"auth","token":"…"}` within 2 s, or the connection is closed. REST: `Authorization: Bearer <token>`. Never put the token in a URL.
-- **Origin allowlist:** the Tauri webview origin(s) [VERIFY the exact origin on Windows, e.g. `http://tauri.localhost`]. Connections without an Origin header are allowed only for the native host and the dev CLI (they still need the token).
+- **Origin allowlist:** the Tauri webview origins `http://tauri.localhost` (Windows default) and `https://tauri.localhost` (only if `useHttpsScheme` is ever turned on); dev mode also allows the Vite dev server `http://localhost:1420`. Checked in the docs at S03 (PL-0005); first live check when the webview connects (S04/S05). Connections without an Origin header are allowed only for the native host and the dev CLI (they still need the token).
 - **Envelope:**
 ```json
 { "v": 1, "id": "01J…", "type": "request|response|event|error",
@@ -416,9 +418,9 @@ Main transitions: ASLEEP —wake/hotkey→ LISTENING —speech end→ TRANSCRIBI
   "ts": "2026-11-06T10:00:00.000Z" }
 ```
 - **Initial methods:** `system.health`, `system.state.get`, `command.submit`, `task.list`, `task.cancel`, `confirm.respond`, `clarify.respond`, `settings.get`, `settings.set`, `log.tail` (dev only). Later stages add `memory.*`, `routines.*`, `providers.*`, `voice.*`, `devices.*`, `overlay.*`, `accounts.*`, `contacts.*`, `models.*`, `bridge.*`.
-- **Initial events:** `state.changed`, `transcript.partial`, `transcript.final`, `task.created`, `task.updated`, `task.step`, `task.verified`, `task.finished`, `confirm.requested`, `clarify.requested`, `notification.created`, `health.changed`, `audio.level`.
-- **Schemas:** Pydantic v2 models in `core/src/ace_core/ipc/schemas.py` → JSON Schema → generated TypeScript in `apps/desktop/src/ipc/generated.ts` (script in `tools/`). CI fails if the generated file is stale.
-- **Limits:** max message 1 MiB; per-connection rate limit; unknown method → `E_IPC_UNKNOWN_METHOD`.
+- **Initial events:** `state.changed`, `transcript.partial`, `transcript.final`, `task.created`, `task.updated`, `task.step`, `task.verified`, `task.finished`, `confirm.requested`, `clarify.requested`, `notification.created`, `health.changed`, `audio.level`, plus `session.ready` (always a client's first frame after auth), `system.stopping`, `db.recovered`.
+- **Schemas:** Pydantic v2 models in `core/src/ace_core/ipc/schemas.py` → JSON Schema (`ace_core.ipc.export_schema` → `apps/desktop/src/ipc/ipc.schema.json`) → generated TypeScript in `apps/desktop/src/ipc/generated.ts` (json-schema-to-typescript; run `pnpm gen:ipc`, D-51). CI fails if either file is stale.
+- **Limits & errors:** max message 1 MiB; per-connection rate limit; exact limits and close codes in D-50. Error codes: `E_IPC_BAD_MESSAGE`, `E_IPC_UNKNOWN_METHOD`, `E_IPC_BAD_PARAMS`, `E_IPC_RATE_LIMITED`, `E_IPC_DEV_ONLY`, `E_IPC_INTERNAL`. Error details carry field locations and messages only, never the rejected input.
 - **Native messaging:** the extension talks to the ACE native host (the core executable launched by Chrome in native-host mode, §11.2) over stdio (Chrome framing: 4-byte little-endian length + UTF-8 JSON; host → extension max 1 MB per message [VERIFY]). The native host connects to the core WebSocket using port + token read from `%LOCALAPPDATA%\ACE\runtime\ipc.json` (file ACL: current user only).
 
 ### 5.6 Process lifecycle
@@ -1274,8 +1276,8 @@ Every stage uses the same template: **Goal · Prereqs · Spec · Tasks · Accept
   2. Write `runtime\ipc.json` (port + token) with an ACL for the current user only [VERIFY method]; delete it on exit.
   3. WebSocket `/ws`: first-message auth within 2 s, Origin allowlist, envelope validation, 1 MiB limit, per-connection rate limit.
   4. Methods: `system.health`, `system.state.get`, `settings.get`, `settings.set`, `log.tail` (dev only). Event fan-out from the event bus to subscribed clients.
-  5. Pydantic → JSON Schema → `apps/desktop/src/ipc/generated.ts` generator in `tools/`; CI freshness check.
-  6. `ace-cli` dev client: `health`, `send <text>`, `watch` (events).
+  5. Pydantic → JSON Schema → `apps/desktop/src/ipc/generated.ts` generator (`ace_core.ipc.export_schema` + json-schema-to-typescript, run with `pnpm gen:ipc`, D-51); CI freshness check.
+  6. `ace-cli` dev client: `health`, `call <method> [params]`, `watch` (events). (`send <text>` needs `command.submit`, so it moved to S07.)
 - **Acceptance criteria:**
   - [ ] Unauthenticated or late-auth WebSocket connections are closed.
   - [ ] A wrong Origin is rejected.
@@ -1357,7 +1359,7 @@ Every stage uses the same template: **Goal · Prereqs · Spec · Tasks · Accept
 - **Prereqs:** S06.
 - **Spec:** §5.3, §8.1 (stages 1–2), §8.4 (basic), §10.1, §15.3.
 - **Tasks:**
-  1. `command.submit`; normalization; fast-path grammar for: open / close / switch app (stubs until S08), "stop", "help", mode switches (stored only).
+  1. `command.submit` (+ `ace-cli send <text>`, moved from S03); normalization; fast-path grammar for: open / close / switch app (stubs until S08), "stop", "help", mode switches (stored only).
   2. Skill protocol + registry + JSON Schema export.
   3. Supervisor: tier evaluation, basic capability scope, confirmation flow (`confirm.requested` → ConfirmCard → `confirm.respond`, 30 s timeout), T3 refusal.
   4. Migrations for `conversations`, `messages`, `tasks`, `task_steps`, `confirmations`.
@@ -2156,6 +2158,38 @@ Template for every entry:
 - Tests: `uv run pytest --cov` → 123 passed, 95.9 % · `ruff check`, `ruff format --check`, `mypy` (strict) → clean · `pre-commit run --all-files` → all passed · `python tools/dev/check_plan.py` → all checks passed.
 - Next step: Sharan reviews S02 and approves → `[S02]` commit → S03 (IPC API).
 - Approval: Sharan approved S02 on 2026-11-06 ("continue") → committed as `[S02] Database foundation` on branch `stage/s02-database`; S03 continues on `stage/s03-ipc`.
+
+### PL-0005 — 2026-11-07 — S03 — IPC API
+- Done:
+  - `ace_core.ipc`: `schemas` (Pydantic envelope + method / event models), `protocol` (strict parsing: JSON object → `auth` / `request` union with `extra="forbid"`; error details never echo the input), `security` (256-bit token, constant-time compare, Origin allowlist, token-bucket limiter, current-user-only file DACL), `runtime_file` (`runtime\ipc.json`: created private, written, then moved into place; removed only by its owner pid), `methods` (`system.health`, `system.state.get`, `settings.get`, `settings.set` audited as `user`, `log.tail` dev only), `events` (allowlist: `session.ready`, `state.changed`, `health.changed`, `system.stopping`, `db.recovered`), `server` (D-50), `cli` (`ace-cli health | call <method> [params] | watch [--count N]`, `--portable`), `export_schema` (with `--check` for CI).
+  - `ace_core.app.state`: `ConversationState` (§5.4) + flags `game_mode`, `offline`, `dnd`, `paused_overlay`; `StateStore` publishes `StateChanged` only on a real change.
+  - App wiring: the IPC server starts after the database and maintenance and stops first; the READY line now carries the real port; `ACE_IPC_TOKEN` is taken from the shell's environment and removed; new setting `ipc_port` (0 = random). `SettingsStore.lookup()` tells a missing key apart from a stored `null`.
+  - UI side (D-51): `apps/desktop/src/ipc/ipc.schema.json` + `generated.ts` (compiled by `tsc --noEmit`), root script `pnpm gen:ipc`; CI checks both files are fresh; Prettier / ESLint skip them (the pre-commit ESLint hook gained `--no-warn-ignored`).
+  - 188 tests (65 new); coverage 95.4 %.
+- Not done / known issues:
+  - Nothing committed yet — the `[S03]` commit waits for Sharan's approval.
+  - Changed from the stage text (needs Sharan's OK): `ace-cli send <text>` moved to S07 because it needs `command.submit`; `ace-cli call <method> [params]` was added instead. The schema exporter lives in `core/` rather than `tools/` because it imports the models (D-51).
+  - Nothing in S03 changes the conversation state yet (the voice loop at S13 and later stages will), so `state.changed` is proven by tests with a real server and client, not live.
+  - Every IPC connection adds Uvicorn's "connection open / closed" INFO lines to the core log.
+  - The Tauri origin is confirmed from the docs only; the first live check comes when the webview connects (S04/S05).
+  - Started from Claude's shell, the core uses Claude's sandboxed `%LOCALAPPDATA%\ACE` (R-16); the acceptance run used a throwaway `LOCALAPPDATA` under `E:\.cache\ace-setup\s03-acceptance\`.
+- [VERIFY] results (2026-11-06/07):
+  - Tauri webview Origin on Windows → confirmed: custom protocols use `http://<scheme>.localhost` on Windows by default and `https://<scheme>.localhost` with `useHttpsScheme` (default off) → ACE allows `http://tauri.localhost` and `https://tauri.localhost`, plus `http://localhost:1420` in dev — https://v2.tauri.app/reference/config/#windowconfig
+  - FastAPI WebSocket API → confirmed with installed FastAPI 0.162.0 / Starlette 1.10.0 / Uvicorn 0.54.0: `WebSocket.accept()`, `receive()`, `close(code, reason)`; closing before `accept()` makes Uvicorn answer HTTP 403; Uvicorn's legacy `websockets` implementation is deprecated, so `ws="websockets-sansio"`; `ws_max_size` caps frames (larger → close 1009) — https://www.starlette.io/websockets/ + installed source. Client side: websockets 17.4 `websockets.asyncio.client.connect` — https://websockets.readthedocs.io/en/stable/reference/asyncio/client.html
+  - Pydantic → TypeScript tool → json-schema-to-typescript 16.0.0 (latest; `json2ts -i <in> -o <out>` and `--unknownAny` checked with `--help`) — https://github.com/bcherny/json-schema-to-typescript ; Pydantic 2.14.3 `models_json_schema(..., schema_generator=...)`, `GenerateJsonSchema.field_title_should_be_set` and `ConfigDict(json_schema_serialization_defaults_required=True)` checked in the installed source.
+  - Windows file ACL from Python → `SetNamedSecurityInfo(path, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION, ...)` replaces the DACL and blocks inherited ACEs — https://learn.microsoft.com/en-us/windows/win32/api/aclapi/nf-aclapi-setnamedsecurityinfow ; used through pywin32 312 `win32security`. A test reads the DACL back: one ACE (current user, `FILE_ALL_ACCESS`) and `SE_DACL_PROTECTED` set.
+- Acceptance evidence (real `ace-core --dev` + real `ace-cli`, throwaway `LOCALAPPDATA`):
+  - stdout `ACE_READY port=50343`; `runtime\ipc.json` present with `pid`, `port`, `token`, `version`.
+  - `ace-cli health` → exit 0, `overall: ok` with subsystems `core` and `database`. `call system.state.get` → `asleep`, all flags false. `call settings.set` then `settings.get` → `"dark"`. `call log.tail` (dev) → the last log lines. `call nope.method` → exit 1, `E_IPC_UNKNOWN_METHOD`. `settings.get` with an empty key → exit 1, `E_IPC_BAD_PARAMS` (field location and message only).
+  - Raw probes: foreign Origin → HTTP 403; no auth → closed 4401 after 2.0 s; wrong token → closed 4401.
+  - `ace-cli watch --count 1`, then Ctrl+Break to the core → the watcher prints `system.stopping` (`signal:SIGBREAK`); core exit code 0; `runtime\ipc.json` removed; `ace-cli health` afterwards → exit 2 "ace-core is not running".
+  - Found and fixed in the live run: the core closed connections before queued frames (such as `system.stopping`) were sent. `stop()` now flushes them first (≤ 0.5 s); regression tests added.
+  - Automated: auth (missing / wrong / late token, non-auth first message), Origin (foreign, Tauri, dev-only), bad Host header → 400, REST bearer 401 / 200, oversized frame → 1009, malformed JSON / unknown method / bad params / binary frames, rate limit, client limit, settings audited as `user`, `state.changed` and `health.changed` pushed, `log.tail` dev only, stop → 1001, Hypothesis fuzzing of the envelope parser (any text, any JSON, message-shaped JSON), schema completeness and committed-schema freshness.
+- New dependencies: runtime — FastAPI 0.162.0 (MIT), Starlette 1.10.0 (BSD-3-Clause), Uvicorn 0.54.0 (BSD-3-Clause), websockets 17.4 (BSD-3-Clause), pywin32 312 (PSF-2.0), plus transitive AnyIO 4.16.0 (MIT), h11 0.16.0 (MIT), click 8.5.0 (BSD-3-Clause), idna 3.20 (BSD-3-Clause), annotated-doc 0.0.5 (MIT); dev — Hypothesis 6.170.15 (MPL-2.0; dev only, never shipped) with sortedcontainers 2.4.0 (Apache-2.0), types-pywin32 (Apache-2.0), json-schema-to-typescript 16.0.0 (MIT) with its MIT-licensed dependencies (lodash, js-yaml, minimist, tinyglobby, @apidevtools/json-schema-ref-parser, @types/json-schema, @types/lodash).
+- Decisions added: D-50 (IPC server), D-51 (IPC TypeScript types); §5.5 updated (origins, schema pipeline, error codes, events); S03 task text and S07 task 1 updated for the `ace-cli` change.
+- Tests: `uv run pytest --cov` → 188 passed, 95.4 % · `ruff check`, `ruff format --check`, `mypy` (strict) → clean · `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm build` → clean · `pre-commit run --all-files` → 15/15 passed · `python tools/dev/check_plan.py` → all checks passed.
+- Next step: Sharan reviews S03 (including the two changes above) and approves → `[S03]` commit → S04 (Tauri shell).
+- Approval: Sharan approved S03 on 2026-11-07 ("Approve, continue"), including both changes above (`ace-cli send` → S07; exporter in `core/`) → committed as `[S03] IPC API` on branch `stage/s03-ipc`; S04 continues on `stage/s04-tauri-shell`.
 
 ---
 

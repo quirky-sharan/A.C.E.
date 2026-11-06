@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     dev: bool = False
     db_backups_keep: int = Field(default=7, ge=1, le=100)  # regular backups kept (§13.4)
     audit_retention_days: int = Field(default=90, ge=1, le=3650)  # D-26
+    ipc_port: int = Field(default=0, ge=0, le=65535)  # 0 = a random free port (§5.6)
 
 
 def load_settings(
