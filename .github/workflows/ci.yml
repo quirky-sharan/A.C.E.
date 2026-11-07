@@ -27,6 +27,8 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy
+      # The committed IPC schema must match the Pydantic models (regenerate: pnpm gen:ipc).
+      - run: uv run python -m ace_core.ipc.export_schema --check ../apps/desktop/src/ipc/ipc.schema.json
       - run: uv run pytest -m "not hardware and not windows_ui" --cov --cov-report=term
 
   web:
@@ -40,6 +42,9 @@ jobs:
           node-version: 26
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # generated.ts must match the committed schema (regenerate: pnpm gen:ipc).
+      - run: pnpm --filter ace-desktop gen:ipc
+      - run: git diff --exit-code -- apps/desktop/src/ipc/generated.ts
       - run: pnpm lint
       - run: pnpm format:check
       - run: pnpm typecheck

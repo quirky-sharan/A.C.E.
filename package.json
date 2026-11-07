@@ -15,7 +15,8 @@
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "build": "pnpm -r build"
+    "build": "pnpm -r build",
+    "gen:ipc": "uv run --project core python -m ace_core.ipc.export_schema apps/desktop/src/ipc/ipc.schema.json && pnpm --filter ace-desktop gen:ipc"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

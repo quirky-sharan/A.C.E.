@@ -5,4 +5,7 @@ pnpm-lock.yaml
 **/target/
 **/node_modules/
 apps/desktop/src-tauri/gen/
+# Generated from core's Pydantic models (pnpm gen:ipc); CI checks they are fresh.
+apps/desktop/src/ipc/ipc.schema.json
+apps/desktop/src/ipc/generated.ts
 core/

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import queue
+import re
 import signal
 import subprocess
 import sys
@@ -59,7 +60,9 @@ def test_process_prints_ready_and_exits_cleanly_on_ctrl_break(tmp_path: Path) ->
     threading.Thread(target=_pump, args=(proc.stderr, stderr), daemon=True).start()
     try:
         ready = stdout.get(timeout=30)
-        assert ready.strip() == "ACE_READY port=0"
+        assert re.fullmatch(r"ACE_READY port=[1-9]\d*", ready.strip()), ready
+        runtime_file = tmp_path / "ACE" / "runtime" / "ipc.json"
+        assert runtime_file.is_file()
         try:
             os.kill(proc.pid, signal.CTRL_BREAK_EVENT)
         except OSError as exc:  # no shared console to deliver the event (some CI runners)
@@ -78,4 +81,6 @@ def test_process_prints_ready_and_exits_cleanly_on_ctrl_break(tmp_path: Path) ->
     (log_file,) = (tmp_path / "ACE" / "logs").glob("core-*.jsonl")
     events = [json.loads(line)["event"] for line in log_file.read_text("utf-8").splitlines()]
     assert "ready" in events
+    assert "ipc listening" in events
     assert "shutdown complete" in events
+    assert not runtime_file.exists()  # removed on a clean shutdown

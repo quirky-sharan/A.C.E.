@@ -42,7 +42,7 @@ repos:
         files: ^core/.*\.py$
       - id: eslint
         name: eslint
-        entry: pnpm exec eslint --max-warnings=0
+        entry: pnpm exec eslint --max-warnings=0 --no-warn-ignored
         language: system
         files: \.(ts|tsx|js|mjs|cjs)$
         exclude: ^core/
