@@ -30,6 +30,10 @@ from ace_core.app.version import __version__
 log = structlog.stdlib.get_logger(__name__)
 
 READY_PREFIX: Final = "ACE_READY"
+SAFE_MODE_DETAIL: Final = (
+    "safe mode: the desktop shell restarted the core after repeated crashes; "
+    "optional features stay off until ACE is restarted"
+)
 EXIT_OK: Final = 0
 EXIT_STARTUP_FAILED: Final = 1
 EXIT_FORCED: Final = 130
@@ -109,6 +113,7 @@ class App:
             version=__version__,
             portable=container.paths.portable,
             dev=container.settings.dev,
+            safe_mode=container.settings.safe_mode,
             root=str(container.paths.root),
         )
         for name, hook in self._startup_hooks:
@@ -122,7 +127,11 @@ class App:
                 await self._run_shutdown_hooks()
                 return EXIT_STARTUP_FAILED
 
-        await container.health.set("core", HealthStatus.OK)
+        if container.settings.safe_mode:
+            log.warning("running in safe mode", detail=SAFE_MODE_DETAIL)
+            await container.health.set("core", HealthStatus.DEGRADED, SAFE_MODE_DETAIL)
+        else:
+            await container.health.set("core", HealthStatus.OK)
         self._ready_writer(f"{READY_PREFIX} port={self.port}")
         log.info("ready", port=self.port)
         await container.bus.publish(AppStarted(version=__version__))

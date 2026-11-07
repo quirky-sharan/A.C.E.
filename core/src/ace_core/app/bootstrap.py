@@ -16,6 +16,7 @@ from ace_core.app.paths import AppPaths
 from ace_core.app.version import __version__
 from ace_core.db.database import StartReport
 from ace_core.db.events import DatabaseRecovered
+from ace_core.ipc.desktop_link import DesktopLink
 from ace_core.ipc.runtime_file import IpcEndpoint, remove_runtime_file, write_runtime_file
 from ace_core.ipc.server import IpcServer
 
@@ -30,9 +31,11 @@ def create_app(
     paths: AppPaths,
     *,
     environ: MutableMapping[str, str] = os.environ,
+    supervised: bool = False,
     **app_options: Any,
 ) -> App:
-    """``app_options`` are passed to :class:`App` (tests inject the READY writer, for example)."""
+    """Build the core. ``supervised``: started by ace-desktop, which talks over stdin / stdout
+    (D-52). ``app_options`` go to :class:`App` (tests inject the READY writer, for example)."""
     container = build_container(settings, paths)
     app = App(container, **app_options)
     # pop(): the token must not leak into processes the core starts later.
@@ -60,6 +63,10 @@ def create_app(
     app.on_shutdown("database", container.db.close)
     app.on_shutdown("maintenance", container.maintenance.stop)
     app.on_shutdown("ipc", stop_ipc)
+    if supervised:
+        link = DesktopLink(container, app.request_shutdown)
+        app.on_startup("desktop-link", link.start)
+        app.on_shutdown("desktop-link", link.stop)  # runs first: no snapshots while stopping
     return app
 
 

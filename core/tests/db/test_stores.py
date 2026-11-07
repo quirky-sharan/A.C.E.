@@ -9,7 +9,9 @@ from pydantic import JsonValue, ValidationError
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from ace_core.app.events import EventBus
 from ace_core.db.database import Database
+from ace_core.db.events import SettingChanged
 from ace_core.db.stores import AuditLog, SettingsStore
 from ace_core.security.redaction import redact_text
 
@@ -117,3 +119,21 @@ async def test_audit_recent_is_newest_first(db: Database) -> None:
         await audit.record(actor="system", event_type="test.order", summary=name)
     entries = await audit.recent(event_type="test.order")
     assert [e.summary for e in entries] == ["third", "second", "first"]
+
+
+async def test_setting_changes_are_published_on_the_bus(db: Database, audit: AuditLog) -> None:
+    bus = EventBus()
+    seen: list[SettingChanged] = []
+
+    async def remember(event: SettingChanged) -> None:
+        seen.append(event)
+
+    bus.subscribe(SettingChanged, remember)
+    store = SettingsStore(db, audit, bus=bus)
+    await store.set("hotkeys.summon", "Ctrl+Alt+Space", actor="user")
+    assert await store.delete("hotkeys.summon") is True
+    assert await store.delete("hotkeys.summon") is False  # nothing deleted, nothing published
+    assert [(e.key, e.actor, e.deleted) for e in seen] == [
+        ("hotkeys.summon", "user", False),
+        ("hotkeys.summon", "system", True),
+    ]

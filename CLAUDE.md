@@ -10,7 +10,7 @@ ACE is a Windows desktop assistant that operates Sharan's PC by voice or text (a
 - DB schema change: edit `core/src/ace_core/db/models.py`, then add a migration as described in `core/alembic.ini`
 - IPC dev client (core running, in `core/`): `uv run ace-cli health` · `uv run ace-cli call <method> '<json params>'` · `uv run ace-cli watch`
 - IPC schema change (`core/src/ace_core/ipc/schemas.py`, `methods.py`, `events.py`): run `pnpm gen:ipc` at the repo root and commit both generated files
-- Desktop app (Tauri): `pnpm --filter ace-desktop tauri dev`
+- Desktop app (Tauri): `pnpm --filter ace-desktop tauri dev` — starts its own core (`uv run ace-core --dev --supervised`, D-52); quit from the tray or with `apps\desktop\src-tauri\target\debug\ace-desktop.exe --quit`
 - Browser extension: `pnpm --filter ace-bridge-extension build`
 - All JS/TS (repo root): `pnpm lint` · `pnpm format:check` · `pnpm typecheck` · `pnpm test`
 - Hooks: `pre-commit run --all-files`
