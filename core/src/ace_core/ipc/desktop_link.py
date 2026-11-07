@@ -46,6 +46,7 @@ SHUTDOWN_REASON: Final = "the desktop shell closed the control channel"
 HOTKEY_SETTING_PREFIX: Final = "hotkeys."  # + action, e.g. "hotkeys.summon"; null or "" = off
 AUTOSTART_SETTING: Final = "desktop.autostart"
 MODE_SETTING: Final = "verification.mode"
+OVERLAY_SETTING_PREFIX: Final = "overlay."  # overlay.edge, overlay.orb_y, overlay.monitor (S06)
 
 
 class DesktopAction(StrEnum):
@@ -77,6 +78,20 @@ DEFAULT_HOTKEYS: Final[Mapping[DesktopAction, str]] = {
 DEFAULT_MODE: Final = VerificationMode.BALANCED
 
 
+class OverlayEdge(StrEnum):
+    """The screen edge the orb and sidebar dock to (§14.1)."""
+
+    RIGHT = "right"
+    LEFT = "left"
+
+
+class OverlayMonitor(StrEnum):
+    """Where the overlay appears (§14.2): the monitor with the mouse cursor, or the primary one."""
+
+    CURSOR = "cursor"
+    PRIMARY = "primary"
+
+
 class _Message(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -87,7 +102,7 @@ class _Message(BaseModel):
 class InputMessage(_Message):
     type: Literal["input"]
     action: DesktopAction
-    source: Literal["hotkey", "tray"]
+    source: Literal["hotkey", "tray", "overlay"]
     phase: Literal["pressed", "released"] = "pressed"
 
 
@@ -118,6 +133,17 @@ _SHELL_MESSAGE: TypeAdapter[ShellMessage] = TypeAdapter(
 # ---- core -> shell ----
 
 
+class OverlaySettings(_Message):
+    edge: OverlayEdge
+    orb_y: float = Field(ge=0.0, le=1.0)  # the orb's centre: 0 = top of the work area, 1 = bottom
+    monitor: OverlayMonitor
+
+
+DEFAULT_OVERLAY: Final = OverlaySettings(
+    edge=OverlayEdge.RIGHT, orb_y=0.5, monitor=OverlayMonitor.CURSOR
+)
+
+
 class DesktopSnapshot(_Message):
     """Everything the shell needs from the core; always sent whole."""
 
@@ -125,11 +151,12 @@ class DesktopSnapshot(_Message):
     hotkeys: dict[DesktopAction, str | None]  # None = no hotkey for this action
     autostart: bool
     mode: VerificationMode
+    overlay: OverlaySettings
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class DesktopInput(Event):
-    """A hotkey or tray action from ace-desktop. S04 logs it; later stages act on it."""
+    """A hotkey, tray or overlay action from ace-desktop. S04 logs it; later stages act on it."""
 
     action: DesktopAction
     source: str
@@ -165,6 +192,37 @@ def shell_settings(
     if mode.value != raw_mode:
         log.warning("ignoring an invalid setting", key=MODE_SETTING)
     return hotkeys, autostart, mode
+
+
+def overlay_settings(stored: Mapping[str, JsonValue]) -> OverlaySettings:
+    """Overlay placement from stored settings; invalid values fall back to the defaults."""
+    edge_key = OVERLAY_SETTING_PREFIX + "edge"
+    monitor_key = OVERLAY_SETTING_PREFIX + "monitor"
+    orb_y_key = OVERLAY_SETTING_PREFIX + "orb_y"
+    raw_edge = stored.get(edge_key, DEFAULT_OVERLAY.edge.value)
+    raw_monitor = stored.get(monitor_key, DEFAULT_OVERLAY.monitor.value)
+    raw_orb_y = stored.get(orb_y_key, DEFAULT_OVERLAY.orb_y)
+
+    edge = DEFAULT_OVERLAY.edge
+    if isinstance(raw_edge, str) and raw_edge in {member.value for member in OverlayEdge}:
+        edge = OverlayEdge(raw_edge)
+    else:
+        log.warning("ignoring an invalid setting", key=edge_key)
+    monitor = DEFAULT_OVERLAY.monitor
+    if isinstance(raw_monitor, str) and raw_monitor in {member.value for member in OverlayMonitor}:
+        monitor = OverlayMonitor(raw_monitor)
+    else:
+        log.warning("ignoring an invalid setting", key=monitor_key)
+    orb_y = DEFAULT_OVERLAY.orb_y
+    if (
+        isinstance(raw_orb_y, int | float)
+        and not isinstance(raw_orb_y, bool)
+        and 0 <= raw_orb_y <= 1
+    ):
+        orb_y = float(raw_orb_y)
+    else:
+        log.warning("ignoring an invalid setting", key=orb_y_key)
+    return OverlaySettings(edge=edge, orb_y=orb_y, monitor=monitor)
 
 
 def _write_stdout_line(line: str) -> None:
@@ -222,12 +280,14 @@ class DesktopLink:
             self._worker = None
 
     async def snapshot(self) -> DesktopSnapshot:
-        hotkeys, autostart, mode = shell_settings(await self._container.settings_store.all())
+        stored = await self._container.settings_store.all()
+        hotkeys, autostart, mode = shell_settings(stored)
         return DesktopSnapshot(
             state=core_state_info(self._container.state.current),
             hotkeys=hotkeys,
             autostart=autostart,
             mode=mode,
+            overlay=overlay_settings(stored),
         )
 
     # ---- stdin: a blocking reader thread hands complete lines to the event loop ----
@@ -333,7 +393,7 @@ class DesktopLink:
         await self._send_snapshot()
 
     async def _on_setting_changed(self, event: SettingChanged) -> None:
-        if event.key.startswith(HOTKEY_SETTING_PREFIX) or event.key in (
+        if event.key.startswith((HOTKEY_SETTING_PREFIX, OVERLAY_SETTING_PREFIX)) or event.key in (
             AUTOSTART_SETTING,
             MODE_SETTING,
         ):

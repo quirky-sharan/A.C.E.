@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-overlay-focus-input"
+description = "Enables the overlay_focus_input command without any pre-configured scope."
+commands.allow = ["overlay_focus_input"]
+
+[[permission]]
+identifier = "deny-overlay-focus-input"
+description = "Denies the overlay_focus_input command without any pre-configured scope."
+commands.deny = ["overlay_focus_input"]

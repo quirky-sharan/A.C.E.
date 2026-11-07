@@ -28,7 +28,10 @@ from ace_core.ipc.desktop_link import (
     DesktopAction,
     DesktopInput,
     DesktopLink,
+    OverlayEdge,
+    OverlayMonitor,
     VerificationMode,
+    overlay_settings,
     shell_settings,
 )
 
@@ -109,6 +112,7 @@ async def test_first_snapshot_comes_after_ready_with_the_defaults(link: Link) ->
         "hotkeys": {action.value: shortcut for action, shortcut in DEFAULT_HOTKEYS.items()},
         "autostart": False,
         "mode": "balanced",
+        "overlay": {"edge": "right", "orb_y": 0.5, "monitor": "cursor"},
     }
 
 
@@ -261,3 +265,29 @@ async def test_a_broken_output_pipe_stops_further_snapshots(tmp_path: Path) -> N
         await link.stop()
         await container.db.close()
         core_end.close()
+
+
+def test_overlay_settings_fall_back_to_the_defaults() -> None:
+    with capture_logs() as logs:
+        bad = overlay_settings(
+            {"overlay.edge": "top", "overlay.orb_y": 1.5, "overlay.monitor": ["x"]}
+        )
+    assert (bad.edge, bad.orb_y, bad.monitor) == (OverlayEdge.RIGHT, 0.5, OverlayMonitor.CURSOR)
+    assert sum(entry["event"] == "ignoring an invalid setting" for entry in logs) == 3
+    good = overlay_settings(
+        {"overlay.edge": "left", "overlay.orb_y": 0, "overlay.monitor": "primary"}
+    )
+    assert (good.edge, good.orb_y, good.monitor) == (OverlayEdge.LEFT, 0.0, OverlayMonitor.PRIMARY)
+    assert overlay_settings({"overlay.orb_y": True}).orb_y == 0.5  # a bool is not a number here
+
+
+async def test_overlay_setting_changes_send_a_snapshot(link: Link) -> None:
+    await started(link)
+    await link.container.settings_store.set("overlay.orb_y", 0.25, actor="user")
+    assert link.snapshots()[-1]["overlay"]["orb_y"] == 0.25
+
+
+async def test_overlay_input_is_accepted(link: Link) -> None:
+    link.send({"type": "input", "action": "mic_mute", "source": "overlay"})
+    await eventually(lambda: len(link.inputs) == 1)
+    assert link.inputs[0].source == "overlay"

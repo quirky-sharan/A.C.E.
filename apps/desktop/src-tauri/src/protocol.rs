@@ -5,6 +5,8 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
+use crate::geometry::Edge;
+
 pub const READY_PREFIX: &str = "ACE_READY port=";
 pub const SNAPSHOT_PREFIX: &str = "ACE_DESKTOP ";
 /// The core accepts error texts up to this many characters.
@@ -61,16 +63,44 @@ pub struct CoreState {
     pub paused_overlay: bool,
 }
 
+/// Which monitor the overlay appears on (§14.2).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MonitorPolicy {
+    #[default]
+    Cursor,
+    Primary,
+}
+
+/// Overlay placement (D-55): the edge, the orb's height (0 top .. 1 bottom), the monitor.
+#[derive(Debug, Clone, Copy, PartialEq, Deserialize)]
+pub struct OverlayConfig {
+    pub edge: Edge,
+    pub orb_y: f64,
+    pub monitor: MonitorPolicy,
+}
+
+impl Default for OverlayConfig {
+    fn default() -> Self {
+        Self {
+            edge: Edge::Right,
+            orb_y: 0.5,
+            monitor: MonitorPolicy::Cursor,
+        }
+    }
+}
+
 /// Everything the shell needs from the core; the core always sends it whole.
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Snapshot {
     pub state: CoreState,
     pub hotkeys: BTreeMap<Action, Option<String>>,
     pub autostart: bool,
     pub mode: Mode,
+    pub overlay: OverlayConfig,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum CoreLine {
     Ready { port: u16 },
     Snapshot(Box<Snapshot>),
@@ -99,6 +129,7 @@ pub fn parse_line(line: &str) -> Result<CoreLine, String> {
 pub enum Source {
     Hotkey,
     Tray,
+    Overlay,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -165,7 +196,7 @@ mod tests {
 
     #[test]
     fn snapshot_lines() {
-        let line = r#"ACE_DESKTOP {"state": {"conversation": "asleep", "game_mode": false, "offline": false, "dnd": true, "paused_overlay": false}, "hotkeys": {"summon": "Ctrl+Alt+Space", "push_to_talk": "Ctrl+Alt+A", "emergency_stop": "Ctrl+Alt+Escape", "toggle_overlay": null, "mic_mute": "Ctrl+Alt+M"}, "autostart": false, "mode": "paranoid"}"#;
+        let line = r#"ACE_DESKTOP {"state": {"conversation": "asleep", "game_mode": false, "offline": false, "dnd": true, "paused_overlay": false}, "hotkeys": {"summon": "Ctrl+Alt+Space", "push_to_talk": "Ctrl+Alt+A", "emergency_stop": "Ctrl+Alt+Escape", "toggle_overlay": null, "mic_mute": "Ctrl+Alt+M"}, "autostart": false, "mode": "paranoid", "overlay": {"edge": "left", "orb_y": 0.25, "monitor": "primary"}}"#;
         let Ok(CoreLine::Snapshot(snapshot)) = parse_line(line) else {
             panic!("not a snapshot");
         };
@@ -177,6 +208,14 @@ mod tests {
         );
         assert_eq!(snapshot.hotkeys.get(&Action::ToggleOverlay), Some(&None));
         assert_eq!(snapshot.mode, Mode::Paranoid);
+        assert_eq!(
+            snapshot.overlay,
+            OverlayConfig {
+                edge: Edge::Left,
+                orb_y: 0.25,
+                monitor: MonitorPolicy::Primary
+            }
+        );
         assert!(parse_line("ACE_DESKTOP {not json").is_err());
     }
 

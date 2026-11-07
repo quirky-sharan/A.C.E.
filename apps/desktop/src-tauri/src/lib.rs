@@ -13,8 +13,10 @@ macro_rules! shell_log {
 
 mod autostart;
 mod core_process;
+mod geometry;
 mod hotkeys;
 mod job;
+mod overlay;
 mod policy;
 mod protocol;
 mod status;
@@ -23,13 +25,14 @@ mod token;
 mod tray;
 
 use std::sync::mpsc;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Duration;
 
 use tauri::{AppHandle, Manager, RunEvent, State, WindowEvent};
 
 use crate::autostart::{AUTOSTART_ARG, Autostart};
 use crate::core_process::CoreCommand;
+use crate::overlay::{CoreInput, Overlay};
 use crate::status::{IpcInfo, Shared, ShellStatus};
 use crate::supervisor::{Msg, Wiring};
 use crate::tray::Tray;
@@ -67,8 +70,12 @@ pub fn run() {
     let registry = Arc::new(Mutex::new(hotkeys::Registry::default()));
     let started_by_autostart = std::env::args().any(|arg| arg == AUTOSTART_ARG);
 
+    // The overlay windows are created in setup; hotkeys can fire only after that.
+    let overlay_cell: Arc<OnceLock<Arc<Overlay>>> = Arc::new(OnceLock::new());
+    let hotkey_overlay = Arc::clone(&overlay_cell);
     let hotkey_tx = tx.clone();
     let hotkey_registry = registry.clone();
+    let input_tx = tx.clone();
     let setup_tx = tx.clone();
     let setup_shared = shared.clone();
     let instance_tx = tx.clone();
@@ -91,24 +98,62 @@ pub fn run() {
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(move |_app, shortcut, event| {
-                    hotkeys::on_event(&hotkey_registry, &hotkey_tx, shortcut, event);
+                    let overlay = hotkey_overlay.get().map(Arc::as_ref);
+                    hotkeys::on_event(&hotkey_registry, &hotkey_tx, overlay, shortcut, event);
                 })
                 .build(),
         )
         .manage(shared)
-        .invoke_handler(tauri::generate_handler![get_ipc_info, get_shell_status])
+        .manage(CoreInput(input_tx))
+        .invoke_handler(tauri::generate_handler![
+            get_ipc_info,
+            get_shell_status,
+            overlay::overlay_state,
+            overlay::overlay_hit_rects,
+            overlay::overlay_orb_clicked,
+            overlay::overlay_drag,
+            overlay::overlay_close_sidebar,
+            overlay::overlay_focus_input,
+            overlay::overlay_sidebar_hidden,
+            overlay::overlay_hide_for,
+            overlay::overlay_report_focus,
+            overlay::overlay_input,
+            overlay::open_control_center,
+        ])
         .on_window_event(|window, event| {
-            // Closing the Control Center only hides it: ACE keeps running in the tray.
-            if let WindowEvent::CloseRequested { api, .. } = event
-                && window.label() == CONTROL_CENTER
-            {
-                api.prevent_close();
-                let _ = window.hide();
+            let WindowEvent::CloseRequested { api, .. } = event else {
+                return;
+            };
+            match window.label() {
+                // Closing the Control Center only hides it: ACE keeps running in the tray.
+                CONTROL_CENTER => {
+                    api.prevent_close();
+                    let _ = window.hide();
+                }
+                // Alt+F4 on the sidebar closes the sidebar; the orb cannot be closed.
+                overlay::SIDEBAR => {
+                    api.prevent_close();
+                    if let Some(overlay) = window.try_state::<Arc<Overlay>>() {
+                        overlay.close_sidebar();
+                    }
+                }
+                overlay::ORB => api.prevent_close(),
+                _ => {}
             }
         })
         .setup(move |app| {
             let handle = app.handle().clone();
-            let tray = Tray::create(&handle, setup_tx.clone(), setup_shared.clone())?;
+            let overlay = Overlay::create(&handle)?;
+            app.manage(Arc::clone(&overlay));
+            let _ = overlay_cell.set(Arc::clone(&overlay));
+            overlay.start()?;
+            overlay.show_initial();
+            let tray = Tray::create(
+                &handle,
+                setup_tx.clone(),
+                setup_shared.clone(),
+                Arc::clone(&overlay),
+            )?;
             let autostart = match Autostart::for_current_exe() {
                 Ok(autostart) => Some(autostart),
                 Err(err) => {
@@ -130,6 +175,7 @@ pub fn run() {
                 tray,
                 hotkeys: registry,
                 autostart,
+                overlay,
             })?;
             if !started_by_autostart {
                 show_control_center(&handle);

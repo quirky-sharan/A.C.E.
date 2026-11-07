@@ -12,8 +12,8 @@
 | Last updated | 2026-11-07 |
 | Owner / client | Sharan (ACE addresses Sharan as "Sharan" or "boss") |
 | Project folder | `E:\A.C.E` |
-| Current stage | **S06 — Overlay v1 (edge orb + sidebar)** (in progress, branch `stage/s06-overlay`) |
-| Last completed stage | S05 — UI foundation, HUD design system, Control Center shell (approved by Sharan 2026-11-07) |
+| Current stage | **S07 — Command pipeline, skill framework, confirmations** (in progress, branch `stage/s07-command-pipeline`) |
+| Last completed stage | S06 — Overlay v1 (edge orb + sidebar) (approved by Sharan 2026-11-07) |
 | Next milestone | M1 — Typed commands control the PC |
 | Blocking user actions | none · pending, non-blocking: [USER-ACTION] run `tools/dev/set-dev-env.ps1` once in a normal PowerShell window (§17.4) |
 | Repository | GitHub `quirky-sharan/A.C.E.` (private), created by Sharan 2026-11-06; `main` = approved stages (pushed by Sharan); stage branches are local until Sharan asks to push |
@@ -318,7 +318,7 @@ Status values: **Decided** = confirmed by Sharan in the 2026-11-06 Q&A. **Defaul
 | D-37 | STT baseline: faster-whisper `large-v3-turbo` on CUDA (int8_float16) with CPU fallback; final choice by the S10 benchmark. | Engineering | |
 | D-38 | Contacts: ACE keeps its own local contact book (name, aliases, WhatsApp number, Instagram handle, emails). Never synced or uploaded. | Engineering | Needed for "tell Mom…". |
 | D-39 | Phone push: ntfy (public ntfy.sh server by default, with a long random secret topic; self-hosting optional). Push content is minimal (no message bodies). | Engineering | Free and open source. |
-| D-40 | Overlay click-through: the Rust shell polls the cursor position (~60 Hz) and toggles ignore-cursor-events when the cursor is over the orb/sidebar hit-area [VERIFY at S06]. | Engineering | Tauri has no "forward mouse events" option like Electron. |
+| D-40 | Overlay click-through: the Rust shell polls the cursor position (~60 Hz) and toggles click-through (WS_EX_TRANSPARENT | WS_EX_LAYERED, set directly on the window: Tauri's `set_ignore_cursor_events` re-shows and activates it, D-55) when the cursor is over the orb / sidebar hit areas reported by the UI. Verified at S06 (PL-0008). | Engineering | Tauri has no "forward mouse events" option like Electron. |
 | D-41 | App identifier: `io.github.quirky-sharan.ace` (Windows app-data folder, notifications). Changing it later moves user data. | Decided | Chosen by Sharan at S00 (2026-11-06). |
 | D-42 | Build toolchain, all on E: (§17.4): VS 2022 Build Tools (MSVC v143) + standalone Windows 11 SDK 10.0.26100; Rust stable via rustup (minimal profile + rustfmt + clippy); pnpm 12 installed with npm; uv-managed CPython 3.12. Exact versions in PL-0002. | Engineering | rustup's MSVC docs cover VS 2022 (2026 not yet documented); Sharan asked for everything on E:. |
 | D-43 | Workspace layout: one pnpm workspace (`apps/*`, single `pnpm-lock.yaml`); the Python core is its own uv project in `core/`; shared ESLint flat config (`defineConfig`) + Prettier at the repo root; Markdown is excluded from Prettier. | Engineering | One lockfile per ecosystem; the master plan is never reflowed. |
@@ -333,6 +333,7 @@ Status values: **Decided** = confirmed by Sharan in the 2026-11-06 Q&A. **Defaul
 | D-52 | Desktop shell ↔ core supervision (§5.6): the shell starts the core as a plain child process, not a Tauri sidecar (debug builds: `uv run --project <repo>\core ace-core --dev --supervised`; release builds: `<resources>\core\ace-core.exe --supervised`, packaging finalised at S44), with `CREATE_NO_WINDOW`, a fresh 256-bit token per core start (`ACE_IPC_TOKEN`, 64 hex characters) and `ACE_IPC_PORT=0`. Each core run gets its own Job Object with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`: stopping ends the whole tree (uv → python), and a crashed shell takes the core with it. **Control channel = the child's stdio** (private to the two processes, no token): stdout carries `ACE_READY port=<n>`, then `ACE_DESKTOP <json>` snapshots (conversation state, hotkeys, autostart, verification mode; sent after READY and on every change); stdin carries JSON lines (`input` from hotkeys / tray, `set_mode`, `desktop_status` with hotkey conflicts and autostart errors → health subsystem `desktop`); end of stdin = graceful shutdown. Restarts: the first at once (Sharan's choice, 2026-11-07), then backoff 1, 2, 4, 8, 16, then 30 s, reset after 60 s of healthy running; READY timeout 30 s (180 s in debug builds); 5 crashes within 5 minutes → the core restarts with `--safe-mode` (health `core` degraded) until ACE restarts. Quit: close stdin, wait ≤ 6 s, then end the job. A second launch with `--quit` asks the running ACE to quit (scripts, installer). | Engineering | S04; sidecars ship single files only and the dev core runs from the checkout; one pipe pair per child is simpler and safer than a second WebSocket client in Rust. |
 | D-53 | Desktop settings live in the core's settings table and reach the shell through the snapshot: `hotkeys.<action>` (actions `summon`, `push_to_talk`, `emergency_stop`, `toggle_overlay`, `mic_mute`; text such as `Ctrl+Alt+Space`; null or empty = off; defaults D-29), `desktop.autostart` (default false), `verification.mode` (`fast` / `balanced` / `paranoid`, default `balanced`, D-09). Invalid stored values fall back to the defaults. Hotkeys use tauri-plugin-global-shortcut; a combination another app holds is reported with a suggested alternative (+Shift). Autostart uses the `auto-launch` crate (the library inside tauri-plugin-autostart) directly: current user's Run key only, quoted exe path, `--autostart` (starts hidden in the tray); debug builds use their own entry `ACE (dev build)`. Hotkey and tray input reach the core as `DesktopInput` bus events: S04 logs them, later stages act on them (S06 overlay, S09 mic mute, S13 push-to-talk, S17 emergency stop, S18 modes). | Engineering | S04; the shell stays thin (§5.2) and settings have one owner; the plugin would try the all-users Run key when elevated and leaves the exe path unquoted. |
 | D-54 | UI foundation (S05): Tailwind CSS 4 configured CSS-first in `apps/desktop/src/styles/index.css` (`@theme` holds only ACE's §14.4 palette, fonts and glow); fonts bundled from @fontsource latin subsets — Orbitron for headings (chosen over Rajdhani), Inter, JetBrains Mono (all SIL OFL 1.1). Continuous motion (the orb) is CSS keyframes that run only while the window is visible, reduced motion is off and ACE is not idle (asleep / muted for more than 5 s); Motion (`motion/react`, `MotionConfig reducedMotion="user"`) is used only for enter / exit transitions. One Zustand store per domain (connection, core state + health, tasks, notifications, settings cache, shell status). The IPC client fetches port + token with `get_ipc_info` before every attempt, reconnects after 0.25, 0.5, 1, 2, 4, then 5 s, and at once when the shell reports a new core. Control Center pages live in the URL hash; the component gallery exists only in development builds. CSP: `default-src 'self'`, no inline scripts in release builds, `connect-src` = Tauri IPC + `ws://127.0.0.1:*`; the dev CSP also allows Vite's inline preamble and HMR socket. | Engineering | S05; NFR-2 (idle CPU ~0 %), NFR-10 (reduced motion, keyboard navigation), §15.1. |
+| D-55 | Overlay windows (S06, §14.1–§14.2): `orb` (72×72 logical px window, 56 px orb, 4 px from the edge, position `overlay.orb_y` 0–1 along the edge) and `sidebar` (396 logical px wide, work-area height minus 8 px margins) are transparent, undecorated, shadowless, always-on-top, `focusable(false)` (WS_EX_NOACTIVATE) windows, created hidden and owned by a hidden window (`GWLP_HWNDPARENT`), which keeps them off the taskbar and out of Alt+Tab. After creation no Tauri / tao window setter is used except position and size: tao re-runs `ShowWindow(SW_SHOW)` (activating) on every window-flag change and applies always-on-top only when that flag changes. The shell itself, on its main thread: shows a window with `ShowWindow(SW_SHOWNOACTIVATE)` only while it has something to show and hides it with `SW_HIDE` (a closed sidebar is really hidden: once activated on purpose, Windows 11 re-activated it when the foreground app closed, WS_EX_NOACTIVATE notwithstanding); sets click-through (D-40) from a ~60 Hz cursor-polling thread, never while a mouse button is held; every ~2 s re-checks the work area, HWND_TOPMOST (without activation), which windows are shown and the end of "hide for N minutes"; moves focus only with `SetForegroundWindow` (summon hotkey, a click into the sidebar's text box) and gives it back to the previous window (else the desktop) as soon as the sidebar closes. Placement: `overlay.monitor` (`cursor` = the cursor's monitor whenever the overlay appears, or `primary`), `overlay.edge` (`right` / `left`), physical pixels (per-monitor DPI v2). Overlay settings live in the core (D-53 pattern); open / closed / hidden state lives in the shell; each overlay window may call only its own commands (capabilities `orb.json`, `sidebar.json`). | Engineering | S06; §14.2 "never steals focus": the first live runs showed tao's setters and a shown-but-empty sidebar taking the focus (R-18). |
 
 ---
 
@@ -947,15 +948,15 @@ Online backups with the SQLite backup API to `data\backups\` (D-49): regular bac
 ## §14 UI / UX
 
 ### 14.1 Windows
-- **Overlay `orb`**: ~56×56 px, docked to the screen edge (right by default; left optional), draggable along the edge; transparent, always-on-top, no taskbar entry, not focusable by default.
+- **Overlay `orb`**: ~56×56 px, docked to the screen edge (right by default; left optional), draggable along the edge; transparent, always-on-top, no taskbar or Alt+Tab entry, not focusable by default (window details: D-55).
 - **Overlay `sidebar`**: ~380 px wide, full height minus margins, slides out from the orb's edge.
 - **Control Center**: a normal window (label `control-center`, min 1000×680), opened from the tray, by right-clicking the orb, or by voice ("open ACE settings"). Closing it only hides it; ACE keeps running in the tray. It stays hidden when ACE starts with Windows.
 - **Toasts**: Windows notifications with actions (Snooze / Dismiss / Show) [VERIFY Tauri notification plugin action support; fallback: WinRT toasts from the core].
 
 ### 14.2 Overlay behavior
-- Never steals focus when it appears, unless summoned by hotkey or by clicking into the text box.
+- Never steals focus when it appears, unless summoned by hotkey or by clicking into the text box. Closing the sidebar gives the focus back to the window Sharan was using.
 - Click-through everywhere except the orb and sidebar hit areas (D-40).
-- Hidden in game mode and when Sharan chooses "hide for 1 hour".
+- Hidden in game mode, with `Ctrl+Alt+H` / the tray (until shown again) and when Sharan chooses "hide for 1 hour".
 - Multi-monitor: appears on the monitor with the mouse cursor (setting). DPI-aware. Respects taskbar position.
 - Stays topmost; re-asserts topmost after fullscreen apps exit and on display changes.
 
@@ -1171,6 +1172,7 @@ E:\A.C.E\                            (git repository root)
 2. Inside Claude's shells, load the toolchain environment first: `. E:\.cache\ace-setup\env.ps1`.
 3. Anything other programs must see — the Chrome native-messaging host registration (S24), autostart entries (S04), ACE's real `%LOCALAPPDATA%\ACE` data — must be created by ACE itself at runtime or by Sharan, never from Claude's shell. Test those parts by launching ACE outside Claude.
 4. Keep scratch and helper files on `E:` (e.g. `E:\.cache\ace-setup\`); files under AppData\Local\Temp may not stay visible.
+5. Dev runs of the desktop app started from Claude's shell set `WEBVIEW2_USER_DATA_FOLDER` to a throwaway folder on `E:` as well as `LOCALAPPDATA`: Tauri finds the WebView2 data folder through the Windows known-folder API, so `LOCALAPPDATA` does not move it, and the Claude app keeps such files in its private store on C: (S04–S06 runs left ~151 MB there, PL-0008).
 
 ---
 
@@ -1346,7 +1348,7 @@ Every stage uses the same template: **Goal · Prereqs · Spec · Tasks · Accept
 - **Spec:** §14.1–§14.3, D-13, D-40.
 - **Tasks:**
   1. Create the `orb` and `sidebar` windows: transparent, no decorations, always-on-top, skip taskbar, not focusable by default.
-  2. Click-through: a Rust thread polls the cursor (~60 Hz) and toggles ignore-cursor-events using the hit-rectangles reported by the UI.
+  2. Click-through: a Rust thread polls the cursor (~60 Hz) and toggles click-through (D-40, D-55) using the hit-rectangles reported by the UI.
   3. Edge docking (right default, left optional), drag along the edge, multi-monitor and DPI handling, taskbar awareness.
   4. Slide animation; the summon hotkey shows the sidebar and focuses the input; Esc closes.
   5. Sidebar sections per §14.3 (placeholder data where backends don't exist yet); "hide for 1 hour".
@@ -2002,6 +2004,7 @@ Every stage uses the same template: **Goal · Prereqs · Spec · Tasks · Accept
 | R-15 | Laptop speakers + mic make barge-in hard | High / Low | Half-duplex in v1; AEC at S41 |
 | R-16 | The Claude desktop sandbox hides AppData / HKCU writes made from its shells (env vars, registry keys, app data) | High / Medium | §17.4 sandbox rules; `tools/dev/set-dev-env.ps1`; system-visible items registered by ACE itself; integration tested outside Claude |
 | R-17 | Global hotkeys collide with other apps or with AltGr characters on Sharan's keyboard layouts | High (found at S04) / Low | Conflict detection with suggestions (health `desktop`), every hotkey configurable (D-53), defaults re-chosen by Sharan at S04 (D-29) |
+| R-18 | Windows focus rules: an overlay window takes or keeps the keyboard focus (tao's window setters re-show with activation; Windows re-activates a remembered window when the foreground app closes, even with WS_EX_NOACTIVATE) | High (found at S06) / High | D-55: no tao window setters after creation, show without activation, closed windows really hidden, focus given back on close; repeat the PL-0008 probe-window focus tests whenever overlay code changes |
 
 ---
 
@@ -2280,6 +2283,46 @@ Template for every entry:
 - Tests: `pnpm lint`, `pnpm format:check`, `pnpm typecheck` → clean · `pnpm test` → desktop 54, extension 1 passed · `pnpm build` → release bundle without the gallery code · `cargo build` (CSP config accepted) · `pre-commit run --all-files` → 15/15 passed · `python tools/dev/check_plan.py` → all checks passed. Core unchanged (201 tests from S04).
 - Next step: Sharan opens ACE (`pnpm --filter ace-desktop tauri dev`), looks at the Control Center and the component gallery, and approves → `[S05]` commit → S06 (overlay v1).
 - Approval: Sharan approved S05 on 2026-11-07 ("Approve, continue") → committed as `[S05] UI foundation, HUD design system, Control Center shell` on branch `stage/s05-ui-foundation`; S06 continues on `stage/s06-overlay`.
+
+### PL-0008 — 2026-11-07 — S06 — Overlay v1 (edge orb + sidebar)
+- Done:
+  - Shell (`src-tauri/src/overlay.rs`, `geometry.rs`): the `orb` and `sidebar` windows per D-55 — created hidden, shown without activation only while they have something to show, owned by a hidden window (no taskbar or Alt+Tab entry), click-through from a ~60 Hz cursor-polling thread using the hit rectangles the UI reports, and ~2 s housekeeping (work area, topmost, shown / hidden state, end of "hide for N minutes").
+  - Placement: right (default) or left edge; `overlay.orb_y` 0–1 (drag the orb; saved in the core when the drag ends); the cursor's monitor whenever the overlay appears (or the primary monitor); taskbar-aware work area; physical pixels at any scaling.
+  - Focus: the summon hotkey opens the sidebar on the cursor's monitor and focuses its input; a click into the text box takes focus; Esc, the X button, a click on the orb, `Ctrl+Alt+H` or the tray close it and give focus straight back to the previous window (else the desktop); the panel slides out, then the window hides.
+  - Hiding: `Ctrl+Alt+H` / the tray item hide or show the overlay; "Hide for 1 hour" hides it until then (or until shown again); the core's game-mode / paused-overlay flags hide it.
+  - Core (`ipc/desktop_link.py`): settings `overlay.edge`, `overlay.orb_y`, `overlay.monitor` with defaults and type checks, sent in the desktop snapshot; input source `overlay` (the sidebar's "Mute mic" reaches the core like the tray item).
+  - UI (`src/overlay/`): the orb window (state from the core; click, drag, right-click → Control Center) and the sidebar with every §14.3 section (placeholders name their stages: conversation S07 / S13, tasks and confirmations S07, background jobs S17, providers S15, Chrome bridge S24, microphone S09, DND S37), text input with history (typed commands arrive in S07) and footer (mute mic, DND disabled until S37, hide for 1 hour).
+- Not done / known issues:
+  - Nothing committed yet — the `[S06]` commit waits for Sharan's approval.
+  - Tested on this laptop's single monitor at 125 % only; a second monitor, 150 %, Chrome F11 / VS Code full screen, dragging, real clicks through the transparent parts and the Alt+Tab list are in Sharan's checklist below (no mouse input was simulated).
+  - An open, unfocused sidebar that was focused earlier could still get the focus back from Windows when the foreground app closes (it is visible then); watch for it (R-18).
+  - Dev runs from Claude's shell left ~151 MB of WebView2 data (S04–S06) in the Claude app's private copy of `%LOCALAPPDATA%\io.github.quirky-sharan.ace\EBWebView` on C:, because Tauri finds that folder through the Windows known-folder API, not `LOCALAPPDATA`. §17.4 item 5 fixes this for future runs; deleting the old copy waits for Sharan.
+- [VERIFY] results (2026-11-07):
+  - Tauri 2 `set_ignore_cursor_events` → changed: in tauri 2.12.5 / tao 0.37.2 it sets WS_EX_TRANSPARENT | WS_EX_LAYERED through `apply_diff`, which ends with `ShowWindow(SW_SHOW)` for a visible window — it stole the focus in the first live run (after Esc the orb was the foreground window). ACE sets the same styles directly (D-40, D-55) — tao 0.37.2 `src/platform_impl/windows/window_state.rs` (`to_window_styles`, `apply_diff`), registry source.
+  - Focus / focusable → confirmed with limits: `focusable(false)` = WS_EX_NOACTIVATE; `focused(false)` affects only the first show (SW_SHOWNOACTIVATE); `set_focus` sends a synthetic Alt press before `SetForegroundWindow`; `skip_taskbar` only calls `ITaskbarList::DeleteTab`, so Alt+Tab still lists the window — tao 0.37.2 `window.rs`. Win32: a WS_EX_NOACTIVATE window is activated with SetActiveWindow / SetForegroundWindow and "the system does not bring this window to the foreground when the user minimizes or closes the foreground window" — https://learn.microsoft.com/en-us/windows/win32/winmsg/extended-window-styles (2025-07-14), which build 26300 did not honour for a window activated before; `SW_SHOWNOACTIVATE` / `SW_HIDE` — https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showwindow
+  - Transparency with WebView2 on Windows 11 → confirmed: `transparent(true)` adds WS_EX_NOREDIRECTIONBITMAP (tao) and both pages render on `rgba(0, 0, 0, 0)` (checked over DevTools); the look on screen is in Sharan's checklist.
+  - Always-on-top over fullscreen windows → partly: both windows keep WS_EX_TOPMOST and sit above the foreground window in the z-order; tao applies the flag only when it changes, so the shell re-asserts HWND_TOPMOST every ~2 s; Chrome F11 / VS Code need Sharan's check.
+  - Also checked: windows-sys 0.61.2 `ShowWindow`, `IsWindowVisible`, `SW_HIDE`, `SW_SHOWNOACTIVATE`, `SetWindowLongPtrW` / `GWLP_HWNDPARENT`, `GetAsyncKeyState`; synchronous Tauri commands run on the main thread; `WEBVIEW2_USER_DATA_FOLDER` replaces the app's data folder — https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/webview2-idl#createcorewebview2environmentwithoptions
+- Acceptance evidence (real `tauri dev` + real core, throwaway `LOCALAPPDATA` under `E:\.cache\ace-setup\s06-live2` … `s06-live4`; helpers `s06_win.py`, `s06_focus.ps1`, `s06_probe.ps1`, `s06_close.ps1`, `s06_cdp.py`, `s06_cpu.ps1`, `s06_env.py` in `E:\.cache\ace-setup\`):
+  - Start: orb shown at (1825, 525) 90×90 physical px (72 logical at 125 %, work area 1920×1140), sidebar hidden at (1415, 10) 495×1120; both TOPMOST | NOACTIVATE | LAYERED | TRANSPARENT, owned by "ACE overlay owner"; the focus stayed where it was.
+  - Summon with ACE's Control Center in front → "input focused in 63 ms"; with a probe window of another process in front → 24 ms and 50 ms (NFR ≤ 150 ms). Esc → focus back to the probe within 1 ms; the window hid after the slide-out.
+  - Closing the probe after a summon + Esc: with the old always-shown sidebar the invisible sidebar became the foreground window (without a summon the Control Center did); with the sidebar really hidden the next real window (Chrome) got the focus.
+  - `Ctrl+Alt+H` twice → orb window hidden / shown, foreground unchanged. Hide The orb page may not call it (the ACL refusal names the sidebar).
+  - Idle CPU over 20 s for the whole tree (shell, core via uv, 8 WebView2 processes): 0.34 s = 0.09 % of 20 logical CPUs.
+  - `ace-desktop --quit` → core "shutdown complete" in 187 ms, exit code 0; no ACE, core or WebView2 process left.
+- Manual checklist for Sharan (`pnpm --filter ace-desktop tauri dev`):
+  1. Type in Notepad while pressing `Ctrl+Alt+H` twice: no lost keys, the caret stays in Notepad.
+  2. Click the orb → the sidebar opens without taking focus; click into its text box → typing goes there; Esc → typing goes back to Notepad.
+  3. Clicks on the transparent corners around the orb and outside the sidebar panel reach the window below.
+  4. Drag the orb along the edge; restart ACE → it stays there.
+  5. Chrome F11 and VS Code full screen: the orb stays on top (within 2 s).
+  6. Alt+Tab and the taskbar never show the orb or the sidebar.
+  7. If available: a second monitor (summon opens where the cursor is) and 150 % scaling (orb round and on the edge).
+- New dependencies: none (windows-sys features `Win32_UI_Input_KeyboardAndMouse`, `Win32_System_LibraryLoader`).
+- Decisions added / changed: D-55 (overlay windows); D-40 updated (same design, the click-through styles are set directly); §14.1–§14.2, S06 task 2, §17.4 item 5, R-18.
+- Tests: core 204 passed (+3 overlay settings) · UI: desktop 68 (+14 overlay), extension 1 · Rust 22 (incl. 5 geometry) · `pnpm lint`, `pnpm typecheck`, clippy → clean · `pre-commit run --all-files` → 15/15 passed · `python tools/dev/check_plan.py` → all checks passed.
+- Next step: Sharan runs the checklist and approves → `[S06]` commit → S07 (command pipeline).
+- Approval: Sharan approved S06 on 2026-11-07 ("Approve, continue"), including D-55 and the D-40 rewording → committed as `[S06] Overlay v1 (edge orb + sidebar)` on branch `stage/s06-overlay`; S07 continues on `stage/s07-command-pipeline`. The manual checklist above was not reported back yet.
 
 ---
 

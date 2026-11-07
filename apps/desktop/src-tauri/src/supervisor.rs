@@ -1,5 +1,5 @@
 //! Keeps one ace-core running (S04 tasks 3, 4 and 7; §5.6; D-52): start it with a fresh token,
-//! wait for READY, apply its snapshots (tray, hotkeys, autostart), restart it with backoff when it
+//! wait for READY, apply its snapshots (tray, hotkeys, autostart, overlay), restart it with backoff when it
 //! stops on its own, switch to safe mode after 5 crashes in 5 minutes, and stop it before ACE exits.
 
 use std::io;
@@ -13,6 +13,7 @@ use tauri::AppHandle;
 use crate::autostart::Autostart;
 use crate::core_process::{CoreCommand, CoreProcess};
 use crate::hotkeys::{self, Registry};
+use crate::overlay::Overlay;
 use crate::policy::RestartPolicy;
 use crate::protocol::{
     CoreLine, HotkeyProblem, MAX_ERROR_CHARS, ShellMessage, Snapshot, parse_line, truncate,
@@ -55,6 +56,7 @@ pub struct Wiring {
     pub tray: Arc<Tray>,
     pub hotkeys: Arc<Mutex<Registry>>,
     pub autostart: Option<Autostart>,
+    pub overlay: Arc<Overlay>,
 }
 
 enum Ending {
@@ -248,6 +250,17 @@ impl Supervisor {
             conversation: snapshot.state.conversation.clone(),
             mode: snapshot.mode,
         }));
+        // Game mode and the paused_overlay flag hide the overlay (§14.2, D-15); window work runs
+        // on the main thread.
+        let overlay = Arc::clone(&self.wiring.overlay);
+        let (config, paused) = (
+            snapshot.overlay,
+            snapshot.state.paused_overlay || snapshot.state.game_mode,
+        );
+        let _ = self
+            .wiring
+            .app
+            .run_on_main_thread(move || overlay.apply_config(config, paused));
         let hotkey_statuses =
             hotkeys::apply(&self.wiring.app, &self.wiring.hotkeys, &snapshot.hotkeys);
         let autostart = match &self.wiring.autostart {

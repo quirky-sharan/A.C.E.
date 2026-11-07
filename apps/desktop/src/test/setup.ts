@@ -9,3 +9,14 @@ afterEach(() => {
 // jsdom has no canvas backend; the Waveform copes with a missing 2D context.
 HTMLCanvasElement.prototype.getContext = (() =>
   null) as typeof HTMLCanvasElement.prototype.getContext;
+
+// jsdom has no ResizeObserver; the overlay's hit-rect reporting only needs the API to exist.
+class ResizeObserverStub {
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+}
+globalThis.ResizeObserver ??= ResizeObserverStub as unknown as typeof ResizeObserver;
+
+// jsdom elements may lack pointer capture; the orb calls it on every press.
+Element.prototype.setPointerCapture ??= () => {};

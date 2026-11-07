@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-overlay-close-sidebar"
+description = "Enables the overlay_close_sidebar command without any pre-configured scope."
+commands.allow = ["overlay_close_sidebar"]
+
+[[permission]]
+identifier = "deny-overlay-close-sidebar"
+description = "Denies the overlay_close_sidebar command without any pre-configured scope."
+commands.deny = ["overlay_close_sidebar"]

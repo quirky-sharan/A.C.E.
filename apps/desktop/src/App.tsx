@@ -1,11 +1,29 @@
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useEffect, useState } from "react";
 
 import { ControlCenter } from "./control-center/control-center";
 import { IpcClient } from "./ipc/client";
+import { OrbWindow } from "./overlay/orb-window";
+import { SidebarWindow } from "./overlay/sidebar-window";
 import { fetchEndpoint, watchShell } from "./platform/tauri-link";
 import { linkCore } from "./state/core-link";
 
-// The Control Center window: one IPC client for the window's lifetime, fed into the stores.
+/** Which window this webview is: "control-center", "orb" or "sidebar" (outside ACE: the first). */
+export function windowLabel(): string {
+  try {
+    return getCurrentWindow().label;
+  } catch {
+    return "control-center";
+  }
+}
+
+const LABEL = windowLabel();
+const OVERLAY = LABEL === "orb" || LABEL === "sidebar";
+if (OVERLAY) {
+  document.documentElement.classList.add("overlay"); // transparent page (D-55)
+}
+
+// Every window keeps its own IPC client for its lifetime, fed into its own stores.
 function App() {
   const [client] = useState(() => new IpcClient({ endpoint: fetchEndpoint }));
 
@@ -20,6 +38,8 @@ function App() {
     };
   }, [client]);
 
+  if (LABEL === "orb") return <OrbWindow client={client} />;
+  if (LABEL === "sidebar") return <SidebarWindow />;
   return <ControlCenter />;
 }
 

@@ -12,6 +12,7 @@ use tauri::menu::{
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Wry};
 
+use crate::overlay::Overlay;
 use crate::protocol::{Action, Mode, Phase, ShellMessage, Source};
 use crate::status::{CorePhase, CoreStatus, CoreView, Shared, lock};
 use crate::supervisor::Msg;
@@ -123,8 +124,9 @@ impl Tray {
         app: &AppHandle,
         tx: Sender<Msg>,
         shared: Arc<Shared>,
+        overlay: Arc<Overlay>,
     ) -> tauri::Result<Arc<Self>> {
-        let overlay = MenuItemBuilder::with_id("overlay", "Show / hide overlay").build(app)?;
+        let overlay_item = MenuItemBuilder::with_id("overlay", "Show / hide overlay").build(app)?;
         let control_center =
             MenuItemBuilder::with_id("control_center", "Control Center").build(app)?;
         let mic = CheckMenuItemBuilder::with_id("mic_mute", "Mute mic").build(app)?;
@@ -138,7 +140,7 @@ impl Tray {
             .build()?;
         let quit = MenuItemBuilder::with_id("quit", "Quit ACE").build(app)?;
         let menu = MenuBuilder::new(app)
-            .items(&[&overlay, &control_center, &mic, &mode])
+            .items(&[&overlay_item, &control_center, &mic, &mode])
             .separator()
             .item(&quit)
             .build()?;
@@ -163,6 +165,7 @@ impl Tray {
                     event.id().as_ref(),
                     &tx,
                     &menu_shared,
+                    &overlay,
                     &menu_mic,
                     &menu_modes,
                 );
@@ -223,6 +226,7 @@ fn on_menu(
     id: &str,
     tx: &Sender<Msg>,
     shared: &Shared,
+    overlay: &Overlay,
     mic: &CheckMenuItem<Wry>,
     modes: &[(Mode, CheckMenuItem<Wry>); 3],
 ) {
@@ -235,7 +239,10 @@ fn on_menu(
         phase: Phase::Pressed,
     };
     match id {
-        "overlay" => send(tray_input(Action::ToggleOverlay)),
+        "overlay" => {
+            overlay.toggle(); // menu events arrive on the main thread
+            send(tray_input(Action::ToggleOverlay));
+        }
         "control_center" => crate::show_control_center(app),
         "mic_mute" => {
             send(tray_input(Action::MicMute));

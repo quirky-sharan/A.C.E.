@@ -61,6 +61,13 @@
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
   }
+
+  /* The overlay windows are transparent (D-55): only their panels and the orb are drawn. */
+  html.overlay,
+  html.overlay body {
+    background: transparent;
+    overflow: hidden;
+  }
 }
 
 /* Panel corner brackets (§14.4 "corner brackets"). */

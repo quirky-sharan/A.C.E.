@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-overlay-sidebar-hidden"
+description = "Enables the overlay_sidebar_hidden command without any pre-configured scope."
+commands.allow = ["overlay_sidebar_hidden"]
+
+[[permission]]
+identifier = "deny-overlay-sidebar-hidden"
+description = "Denies the overlay_sidebar_hidden command without any pre-configured scope."
+commands.deny = ["overlay_sidebar_hidden"]

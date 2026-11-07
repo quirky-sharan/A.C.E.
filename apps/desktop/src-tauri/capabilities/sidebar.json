@@ -1,0 +1,19 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "sidebar",
+  "description": "The overlay sidebar: live state from the core, its hit area, focus for typing, closing (and hiding its window after the slide-out), hiding and its footer toggles.",
+  "windows": ["sidebar"],
+  "permissions": [
+    "core:default",
+    "allow-get-ipc-info",
+    "allow-get-shell-status",
+    "allow-overlay-state",
+    "allow-overlay-hit-rects",
+    "allow-overlay-close-sidebar",
+    "allow-overlay-focus-input",
+    "allow-overlay-sidebar-hidden",
+    "allow-overlay-hide-for",
+    "allow-overlay-report-focus",
+    "allow-overlay-input"
+  ]
+}

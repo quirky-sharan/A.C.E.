@@ -12,6 +12,7 @@ use std::sync::mpsc::Sender;
 use tauri::AppHandle;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutEvent, ShortcutState};
 
+use crate::overlay::Overlay;
 use crate::protocol::{Action, Phase, ShellMessage, Source};
 use crate::status::{HotkeyStatus, lock};
 use crate::supervisor::Msg;
@@ -26,10 +27,12 @@ pub struct Registry {
     statuses: Vec<HotkeyStatus>,
 }
 
-/// Called by the plugin for every press and release of a registered shortcut.
+/// Called by the plugin for every press and release of a registered shortcut (presses arrive on
+/// the main thread). `overlay` is None until setup has created the overlay windows.
 pub fn on_event(
     registry: &Mutex<Registry>,
     tx: &Sender<Msg>,
+    overlay: Option<&Overlay>,
     shortcut: &Shortcut,
     event: ShortcutEvent,
 ) {
@@ -45,6 +48,13 @@ pub fn on_event(
         return;
     }
     shell_log!("hotkey {} {phase:?}", action.name());
+    if let Some(overlay) = overlay {
+        match action {
+            Action::Summon => overlay.summon(),
+            Action::ToggleOverlay => overlay.toggle(),
+            _ => {}
+        }
+    }
     let _ = tx.send(Msg::Send(ShellMessage::Input {
         action,
         source: Source::Hotkey,
