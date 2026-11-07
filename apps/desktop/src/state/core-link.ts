@@ -105,6 +105,19 @@ export async function answerConfirmation(
   return result.accepted;
 }
 
+/** Pick an option of a "which one?" question; false when it was already answered or expired. */
+export async function answerClarification(
+  client: IpcClient,
+  clarificationId: string,
+  optionId: string,
+): Promise<boolean> {
+  const result = await client.request("clarify.respond", {
+    clarification_id: clarificationId,
+    option_id: optionId,
+  });
+  return result.accepted;
+}
+
 /** The Stop button of a task card. */
 export async function cancelTask(client: IpcClient, taskId: string): Promise<boolean> {
   return (await client.request("task.cancel", { task_id: taskId })).cancelled;

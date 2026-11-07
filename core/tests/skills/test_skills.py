@@ -13,7 +13,13 @@ from ace_core.brain.records import Origin
 from ace_core.db.stores import Actor
 from ace_core.security.tiers import Tier
 from ace_core.skills import export_schema
-from ace_core.skills.apps import AppParams, AppsCloseSkill, AppsFocusSkill, AppsOpenSkill
+from ace_core.skills.apps import (
+    AppParams,
+    AppsCloseSkill,
+    AppsFocusSkill,
+    AppsOpenSkill,
+    CloseParams,
+)
 from ace_core.skills.base import NoParams, SkillContext, SkillError, StepResult
 from ace_core.skills.catalog import build_registry
 from ace_core.skills.demo import DemoDangerousSkill, DemoForbiddenSkill
@@ -40,7 +46,7 @@ class MemorySettings:
         self.values[key] = value
 
 
-def test_the_catalog_has_every_s07_skill() -> None:
+def test_the_catalog_has_every_skill() -> None:
     ids = [skill.id for skill in build_registry(settings=MemorySettings(), dev=False)]
     assert ids == [
         "apps.close",
@@ -49,6 +55,8 @@ def test_the_catalog_has_every_s07_skill() -> None:
         "system.echo",
         "system.help",
         "system.set_mode",
+        "windows.arrange",
+        "windows.list",
     ]
     dev_ids = {skill.id for skill in build_registry(settings=MemorySettings(), dev=True)}
     assert {"demo.dangerous", "demo.forbidden"} <= dev_ids
@@ -140,24 +148,23 @@ async def test_set_mode_stores_and_reads_back() -> None:
     assert not (await skill.verify(CTX, params, result)).ok
 
 
-@pytest.mark.parametrize(
-    ("skill", "tier", "label"),
-    [
-        (AppsOpenSkill(), Tier.T1, "Open Spotify"),
-        (AppsCloseSkill(), Tier.T1, "Close Spotify"),
-        (AppsFocusSkill(), Tier.T0, "Switch to Spotify"),
-    ],
-)
-async def test_app_stubs_say_when_they_arrive(
-    skill: AppsOpenSkill | AppsCloseSkill | AppsFocusSkill, tier: Tier, label: str
+@pytest.mark.parametrize("skill", [AppsOpenSkill(None), AppsCloseSkill(None), AppsFocusSkill(None)])
+async def test_app_skills_without_windows_say_so(
+    skill: AppsOpenSkill | AppsCloseSkill | AppsFocusSkill,
 ) -> None:
-    params = AppParams(name="Spotify")
-    assert skill.tier_for(params) is tier
-    assert skill.describe(params) == label
-    with pytest.raises(SkillError, match="arrives in stage S08") as caught:
+    params = CloseParams(name="Spotify")
+    with pytest.raises(SkillError, match="not available") as caught:
         await skill.execute(CTX, params)
     assert caught.value.code == "E_SKILL_NOT_READY"
-    assert not (await skill.verify(CTX, params, StepResult(spoken="x"))).ok
+
+
+def test_app_tiers_and_labels() -> None:
+    assert AppsOpenSkill(None).tier_for(AppParams(name="x")) is Tier.T1
+    assert AppsFocusSkill(None).tier_for(AppParams(name="x")) is Tier.T0
+    close = AppsCloseSkill(None)
+    assert close.tier_for(CloseParams(name="Notepad")) is Tier.T1
+    assert close.tier_for(CloseParams(name="Notepad", force=True)) is Tier.T2
+    assert close.describe(CloseParams(name="Notepad", force=True)).startswith("Force close Notepad")
 
 
 async def test_demo_skills() -> None:

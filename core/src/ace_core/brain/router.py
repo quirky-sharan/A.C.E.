@@ -10,6 +10,7 @@ from enum import StrEnum
 from typing import Final
 
 from pydantic import ValidationError
+from rapidfuzz import fuzz, utils
 
 from ace_core.brain.grammar import (
     CONTROL_NO,
@@ -25,6 +26,36 @@ from ace_core.skills.base import SkillParams
 from ace_core.skills.registry import SkillRegistry
 
 UNKNOWN_INTENT: Final = "unknown"
+CHOOSE_INTENT: Final = "control.choose"
+
+_ORDINALS: Final[tuple[frozenset[str], ...]] = (
+    frozenset({"1", "one", "first", "pehla", "pehle", "pehla wala", "pehle wala"}),
+    frozenset({"2", "two", "second", "dusra", "doosra", "dusra wala", "doosra wala"}),
+    frozenset({"3", "three", "third", "teesra", "teesra wala"}),
+    frozenset({"4", "four", "fourth", "chautha", "chautha wala"}),
+)
+_LAST: Final = frozenset({"last", "aakhri", "last wala", "aakhri wala"})
+
+
+def pick_option(text: str, options: tuple[tuple[str, str], ...]) -> str | None:
+    """The option a typed answer means: a number / ordinal (English or Hinglish) or a clear
+    name match. None when it is not an answer."""
+    wanted = normalize(text).lower.removeprefix("the ").removesuffix(" one").strip()
+    for index, words in enumerate(_ORDINALS):
+        if wanted in words and index < len(options):
+            return options[index][0]
+    if wanted in _LAST and options:
+        return options[-1][0]
+    scored = sorted(
+        (
+            (fuzz.WRatio(wanted, label, processor=utils.default_process), option_id)
+            for option_id, label in options
+        ),
+        reverse=True,
+    )
+    if scored and scored[0][0] >= 85 and (len(scored) == 1 or scored[0][0] - scored[1][0] >= 10):
+        return scored[0][1]
+    return None
 
 
 class RouteKind(StrEnum):

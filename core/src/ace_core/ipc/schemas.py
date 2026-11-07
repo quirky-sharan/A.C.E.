@@ -139,6 +139,21 @@ class ConfirmationInfo(_Model):
     expires_at: datetime
 
 
+class ClarifyOptionInfo(_Model):
+    id: str
+    label: str
+
+
+class ClarificationInfo(_Model):
+    id: str
+    task_id: str
+    step_id: str
+    question: str
+    options: list[ClarifyOptionInfo]
+    requested_at: datetime
+    expires_at: datetime
+
+
 class TaskInfo(_Model):
     id: str
     conversation_id: str | None
@@ -154,6 +169,7 @@ class TaskInfo(_Model):
     error_code: str | None
     steps: list[StepInfo]
     confirmation: ConfirmationInfo | None  # set only while the task waits for Sharan's answer
+    clarification: ClarificationInfo | None  # set only while it waits for a choice
 
 
 class MessageInfo(_Model):
@@ -253,6 +269,36 @@ class ConfirmRespondResult(_Model):
     accepted: bool  # false when the confirmation was already answered or has expired
 
 
+class ClarifyRespondParams(_Model):
+    clarification_id: str = Field(min_length=1, max_length=36)
+    option_id: str = Field(min_length=1, max_length=128)
+
+
+class ClarifyRespondResult(_Model):
+    accepted: bool  # false when the question was already answered, expired or the option is unknown
+
+
+class AppsListParams(_Model):
+    query: str | None = Field(default=None, max_length=200)
+    limit: int = Field(default=200, ge=1, le=1000)
+
+
+class AppInfo(_Model):
+    name: str
+    kind: str  # aumid (Store app) / exe (desktop app) / other
+    target: str
+    launch_count: int
+
+
+class AppsListResult(_Model):
+    available: bool  # false where app control is not supported
+    apps: list[AppInfo]
+
+
+class AppsRefreshResult(_Model):
+    count: int
+
+
 class MessageListParams(_Model):
     limit: int = Field(default=50, ge=1, le=200)
 
@@ -298,6 +344,10 @@ class TaskEventPayload(_Model):
 
 class ConfirmRequestedPayload(_Model):
     confirmation: ConfirmationInfo
+
+
+class ClarifyRequestedPayload(_Model):
+    clarification: ClarificationInfo
 
 
 class MessageCreatedPayload(_Model):

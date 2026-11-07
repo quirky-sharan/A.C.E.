@@ -23,10 +23,19 @@ from ace_core.brain.records import (
     ConfirmationAnswer,
     Message,
     Origin,
+    PendingClarification,
     PendingConfirmation,
     Task,
 )
 from ace_core.ipc.schemas import (
+    AppInfo,
+    AppsListParams,
+    AppsListResult,
+    AppsRefreshResult,
+    ClarificationInfo,
+    ClarifyOptionInfo,
+    ClarifyRespondParams,
+    ClarifyRespondResult,
     CommandSubmitParams,
     CommandSubmitResult,
     ConfirmationInfo,
@@ -105,6 +114,18 @@ def confirmation_info(confirmation: PendingConfirmation) -> ConfirmationInfo:
     )
 
 
+def clarification_info(question: PendingClarification) -> ClarificationInfo:
+    return ClarificationInfo(
+        id=question.id,
+        task_id=question.task_id,
+        step_id=question.step_id,
+        question=question.question,
+        options=[ClarifyOptionInfo(id=option, label=label) for option, label in question.options],
+        requested_at=question.requested_at,
+        expires_at=question.expires_at,
+    )
+
+
 def task_info(task: Task) -> TaskInfo:
     return TaskInfo(
         id=task.id,
@@ -134,6 +155,7 @@ def task_info(task: Task) -> TaskInfo:
             for step in task.steps
         ],
         confirmation=confirmation_info(task.confirmation) if task.confirmation else None,
+        clarification=clarification_info(task.clarification) if task.clarification else None,
     )
 
 
@@ -197,6 +219,36 @@ async def _confirm_respond(
     return ConfirmRespondResult(accepted=accepted)
 
 
+async def _clarify_respond(
+    ctx: MethodContext, params: ClarifyRespondParams
+) -> ClarifyRespondResult:
+    accepted = ctx.container.pipeline.answer_clarification(
+        params.clarification_id, params.option_id
+    )
+    return ClarifyRespondResult(accepted=accepted)
+
+
+async def _apps_list(ctx: MethodContext, params: AppsListParams) -> AppsListResult:
+    ports = ctx.container.apps
+    if ports is None:
+        return AppsListResult(available=False, apps=[])
+    wanted = (params.query or "").casefold()
+    apps = [app for app in ports.index.apps if wanted in app.normalized_name]
+    apps.sort(key=lambda app: (-app.launch_count, app.normalized_name))
+    return AppsListResult(
+        available=True,
+        apps=[
+            AppInfo(name=a.name, kind=a.kind.value, target=a.target, launch_count=a.launch_count)
+            for a in apps[: params.limit]
+        ],
+    )
+
+
+async def _apps_refresh(ctx: MethodContext, _: EmptyParams) -> AppsRefreshResult:
+    ports = ctx.container.apps
+    return AppsRefreshResult(count=await ports.index.refresh() if ports is not None else 0)
+
+
 async def _message_list(ctx: MethodContext, params: MessageListParams) -> MessageListResult:
     messages = await ctx.container.pipeline.recent_messages(params.limit)
     return MessageListResult(messages=[message_info(message) for message in messages])
@@ -228,7 +280,10 @@ METHODS: Final[dict[str, MethodSpec]] = {
         MethodSpec("task.list", TaskListParams, TaskListResult, _task_list),
         MethodSpec("task.cancel", TaskCancelParams, TaskCancelResult, _task_cancel),
         MethodSpec("confirm.respond", ConfirmRespondParams, ConfirmRespondResult, _confirm_respond),
+        MethodSpec("clarify.respond", ClarifyRespondParams, ClarifyRespondResult, _clarify_respond),
         MethodSpec("message.list", MessageListParams, MessageListResult, _message_list),
+        MethodSpec("apps.list", AppsListParams, AppsListResult, _apps_list),
+        MethodSpec("apps.refresh", EmptyParams, AppsRefreshResult, _apps_refresh),
         MethodSpec("log.tail", LogTailParams, LogTailResult, _log_tail, dev_only=True),
     )
 }

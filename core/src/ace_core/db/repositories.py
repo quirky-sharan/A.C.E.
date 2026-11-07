@@ -14,6 +14,7 @@ from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import Session
 
 from ace_core.db.models import (
+    AppIndexRow,
     AuditLogEntry,
     ConfirmationRow,
     ConversationRow,
@@ -153,3 +154,28 @@ class ConfirmationRepository:
     @staticmethod
     def get(session: Session, confirmation_id: str) -> ConfirmationRow | None:
         return session.get(ConfirmationRow, confirmation_id)
+
+
+class AppIndexRepository:
+    @staticmethod
+    def all(session: Session) -> list[AppIndexRow]:
+        return list(session.scalars(select(AppIndexRow).order_by(AppIndexRow.normalized_name)))
+
+    @staticmethod
+    def by_target(session: Session) -> dict[str, AppIndexRow]:
+        return {row.target: row for row in session.scalars(select(AppIndexRow))}
+
+    @staticmethod
+    def add(session: Session, row: AppIndexRow) -> None:
+        session.add(row)
+
+    @staticmethod
+    def delete_targets(session: Session, targets: list[str]) -> int:
+        if not targets:
+            return 0
+        result = session.execute(delete(AppIndexRow).where(AppIndexRow.target.in_(targets)))
+        return cast("CursorResult[Any]", result).rowcount
+
+    @staticmethod
+    def get_by_target(session: Session, target: str) -> AppIndexRow | None:
+        return session.scalars(select(AppIndexRow).where(AppIndexRow.target == target)).first()

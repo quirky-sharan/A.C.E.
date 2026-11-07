@@ -74,9 +74,21 @@ export interface AceIpc {
       params: ConfirmRespondParams;
       result: ConfirmRespondResult;
     };
+    "clarify.respond": {
+      params: ClarifyRespondParams;
+      result: ClarifyRespondResult;
+    };
     "message.list": {
       params: MessageListParams;
       result: MessageListResult;
+    };
+    "apps.list": {
+      params: AppsListParams;
+      result: AppsListResult;
+    };
+    "apps.refresh": {
+      params: EmptyParams;
+      result: AppsRefreshResult;
     };
     "log.tail": {
       params: LogTailParams;
@@ -93,6 +105,7 @@ export interface AceIpc {
     "task.updated": TaskEventPayload;
     "task.finished": TaskEventPayload;
     "confirm.requested": ConfirmRequestedPayload;
+    "clarify.requested": ClarifyRequestedPayload;
     "message.created": MessageCreatedPayload;
     "settings.changed": SettingsChangedPayload;
   };
@@ -211,6 +224,7 @@ export interface TaskInfo {
   error_code: string | null;
   steps: StepInfo[];
   confirmation: ConfirmationInfo | null;
+  clarification: ClarificationInfo | null;
 }
 export interface StepInfo {
   id: string;
@@ -231,6 +245,19 @@ export interface ConfirmationInfo {
   requested_at: string;
   expires_at: string;
 }
+export interface ClarificationInfo {
+  id: string;
+  task_id: string;
+  step_id: string;
+  question: string;
+  options: ClarifyOptionInfo[];
+  requested_at: string;
+  expires_at: string;
+}
+export interface ClarifyOptionInfo {
+  id: string;
+  label: string;
+}
 export interface TaskCancelParams {
   task_id: string;
 }
@@ -242,6 +269,13 @@ export interface ConfirmRespondParams {
   answer: "yes" | "no";
 }
 export interface ConfirmRespondResult {
+  accepted: boolean;
+}
+export interface ClarifyRespondParams {
+  clarification_id: string;
+  option_id: string;
+}
+export interface ClarifyRespondResult {
   accepted: boolean;
 }
 export interface MessageListParams {
@@ -260,6 +294,23 @@ export interface MessageInfo {
   detail: string | null;
   task_id: string | null;
   reply_to: string | null;
+}
+export interface AppsListParams {
+  query?: string | null;
+  limit?: number;
+}
+export interface AppsListResult {
+  available: boolean;
+  apps: AppInfo[];
+}
+export interface AppInfo {
+  name: string;
+  kind: string;
+  target: string;
+  launch_count: number;
+}
+export interface AppsRefreshResult {
+  count: number;
 }
 export interface LogTailParams {
   lines?: number;
@@ -295,6 +346,9 @@ export interface TaskEventPayload {
 }
 export interface ConfirmRequestedPayload {
   confirmation: ConfirmationInfo;
+}
+export interface ClarifyRequestedPayload {
+  clarification: ClarificationInfo;
 }
 export interface MessageCreatedPayload {
   message: MessageInfo;

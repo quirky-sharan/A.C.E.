@@ -29,12 +29,14 @@ from ace_core.app.modes import DEFAULT_MODE, MODE_SETTING, parse_mode
 from ace_core.app.state import ConversationState, StateStore
 from ace_core.brain import responses
 from ace_core.brain.records import (
+    ClarificationRequested,
     ConfirmationAnswer,
     Message,
     MessageCreated,
     MessageRole,
     MessageSource,
     Origin,
+    PendingClarification,
     Step,
     StepStatus,
     Task,
@@ -43,14 +45,22 @@ from ace_core.brain.records import (
     TaskStatus,
 )
 from ace_core.brain.responses import Reply
-from ace_core.brain.router import Route, RouteKind, Router
+from ace_core.brain.router import CHOOSE_INTENT, Route, RouteKind, Router, pick_option
 from ace_core.brain.supervisor import Decision, Supervisor
 from ace_core.db.history import HistoryStore
 from ace_core.db.ids import new_id
 from ace_core.db.stores import AuditLog
 from ace_core.security.scope import CapabilityScope
 from ace_core.security.tiers import Tier
-from ace_core.skills.base import AnySkill, SettingsAccess, SkillContext, SkillError, SkillParams
+from ace_core.skills.base import (
+    AnySkill,
+    Choice,
+    NeedsChoice,
+    SettingsAccess,
+    SkillContext,
+    SkillError,
+    SkillParams,
+)
 from ace_core.skills.registry import SkillRegistry
 
 log = structlog.stdlib.get_logger(__name__)
@@ -62,6 +72,9 @@ ERR_PRECONDITION: Final = "E_SKILL_PRECONDITION"
 ERR_TIMEOUT: Final = "E_SKILL_TIMEOUT"
 ERR_VERIFY: Final = "E_SKILL_VERIFY_FAILED"
 ERR_INTERNAL: Final = "E_SKILL_INTERNAL"
+ERR_TOO_MANY_QUESTIONS: Final = "E_PIPELINE_TOO_MANY_QUESTIONS"
+CLARIFY_TIMEOUT_S: Final = 60.0  # how long a "which one?" question waits
+MAX_QUESTIONS: Final = 2  # per step
 
 _MANAGED_STATES: Final = frozenset(
     {
@@ -69,6 +82,7 @@ _MANAGED_STATES: Final = frozenset(
         ConversationState.THINKING,
         ConversationState.ACTING,
         ConversationState.AWAITING_CONFIRM,
+        ConversationState.AWAITING_ANSWER,
     }
 )
 _OPEN_STEP: Final = frozenset({StepStatus.PENDING, StepStatus.RUNNING, StepStatus.WAITING_USER})
@@ -116,6 +130,7 @@ class CommandPipeline:
         state: StateStore,
         settings: SettingsAccess,
         clock: Callable[[], datetime] = _utcnow,
+        clarify_timeout_s: float = CLARIFY_TIMEOUT_S,
     ) -> None:
         self._registry = registry
         self._router = router
@@ -132,6 +147,8 @@ class CommandPipeline:
         self._cancel_reasons: dict[str, CancelReason] = {}
         self._conversation: _Conversation | None = None
         self._closing = False
+        self._clarify_timeout_s = clarify_timeout_s
+        self._questions: dict[str, tuple[PendingClarification, asyncio.Future[str | None]]] = {}
 
     # ---- public API (IPC methods, later voice / routines / MCP) ----
 
@@ -153,17 +170,21 @@ class CommandPipeline:
             await self._history.add_message(user_message)
             await self._bus.publish(MessageCreated(message=user_message))
             await self._set_thinking()
-            route: Route | None = None
+            intent = "unknown"
             task_id: str | None = None
             try:
-                route = self._router.route(text)
-                task_id = await self._dispatch(route, origin, conversation_id, user_message)
+                answered = self._answer_typed_choice(text)
+                if answered is not None:
+                    intent, task_id = CHOOSE_INTENT, answered
+                else:
+                    route = self._router.route(text)
+                    intent = route.intent
+                    task_id = await self._dispatch(route, origin, conversation_id, user_message)
             except Exception:
-                log.exception("command failed", intent=route.intent if route else None)
+                log.exception("command failed", intent=intent)
                 await self._reply(conversation_id, responses.internal_error(), user_message.id)
             finally:
                 await self._refresh_state()
-            intent = route.intent if route is not None else "unknown"
             return SubmitResult(conversation_id, user_message.id, intent, task_id)
 
     def respond(
@@ -172,11 +193,26 @@ class CommandPipeline:
         """Answer a pending confirmation (e.g. the ConfirmCard buttons)."""
         return self._supervisor.respond(confirmation_id, answer, channel)
 
+    def answer_clarification(self, clarification_id: str, option_id: str) -> bool:
+        """Pick an option of a pending question (e.g. the ClarifyCard buttons)."""
+        entry = self._questions.get(clarification_id)
+        if entry is None or entry[1].done():
+            return False
+        question, future = entry
+        if option_id not in {option for option, _ in question.options}:
+            return False
+        future.set_result(option_id)
+        return True
+
     def cancel(self, task_id: str, *, reason: CancelReason = CancelReason.CANCEL) -> bool:
         """Cancel a live task: a pending confirmation is answered "no", a running step stops."""
         if task_id not in self._live:
             return False
         self._cancel_reasons[task_id] = reason
+        for question, future in list(self._questions.values()):
+            if question.task_id == task_id and not future.done():
+                future.set_result(None)
+                return True
         pending = self._supervisor.pending_for_task(task_id)
         if pending is not None:
             return self._supervisor.respond(pending.id, ConfirmationAnswer.NO, reason.value)
@@ -340,25 +376,42 @@ class CommandPipeline:
                 task, step, reply_to
             ):
                 return
-            unmet = await skill.preconditions(ctx, params)
-            if unmet:
-                await self._fail(task, step, ERR_PRECONDITION, "; ".join(unmet), reply_to)
-                return
-            step.status = StepStatus.RUNNING
-            step.started_at = self._clock()
-            task.status = TaskStatus.RUNNING
-            await self._publish(task, TaskChange.UPDATED)
-            await self._refresh_state()
-            try:
-                result = await asyncio.wait_for(skill.execute(ctx, params), timeout=skill.timeout_s)
-            except SkillError as exc:
-                await self._fail(task, step, exc.code, exc.message, reply_to)
-                return
-            except TimeoutError:
-                await self._fail(
-                    task, step, ERR_TIMEOUT, "It took too long, so I stopped waiting.", reply_to
-                )
-                return
+            questions = 0
+            while True:
+                try:
+                    unmet = await skill.preconditions(ctx, params)
+                    if unmet:
+                        await self._fail(task, step, ERR_PRECONDITION, "; ".join(unmet), reply_to)
+                        return
+                    step.status = StepStatus.RUNNING
+                    step.started_at = step.started_at or self._clock()
+                    task.status = TaskStatus.RUNNING
+                    await self._publish(task, TaskChange.UPDATED)
+                    await self._refresh_state()
+                    result = await asyncio.wait_for(
+                        skill.execute(ctx, params), timeout=skill.timeout_s
+                    )
+                    break
+                except NeedsChoice as need:
+                    questions += 1
+                    if questions > MAX_QUESTIONS or not need.choices:
+                        message = "I still couldn't tell which one you meant."
+                        await self._fail(task, step, ERR_TOO_MANY_QUESTIONS, message, reply_to)
+                        return
+                    choice = await self._ask(task, step, need, reply_to)
+                    if choice is None:
+                        return
+                    merged = {**params.model_dump(mode="json"), **choice.params}
+                    params = skill.params_model.model_validate(merged)
+                    step.params = params.model_dump(mode="json")
+                    step.label = skill.describe(params)
+                except SkillError as exc:
+                    await self._fail(task, step, exc.code, exc.message, reply_to)
+                    return
+                except TimeoutError:
+                    message = "It took too long, so I stopped waiting."
+                    await self._fail(task, step, ERR_TIMEOUT, message, reply_to)
+                    return
             step.observation = dict(result.data)
             task.status = TaskStatus.VERIFYING
             await self._publish(task, TaskChange.UPDATED)
@@ -395,6 +448,84 @@ class CommandPipeline:
                     responses.internal_error(),
                     reply_to,
                 )
+
+    async def _ask(self, task: Task, step: Step, need: NeedsChoice, reply_to: str) -> Choice | None:
+        """Ask which option Sharan means. The chosen option, or None (the task is then finished
+        as cancelled: no answer in time, "stop", or the Stop button)."""
+        now = self._clock()
+        question = PendingClarification(
+            id=new_id(),
+            task_id=task.id,
+            step_id=step.id,
+            question=need.question,
+            options=tuple((choice.id, choice.label) for choice in need.choices),
+            requested_at=now,
+            expires_at=now + timedelta(seconds=self._clarify_timeout_s),
+        )
+        future: asyncio.Future[str | None] = asyncio.get_running_loop().create_future()
+        self._questions[question.id] = (question, future)
+        timed_out = False
+        try:
+            task.status = TaskStatus.WAITING_USER
+            step.status = StepStatus.WAITING_USER
+            task.clarification = question
+            await self._publish(task, TaskChange.UPDATED)
+            await self._audit.record(
+                actor="ace",
+                event_type="clarify.requested",
+                summary=need.question,
+                task_id=task.id,
+                step_id=step.id,
+                data={"options": [choice.label for choice in need.choices]},
+            )
+            await self._bus.publish(ClarificationRequested(clarification=question))
+            labels = [choice.label for choice in need.choices]
+            await self._reply(
+                task.conversation_id,
+                responses.question(need.question, labels),
+                reply_to,
+                task_id=task.id,
+            )
+            await self._refresh_state()
+            try:
+                async with asyncio.timeout(self._clarify_timeout_s):
+                    option_id = await future
+            except TimeoutError:
+                option_id, timed_out = None, True
+        finally:
+            self._questions.pop(question.id, None)
+            task.clarification = None
+        chosen = next((choice for choice in need.choices if choice.id == option_id), None)
+        await self._audit.record(
+            actor="user" if chosen is not None else "system",
+            event_type="clarify.answered",
+            summary=f"answer: {chosen.label if chosen is not None else 'none'}",
+            task_id=task.id,
+            step_id=step.id,
+            data={"timed_out": timed_out},
+        )
+        if chosen is None:
+            reason = self._cancel_reasons.pop(task.id, None)
+            answer = ConfirmationAnswer.TIMEOUT if timed_out else None
+            await self._finish_cancelled(
+                task, step, reason, answer, reply_to, timeout_s=self._clarify_timeout_s
+            )
+            return None
+        task.status = TaskStatus.RUNNING
+        step.status = StepStatus.RUNNING
+        return chosen
+
+    def _answer_typed_choice(self, text: str) -> str | None:
+        """A typed answer to the newest open question: picks the option, returns its task id."""
+        open_questions = [(q, f) for q, f in self._questions.values() if not f.done()]
+        if not open_questions:
+            return None
+        question, future = open_questions[-1]
+        option_id = pick_option(text, question.options)
+        if option_id is None:
+            return None
+        future.set_result(option_id)
+        return question.task_id
 
     async def _confirm(self, task: Task, step: Step, reply_to: str) -> bool:
         """Ask Sharan (T2). True on "yes"; otherwise the task is finished as cancelled."""
@@ -438,6 +569,8 @@ class CommandPipeline:
         reason: CancelReason | None,
         answer: ConfirmationAnswer | None,
         reply_to: str,
+        *,
+        timeout_s: float | None = None,
     ) -> None:
         if reason is CancelReason.SHUTDOWN:
             status, reply, summary = (
@@ -448,7 +581,8 @@ class CommandPipeline:
         elif reason is CancelReason.STOP:
             status, reply, summary = TaskStatus.CANCELLED, None, "Stopped."
         else:
-            reply = responses.cancelled(answer, self._supervisor.timeout_s)
+            waited = timeout_s if timeout_s is not None else self._supervisor.timeout_s
+            reply = responses.cancelled(answer, waited)
             status, summary = TaskStatus.CANCELLED, reply.spoken
         if reason in (CancelReason.STOP, CancelReason.CANCEL):
             await self._audit.record(
@@ -484,6 +618,7 @@ class CommandPipeline:
         task.finished_at = now
         task.error_code = error_code
         task.confirmation = None
+        task.clarification = None
         task.result_summary = summary if summary is not None else (reply.spoken if reply else None)
         self._live.pop(task.id, None)
         self._cancel_reasons.pop(task.id, None)
@@ -575,6 +710,8 @@ class CommandPipeline:
             return  # e.g. MUTED or DICTATING: owned by the voice stages
         if self._supervisor.pending():
             target = ConversationState.AWAITING_CONFIRM
+        elif any(not future.done() for _, future in self._questions.values()):
+            target = ConversationState.AWAITING_ANSWER
         elif self._live:
             target = ConversationState.ACTING
         else:

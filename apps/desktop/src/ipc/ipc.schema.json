@@ -158,6 +158,22 @@
           ],
           "additionalProperties": false
         },
+        "clarify.respond": {
+          "type": "object",
+          "properties": {
+            "params": {
+              "$ref": "#/$defs/ClarifyRespondParams"
+            },
+            "result": {
+              "$ref": "#/$defs/ClarifyRespondResult"
+            }
+          },
+          "required": [
+            "params",
+            "result"
+          ],
+          "additionalProperties": false
+        },
         "message.list": {
           "type": "object",
           "properties": {
@@ -166,6 +182,38 @@
             },
             "result": {
               "$ref": "#/$defs/MessageListResult"
+            }
+          },
+          "required": [
+            "params",
+            "result"
+          ],
+          "additionalProperties": false
+        },
+        "apps.list": {
+          "type": "object",
+          "properties": {
+            "params": {
+              "$ref": "#/$defs/AppsListParams"
+            },
+            "result": {
+              "$ref": "#/$defs/AppsListResult"
+            }
+          },
+          "required": [
+            "params",
+            "result"
+          ],
+          "additionalProperties": false
+        },
+        "apps.refresh": {
+          "type": "object",
+          "properties": {
+            "params": {
+              "$ref": "#/$defs/EmptyParams"
+            },
+            "result": {
+              "$ref": "#/$defs/AppsRefreshResult"
             }
           },
           "required": [
@@ -200,7 +248,10 @@
         "task.list",
         "task.cancel",
         "confirm.respond",
+        "clarify.respond",
         "message.list",
+        "apps.list",
+        "apps.refresh",
         "log.tail"
       ],
       "additionalProperties": false
@@ -235,6 +286,9 @@
         "confirm.requested": {
           "$ref": "#/$defs/ConfirmRequestedPayload"
         },
+        "clarify.requested": {
+          "$ref": "#/$defs/ClarifyRequestedPayload"
+        },
         "message.created": {
           "$ref": "#/$defs/MessageCreatedPayload"
         },
@@ -252,6 +306,7 @@
         "task.updated",
         "task.finished",
         "confirm.requested",
+        "clarify.requested",
         "message.created",
         "settings.changed"
       ],
@@ -266,6 +321,89 @@
   ],
   "additionalProperties": false,
   "$defs": {
+    "AppInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "launch_count": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "kind",
+        "target",
+        "launch_count"
+      ],
+      "title": "AppInfo",
+      "type": "object"
+    },
+    "AppsListParams": {
+      "additionalProperties": false,
+      "properties": {
+        "query": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "limit": {
+          "default": 200,
+          "maximum": 1000,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "title": "AppsListParams",
+      "type": "object"
+    },
+    "AppsListResult": {
+      "additionalProperties": false,
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "apps": {
+          "items": {
+            "$ref": "#/$defs/AppInfo"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "available",
+        "apps"
+      ],
+      "title": "AppsListResult",
+      "type": "object"
+    },
+    "AppsRefreshResult": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "count"
+      ],
+      "title": "AppsRefreshResult",
+      "type": "object"
+    },
     "AuthMessage": {
       "additionalProperties": false,
       "description": "Must be the first message on every connection, within 2 seconds.",
@@ -290,6 +428,112 @@
         "token"
       ],
       "title": "AuthMessage",
+      "type": "object"
+    },
+    "ClarificationInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "step_id": {
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/ClarifyOptionInfo"
+          },
+          "type": "array"
+        },
+        "requested_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "task_id",
+        "step_id",
+        "question",
+        "options",
+        "requested_at",
+        "expires_at"
+      ],
+      "title": "ClarificationInfo",
+      "type": "object"
+    },
+    "ClarifyOptionInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "title": "ClarifyOptionInfo",
+      "type": "object"
+    },
+    "ClarifyRequestedPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "clarification": {
+          "$ref": "#/$defs/ClarificationInfo"
+        }
+      },
+      "required": [
+        "clarification"
+      ],
+      "title": "ClarifyRequestedPayload",
+      "type": "object"
+    },
+    "ClarifyRespondParams": {
+      "additionalProperties": false,
+      "properties": {
+        "clarification_id": {
+          "maxLength": 36,
+          "minLength": 1,
+          "type": "string"
+        },
+        "option_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "clarification_id",
+        "option_id"
+      ],
+      "title": "ClarifyRespondParams",
+      "type": "object"
+    },
+    "ClarifyRespondResult": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "accepted"
+      ],
+      "title": "ClarifyRespondResult",
       "type": "object"
     },
     "CommandSubmitParams": {
@@ -1329,6 +1573,16 @@
               "type": "null"
             }
           ]
+        },
+        "clarification": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ClarificationInfo"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "required": [
@@ -1345,7 +1599,8 @@
         "result_summary",
         "error_code",
         "steps",
-        "confirmation"
+        "confirmation",
+        "clarification"
       ],
       "title": "TaskInfo",
       "type": "object"

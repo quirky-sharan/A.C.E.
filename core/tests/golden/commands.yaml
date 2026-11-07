@@ -86,6 +86,48 @@
   skill: "apps.focus"
   params: {name: "vs code"}
 
+- utterance: "open spot"
+  skill: "apps.open"
+  params: {name: "spot"}
+- utterance: "force close notepad"
+  skill: "apps.close"
+  params: {name: "notepad", force: true}
+- utterance: "kill chrome"
+  skill: "apps.close"
+  params: {name: "chrome", force: true}
+
+# ---- windows (S08) ----
+- utterance: "snap vs code left"
+  skill: "windows.arrange"
+  params: {action: "snap_left", name: "vs code"}
+- utterance: "snap chrome to the right"
+  skill: "windows.arrange"
+  params: {action: "snap_right", name: "chrome"}
+- utterance: "snap left"
+  skill: "windows.arrange"
+  params: {action: "snap_left"}
+- utterance: "maximize this"
+  skill: "windows.arrange"
+  params: {action: "maximize"}
+- utterance: "minimise spotify"
+  skill: "windows.arrange"
+  params: {action: "minimize", name: "spotify"}
+- utterance: "restore the notepad window"
+  skill: "windows.arrange"
+  params: {action: "restore", name: "notepad"}
+- utterance: "chrome ko left karo"
+  skill: "windows.arrange"
+  params: {action: "snap_left", name: "chrome"}
+- utterance: "vs code ko bada karo"
+  skill: "windows.arrange"
+  params: {action: "maximize", name: "vs code"}
+- utterance: "what's open?"
+  skill: "windows.list"
+  params: {}
+- utterance: "kya khula hai"
+  skill: "windows.list"
+  params: {}
+
 # ---- confirmation / refusal test skills (dev mode) ----
 - utterance: "demo dangerous"
   skill: "demo.dangerous"

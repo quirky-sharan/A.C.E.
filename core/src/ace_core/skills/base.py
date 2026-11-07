@@ -67,6 +67,23 @@ class SkillError(Exception):
         self.message = message
 
 
+@dataclass(frozen=True, slots=True)
+class Choice:
+    id: str
+    label: str
+    params: Mapping[str, JsonValue]  # merged into the step's params when Sharan picks it
+
+
+class NeedsChoice(Exception):  # noqa: N818 - a request, not an error
+    """Raised by ``preconditions`` or ``execute`` when Sharan must pick one option; the pipeline
+    asks, merges the chosen option's params and runs the step again."""
+
+    def __init__(self, question: str, choices: list[Choice]) -> None:
+        super().__init__(question)
+        self.question = question
+        self.choices = choices
+
+
 class SettingsAccess(Protocol):
     """The part of the settings store skills may use (``SettingsStore`` satisfies it)."""
 

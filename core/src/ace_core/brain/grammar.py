@@ -107,6 +107,30 @@ def _app_name(match: re.Match[str]) -> dict[str, JsonValue]:
     return {"name": match.group("name").strip(_EDGE_CHARS)}
 
 
+def _force_close(match: re.Match[str]) -> dict[str, JsonValue]:
+    return {"name": match.group("name").strip(_EDGE_CHARS), "force": True}
+
+
+_THIS: Final = frozenset({"this", "it", "window", "this window", "the window", "current window"})
+_STATE_WORDS: Final[dict[str, str]] = {
+    "maximize": "maximize",
+    "maximise": "maximize",
+    "bada": "maximize",
+    "minimize": "minimize",
+    "minimise": "minimize",
+    "chhota": "minimize",
+    "restore": "restore",
+}
+
+
+def _arrange(match: re.Match[str]) -> dict[str, JsonValue]:
+    groups = match.groupdict()
+    side, state = groups.get("side"), groups.get("state")
+    action = f"snap_{side.lower()}" if side else _STATE_WORDS[(state or "").lower()]
+    name = (groups.get("name") or "").strip(_EDGE_CHARS)
+    return {"action": action, "name": None if not name or name.lower() in _THIS else name}
+
+
 @dataclass(frozen=True, slots=True)
 class GrammarRule:
     intent: str  # a skill id, or control.stop / control.yes / control.no
@@ -151,6 +175,21 @@ DEFAULT_RULES: Final[tuple[GrammarRule, ...]] = (
         params=_group("mode", lower=True),
     ),
     rule("system.echo", r"echo (?P<text>.+)", params=_group("text")),
+    rule(
+        "windows.list",
+        r"what(?:'s| is) open|which (?:apps|windows) are open|(?:list|show)(?: me)?(?: all| my)?"
+        r" (?:open )?windows|open windows",
+        r"kya(?: kya)? khula hai|kaun(?: kaun)? se (?:apps|windows) khule hain",
+    ),
+    rule(
+        "windows.arrange",
+        r"snap (?:the )?(?P<name>.+?) (?:to (?:the )?)?(?P<side>left|right)(?: side| half)?",
+        r"snap(?: (?:it|this|this window))?(?: to(?: the)?)? (?P<side>left|right)(?: side| half)?",
+        r"(?P<name>.+?) ko (?P<side>left|right)(?: (?:mein|me|side))?(?: snap)? karo",
+        r"(?P<state>maximi[sz]e|minimi[sz]e|restore)(?: (?:the )?(?P<name>.+?))?(?: window)?",
+        r"(?P<name>.+?) (?:ko )?(?P<state>bada|chhota) karo",
+        params=_arrange,
+    ),
     rule("demo.dangerous", r"(?:run )?(?:the )?demo dangerous|dangerous demo"),
     rule("demo.forbidden", r"(?:run )?(?:the )?demo forbidden|forbidden demo"),
     rule(
@@ -159,6 +198,12 @@ DEFAULT_RULES: Final[tuple[GrammarRule, ...]] = (
         rf"focus(?: on)? (?:the )?(?P<name>.+?){_APP_SUFFIX}",
         r"(?P<name>.+?) (?:pe|par) (?:jao|chalo|le chalo|switch karo|switch kar do)",
         params=_app_name,
+    ),
+    rule(
+        "apps.close",
+        rf"(?:force (?:close|quit|kill)|kill) (?:the )?(?P<name>.+?){_APP_SUFFIX}",
+        r"(?P<name>.+?) (?:ko )?force (?:close|band) karo",
+        params=_force_close,
     ),
     rule(
         "apps.close",

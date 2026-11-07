@@ -45,6 +45,8 @@ export const openControlCenter = () => invoke<void>("open_control_center");
 export const closeSidebar = () => invoke<void>("overlay_close_sidebar");
 /** The panel finished sliding out: the shell hides the window (unless it was opened again). */
 export const sidebarHidden = () => invoke<void>("overlay_sidebar_hidden");
+/** Before a command or an answer: the app it opens or switches to may come to the front (D-57). */
+export const allowForeground = () => invoke<void>("overlay_allow_foreground");
 export const focusSidebarInput = () => invoke<void>("overlay_focus_input");
 export const hideOverlayFor = (minutes: number) => invoke<void>("overlay_hide_for", { minutes });
 export const reportSummonFocus = () => invoke<number | null>("overlay_report_focus");

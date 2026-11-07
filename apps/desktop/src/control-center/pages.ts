@@ -65,7 +65,7 @@ export const PAGES: readonly PageInfo[] = [
     id: "skills",
     title: "Skills & Permissions",
     summary: "Enable or disable skills, see their tiers, manage pre-approvals.",
-    stage: "S08",
+    stage: null,
     icon: ShieldCheck,
   },
   {

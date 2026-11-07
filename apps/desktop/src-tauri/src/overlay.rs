@@ -28,11 +28,11 @@ use windows_sys::Win32::Foundation::{HWND, POINT};
 use windows_sys::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows_sys::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON, VK_RBUTTON};
 use windows_sys::Win32::UI::WindowsAndMessaging::{
-    CreateWindowExW, GWL_EXSTYLE, GWLP_HWNDPARENT, GetCursorPos, GetForegroundWindow,
-    GetShellWindow, GetWindowLongPtrW, HWND_TOPMOST, IsWindow, IsWindowVisible, SW_HIDE,
-    SW_SHOWNOACTIVATE, SWP_ASYNCWINDOWPOS, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOOWNERZORDER,
-    SWP_NOSIZE, SetForegroundWindow, SetWindowLongPtrW, SetWindowPos, ShowWindow, WS_EX_LAYERED,
-    WS_EX_TRANSPARENT, WS_POPUP,
+    ASFW_ANY, AllowSetForegroundWindow, CreateWindowExW, GWL_EXSTYLE, GWLP_HWNDPARENT,
+    GetCursorPos, GetForegroundWindow, GetShellWindow, GetWindowLongPtrW, HWND_TOPMOST, IsWindow,
+    IsWindowVisible, SW_HIDE, SW_SHOWNOACTIVATE, SWP_ASYNCWINDOWPOS, SWP_NOACTIVATE, SWP_NOMOVE,
+    SWP_NOOWNERZORDER, SWP_NOSIZE, SetForegroundWindow, SetWindowLongPtrW, SetWindowPos,
+    ShowWindow, WS_EX_LAYERED, WS_EX_TRANSPARENT, WS_POPUP,
 };
 
 use crate::geometry::{self, CssRect, Edge, Rect};
@@ -707,6 +707,17 @@ pub fn overlay_focus_input(overlay: State<'_, Arc<Overlay>>) {
 #[tauri::command]
 pub fn overlay_sidebar_hidden(overlay: State<'_, Arc<Overlay>>) {
     overlay.sidebar_hidden();
+}
+
+/// The sidebar is about to send a command or an answer (S08, D-57). The shell is the foreground
+/// process right now, so it may let other processes take the foreground: the app ACE opens or
+/// switches to then comes to the front. Windows withdraws the grant at the next user input.
+#[tauri::command]
+pub fn overlay_allow_foreground() {
+    // SAFETY: plain Win32 call without pointers.
+    unsafe {
+        AllowSetForegroundWindow(ASFW_ANY);
+    }
 }
 
 #[tauri::command]

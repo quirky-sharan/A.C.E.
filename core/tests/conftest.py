@@ -24,6 +24,7 @@ ACE_SETTING_ENV_VARS = (
     "ACE_AUDIT_RETENTION_DAYS",
     "ACE_IPC_PORT",
     "ACE_SAFE_MODE",
+    "ACE_HOME",  # a dev-only paths override (S08)
 )
 
 

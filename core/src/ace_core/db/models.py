@@ -166,3 +166,27 @@ class ConfirmationRow(Base):
     response: Mapped[str | None] = mapped_column(String(8))
     channel: Mapped[str | None] = mapped_column(String(16))
     responded_at: Mapped[datetime | None] = mapped_column(UtcDateTime())
+
+
+# ---- S08: the app index ----
+
+
+class AppIndexRow(Base):
+    """One app from the Start menu (shell:AppsFolder); ``target`` is its AppsFolder id."""
+
+    __tablename__ = "app_index"
+    __table_args__ = (
+        CheckConstraint("kind IN ('aumid','exe','other')", name="kind"),
+        Index("ix_app_index_normalized_name", "normalized_name"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    normalized_name: Mapped[str] = mapped_column(Text, nullable=False)
+    kind: Mapped[str] = mapped_column(String(8), nullable=False)
+    target: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    aumid: Mapped[str | None] = mapped_column(Text)
+    exe_path: Mapped[str | None] = mapped_column(Text)
+    icon_path: Mapped[str | None] = mapped_column(Text)
+    last_seen_at: Mapped[datetime] = mapped_column(UtcDateTime(), nullable=False)
+    launch_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

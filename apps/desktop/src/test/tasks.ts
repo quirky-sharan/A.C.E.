@@ -2,7 +2,13 @@
 // plus a client that records requests.
 
 import type { IpcClient } from "../ipc/client";
-import type { ConfirmationInfo, MessageInfo, StepInfo, TaskInfo } from "../ipc/generated";
+import type {
+  ClarificationInfo,
+  ConfirmationInfo,
+  MessageInfo,
+  StepInfo,
+  TaskInfo,
+} from "../ipc/generated";
 
 export function makeStep(overrides: Partial<StepInfo> = {}): StepInfo {
   return {
@@ -35,6 +41,7 @@ export function makeTask(overrides: Partial<TaskInfo> = {}): TaskInfo {
     error_code: null,
     steps: [makeStep()],
     confirmation: null,
+    clarification: null,
     ...overrides,
   };
 }
@@ -47,6 +54,22 @@ export function makeConfirmation(overrides: Partial<ConfirmationInfo> = {}): Con
     prompt: "Run the demo dangerous action",
     requested_at: "2026-11-07T12:00:00.000000Z",
     expires_at: new Date(Date.now() + 30_000).toISOString(),
+    ...overrides,
+  };
+}
+
+export function makeClarification(overrides: Partial<ClarificationInfo> = {}): ClarificationInfo {
+  return {
+    id: "q1",
+    task_id: "t1",
+    step_id: "s1",
+    question: "Which python did you mean?",
+    options: [
+      { id: "py311", label: "Python 3.11 (64-bit)" },
+      { id: "py312", label: "Python 3.12 (64-bit)" },
+    ],
+    requested_at: "2026-11-07T12:00:00.000000Z",
+    expires_at: new Date(Date.now() + 60_000).toISOString(),
     ...overrides,
   };
 }

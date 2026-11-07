@@ -16,6 +16,7 @@ from typing import Final
 APP_DIR_NAME: Final = "ACE"
 PORTABLE_FLAG_FILE: Final = "ace-portable.flag"
 CONFIG_FILE_NAME: Final = "config.toml"
+HOME_ENV: Final = "ACE_HOME"  # dev / test override of the normal-mode folder
 
 
 @dataclass(frozen=True, slots=True)
@@ -63,6 +64,11 @@ def resolve_paths(
     exe = exe_dir if exe_dir is not None else executable_dir()
     if portable or (exe / PORTABLE_FLAG_FILE).is_file():
         return AppPaths.under(exe / "data", portable=True)
+    home = os.environ.get(HOME_ENV)
+    if home and local_app_data is None:
+        # Development / testing only (§17.4): keep ACE's files elsewhere without changing
+        # LOCALAPPDATA, which Windows' own Start-menu list depends on (S08, PL-0010).
+        return AppPaths.under(Path(home), portable=False)
     base = local_app_data if local_app_data is not None else _local_app_data()
     return AppPaths.under(base / APP_DIR_NAME, portable=False)
 

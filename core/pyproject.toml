@@ -10,6 +10,7 @@ dependencies = [
     "pydantic>=2.14.3",
     "pydantic-settings>=2.16.2",
     "pywin32>=312",
+    "rapidfuzz>=3.14.6",
     "sqlalchemy>=2.1.8",
     "structlog>=26.1.0",
     "uvicorn>=0.54.0",

@@ -6,6 +6,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import AsyncIterator, Callable
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import pytest
 from brain_fakes import ConfigurableSkill, Env, EnvFactory, EventRecorder
@@ -25,6 +26,7 @@ from ace_core.brain.pipeline import (
     PipelineClosedError,
 )
 from ace_core.brain.records import (
+    ClarificationRequested,
     ConfirmationAnswer,
     ConfirmationRequested,
     Message,
@@ -43,9 +45,10 @@ from ace_core.db.history import HistoryStore
 from ace_core.db.models import ConfirmationRow, ConversationRow
 from ace_core.db.stores import AuditLog, SettingsStore
 from ace_core.security.tiers import Tier
-from ace_core.skills.apps import NOT_READY
+from ace_core.skills.apps import NOT_READY, AppsPorts
 from ace_core.skills.base import AnySkill
 from ace_core.skills.catalog import build_registry
+from ace_core.skills.fakes import PYTHON_311, PYTHON_312, fake_desktop
 
 
 @pytest.fixture
@@ -61,17 +64,19 @@ async def make_env(
         extra_skills: tuple[AnySkill, ...] = (),
         extra_rules: tuple[GrammarRule, ...] = (),
         clock: Callable[[], datetime] | None = None,
+        apps: AppsPorts | None = None,
+        clarify_timeout_s: float = 30.0,
     ) -> Env:
         bus = EventBus()
         events = EventRecorder()
         events.attach(bus)
         state = StateStore(bus)
         settings = SettingsStore(db, audit, bus=bus)
-        registry = build_registry(settings=settings, dev=True)
+        registry = build_registry(settings=settings, dev=True, apps=apps)
         for skill in extra_skills:
             registry.register(skill)
         supervisor = Supervisor(history=history, audit=audit, bus=bus, timeout_s=timeout_s)
-        options = {"clock": clock} if clock is not None else {}
+        options: dict[str, Any] = {"clock": clock} if clock is not None else {}
         pipeline = CommandPipeline(
             registry=registry,
             router=Router(registry, (*extra_rules, *DEFAULT_RULES)),
@@ -81,6 +86,7 @@ async def make_env(
             bus=bus,
             state=state,
             settings=settings,
+            clarify_timeout_s=clarify_timeout_s,
             **options,
         )
         env = Env(bus, state, history, audit, settings, supervisor, pipeline, events)
@@ -285,13 +291,68 @@ async def test_mode_switch_is_stored_and_used_by_new_tasks(make_env: EnvFactory)
     assert (await finished(env, echo.task_id)).mode == "paranoid"
 
 
-async def test_app_commands_say_when_they_arrive(make_env: EnvFactory) -> None:
-    env = make_env()
+async def test_app_commands_without_windows_say_so(make_env: EnvFactory) -> None:
+    env = make_env()  # no OS adapters, e.g. not Windows
     result = await env.pipeline.submit("open spotify")
     task = await finished(env, result.task_id)
     assert (task.status, task.error_code) == (TaskStatus.FAILED, NOT_READY)
     reply = await ace_reply(env, lambda m: m.task_id == result.task_id)
-    assert "Opening apps arrives in stage S08." in reply.text
+    assert "not available" in reply.text
+
+
+async def test_an_ambiguous_app_asks_which_one(make_env: EnvFactory) -> None:
+    desktop = await fake_desktop()
+    env = make_env(apps=desktop.ports)
+    result = await env.pipeline.submit("open python")
+    asked = await env.events.wait_for(ClarificationRequested)
+    assert asked.clarification.task_id == result.task_id
+    assert [label for _, label in asked.clarification.options][:2] == [
+        "Python 3.11 (64-bit)",
+        "Python 3.12 (64-bit)",
+    ]
+    await eventually(lambda: env.state.current.conversation is ConversationState.AWAITING_ANSWER)
+    question = await ace_reply(env, lambda m: m.task_id == result.task_id)
+    assert question.text == "Which python did you mean?"
+    assert question.detail is not None
+    assert "1. Python 3.11 (64-bit)" in question.detail
+    live = await env.pipeline.list_tasks(limit=5)
+    assert live[0].clarification == asked.clarification
+
+    answer = await env.pipeline.submit("the second one")
+    assert (answer.intent, answer.task_id) == ("control.choose", result.task_id)
+    task = await finished(env, result.task_id)
+    assert task.status is TaskStatus.SUCCEEDED
+    assert desktop.launcher.launched == [PYTHON_312.app_id]
+    assert task.steps[0].params["target"] == PYTHON_312.app_id
+    assert "clarify.answered" in await audit_types(env)
+
+
+async def test_a_question_is_answered_by_a_click_or_cancelled(make_env: EnvFactory) -> None:
+    desktop = await fake_desktop()
+    env = make_env(apps=desktop.ports, clarify_timeout_s=0.2)
+    first = await env.pipeline.submit("open python")
+    asked = await env.events.wait_for(ClarificationRequested)
+    assert not env.pipeline.answer_clarification(asked.clarification.id, "no-such-option")
+    assert env.pipeline.answer_clarification(asked.clarification.id, PYTHON_311.app_id)
+    assert (await finished(env, first.task_id)).status is TaskStatus.SUCCEEDED
+    assert desktop.launcher.launched == [PYTHON_311.app_id]
+    assert not env.pipeline.answer_clarification(asked.clarification.id, PYTHON_311.app_id)
+
+    # Python 3.11 is now open and was launched once, so "python" is no longer ambiguous there.
+    env = make_env(apps=(await fake_desktop()).ports, clarify_timeout_s=0.2)
+    timed_out = await env.pipeline.submit("open python")  # nobody answers in time
+    task = await finished(env, timed_out.task_id)
+    assert (task.status, task.result_summary) == (
+        TaskStatus.CANCELLED,
+        "No answer, so I cancelled it.",
+    )
+
+    stopped = await env.pipeline.submit("open python")
+    await env.events.wait_for(
+        ClarificationRequested, lambda e: e.clarification.task_id == stopped.task_id
+    )
+    await env.pipeline.submit("stop")
+    assert (await finished(env, stopped.task_id)).status is TaskStatus.CANCELLED
 
 
 async def test_cancel_stops_a_running_step(make_env: EnvFactory) -> None:

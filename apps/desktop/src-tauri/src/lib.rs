@@ -115,6 +115,7 @@ pub fn run() {
             overlay::overlay_close_sidebar,
             overlay::overlay_focus_input,
             overlay::overlay_sidebar_hidden,
+            overlay::overlay_allow_foreground,
             overlay::overlay_hide_for,
             overlay::overlay_report_focus,
             overlay::overlay_input,
