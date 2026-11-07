@@ -12,15 +12,28 @@ from ace_core.app.config import load_settings
 from ace_core.app.container import build_container
 from ace_core.app.events import AppStarted, AppStopping
 from ace_core.app.health import HealthStatus
-from ace_core.app.lifecycle import EXIT_FORCED, EXIT_OK, EXIT_STARTUP_FAILED, App, shutdown_signals
+from ace_core.app.lifecycle import (
+    EXIT_FORCED,
+    EXIT_OK,
+    EXIT_STARTUP_FAILED,
+    SAFE_MODE_DETAIL,
+    App,
+    shutdown_signals,
+)
 from ace_core.app.paths import AppPaths
 
 
 def make_app(
-    tmp_path: Path, *, timeout_s: float = 5.0, force_exit: Callable[[int], Any] | None = None
+    tmp_path: Path,
+    *,
+    timeout_s: float = 5.0,
+    force_exit: Callable[[int], Any] | None = None,
+    safe_mode: bool = False,
 ) -> tuple[App, list[str]]:
     lines: list[str] = []
-    settings = load_settings(config_file=None, overrides={"shutdown_timeout_s": timeout_s})
+    settings = load_settings(
+        config_file=None, overrides={"shutdown_timeout_s": timeout_s, "safe_mode": safe_mode}
+    )
     container = build_container(settings, AppPaths.under(tmp_path, portable=False))
     if force_exit is None:
         return App(container, ready_writer=lines.append), lines
@@ -146,3 +159,15 @@ async def test_second_signal_forces_exit(tmp_path: Path) -> None:
     app.container.bus.subscribe(AppStarted, fire_twice)
     assert await app.run() == EXIT_OK
     assert forced == [EXIT_FORCED]
+
+
+async def test_safe_mode_reports_the_core_as_degraded(tmp_path: Path) -> None:
+    app, lines = make_app(tmp_path, safe_mode=True)
+    stop_when_started(app)
+    with capture_logs() as logs:
+        assert await app.run() == EXIT_OK
+    assert lines == ["ACE_READY port=0"]  # still starts and serves
+    (core,) = [s for s in app.container.health.snapshot().subsystems if s.name == "core"]
+    assert core.status is HealthStatus.DEGRADED
+    assert core.detail == SAFE_MODE_DETAIL
+    assert any(entry["event"] == "running in safe mode" for entry in logs)

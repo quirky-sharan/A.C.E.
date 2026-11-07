@@ -19,6 +19,8 @@ class CliOptions:
     portable: bool = False
     log_level: str | None = None
     native_host: bool = False
+    supervised: bool = False
+    safe_mode: bool = False
 
 
 def parse_args(argv: Sequence[str]) -> CliOptions:
@@ -40,6 +42,16 @@ def parse_args(argv: Sequence[str]) -> CliOptions:
         action="store_true",
         help="run as the Chrome native-messaging host (manual testing; arrives in S24)",
     )
+    parser.add_argument(
+        "--supervised",
+        action="store_true",
+        help="started by ace-desktop: stdin/stdout are its control channel (D-52)",
+    )
+    parser.add_argument(
+        "--safe-mode",
+        action="store_true",
+        help="minimal mode after repeated crashes: optional features stay off (§5.6)",
+    )
     parser.add_argument("--version", action="version", version=f"ace-core {__version__}")
     namespace = parser.parse_args(list(argv))
     return CliOptions(
@@ -47,4 +59,6 @@ def parse_args(argv: Sequence[str]) -> CliOptions:
         portable=namespace.portable,
         log_level=namespace.log_level,
         native_host=namespace.native_host,
+        supervised=namespace.supervised,
+        safe_mode=namespace.safe_mode,
     )

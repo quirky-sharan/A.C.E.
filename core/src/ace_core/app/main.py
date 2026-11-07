@@ -41,7 +41,8 @@ def main(argv: Sequence[str] | None = None, *, paths: AppPaths | None = None) ->
         retention_days=settings.log_retention_days,
     )
     try:
-        return asyncio.run(create_app(settings, resolved).run())
+        app = create_app(settings, resolved, supervised=options.supervised)
+        return asyncio.run(app.run())
     except KeyboardInterrupt:  # Ctrl+C before the signal handlers were installed
         return EXIT_FORCED
     finally:
@@ -54,4 +55,6 @@ def _overrides(options: CliOptions) -> dict[str, Any]:
         overrides["dev"] = True
     if options.log_level is not None:
         overrides["log_level"] = options.log_level
+    if options.safe_mode:
+        overrides["safe_mode"] = True
     return overrides

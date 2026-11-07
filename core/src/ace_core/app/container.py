@@ -48,6 +48,6 @@ def build_container(settings: Settings, paths: AppPaths) -> Container:
         state=StateStore(bus),
         db=db,
         audit=audit,
-        settings_store=SettingsStore(db, audit),
+        settings_store=SettingsStore(db, audit, bus=bus),
         maintenance=maintenance,
     )
