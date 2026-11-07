@@ -12,8 +12,8 @@
 | Last updated | 2026-11-07 |
 | Owner / client | Sharan (ACE addresses Sharan as "Sharan" or "boss") |
 | Project folder | `E:\A.C.E` |
-| Current stage | **S05 — UI foundation, HUD design system, Control Center shell** (in progress, branch `stage/s05-ui-foundation`) |
-| Last completed stage | S04 — Tauri desktop shell (approved by Sharan 2026-11-07) |
+| Current stage | **S06 — Overlay v1 (edge orb + sidebar)** (in progress, branch `stage/s06-overlay`) |
+| Last completed stage | S05 — UI foundation, HUD design system, Control Center shell (approved by Sharan 2026-11-07) |
 | Next milestone | M1 — Typed commands control the PC |
 | Blocking user actions | none · pending, non-blocking: [USER-ACTION] run `tools/dev/set-dev-env.ps1` once in a normal PowerShell window (§17.4) |
 | Repository | GitHub `quirky-sharan/A.C.E.` (private), created by Sharan 2026-11-06; `main` = approved stages (pushed by Sharan); stage branches are local until Sharan asks to push |
@@ -332,6 +332,7 @@ Status values: **Decided** = confirmed by Sharan in the 2026-11-06 Q&A. **Defaul
 | D-51 | IPC types for the UI: the Pydantic models are the single source → one JSON Schema `apps/desktop/src/ipc/ipc.schema.json` (no per-field titles; outgoing fields with defaults marked required) → json-schema-to-typescript 16 (`--unknownAny`) → `apps/desktop/src/ipc/generated.ts`. Both files are committed and skipped by Prettier / ESLint; `pnpm gen:ipc` regenerates them; CI fails if either is stale. | Engineering | S03; the exporter imports the models, so it lives in `core/` (`ace_core.ipc.export_schema`), not `tools/`. |
 | D-52 | Desktop shell ↔ core supervision (§5.6): the shell starts the core as a plain child process, not a Tauri sidecar (debug builds: `uv run --project <repo>\core ace-core --dev --supervised`; release builds: `<resources>\core\ace-core.exe --supervised`, packaging finalised at S44), with `CREATE_NO_WINDOW`, a fresh 256-bit token per core start (`ACE_IPC_TOKEN`, 64 hex characters) and `ACE_IPC_PORT=0`. Each core run gets its own Job Object with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`: stopping ends the whole tree (uv → python), and a crashed shell takes the core with it. **Control channel = the child's stdio** (private to the two processes, no token): stdout carries `ACE_READY port=<n>`, then `ACE_DESKTOP <json>` snapshots (conversation state, hotkeys, autostart, verification mode; sent after READY and on every change); stdin carries JSON lines (`input` from hotkeys / tray, `set_mode`, `desktop_status` with hotkey conflicts and autostart errors → health subsystem `desktop`); end of stdin = graceful shutdown. Restarts: the first at once (Sharan's choice, 2026-11-07), then backoff 1, 2, 4, 8, 16, then 30 s, reset after 60 s of healthy running; READY timeout 30 s (180 s in debug builds); 5 crashes within 5 minutes → the core restarts with `--safe-mode` (health `core` degraded) until ACE restarts. Quit: close stdin, wait ≤ 6 s, then end the job. A second launch with `--quit` asks the running ACE to quit (scripts, installer). | Engineering | S04; sidecars ship single files only and the dev core runs from the checkout; one pipe pair per child is simpler and safer than a second WebSocket client in Rust. |
 | D-53 | Desktop settings live in the core's settings table and reach the shell through the snapshot: `hotkeys.<action>` (actions `summon`, `push_to_talk`, `emergency_stop`, `toggle_overlay`, `mic_mute`; text such as `Ctrl+Alt+Space`; null or empty = off; defaults D-29), `desktop.autostart` (default false), `verification.mode` (`fast` / `balanced` / `paranoid`, default `balanced`, D-09). Invalid stored values fall back to the defaults. Hotkeys use tauri-plugin-global-shortcut; a combination another app holds is reported with a suggested alternative (+Shift). Autostart uses the `auto-launch` crate (the library inside tauri-plugin-autostart) directly: current user's Run key only, quoted exe path, `--autostart` (starts hidden in the tray); debug builds use their own entry `ACE (dev build)`. Hotkey and tray input reach the core as `DesktopInput` bus events: S04 logs them, later stages act on them (S06 overlay, S09 mic mute, S13 push-to-talk, S17 emergency stop, S18 modes). | Engineering | S04; the shell stays thin (§5.2) and settings have one owner; the plugin would try the all-users Run key when elevated and leaves the exe path unquoted. |
+| D-54 | UI foundation (S05): Tailwind CSS 4 configured CSS-first in `apps/desktop/src/styles/index.css` (`@theme` holds only ACE's §14.4 palette, fonts and glow); fonts bundled from @fontsource latin subsets — Orbitron for headings (chosen over Rajdhani), Inter, JetBrains Mono (all SIL OFL 1.1). Continuous motion (the orb) is CSS keyframes that run only while the window is visible, reduced motion is off and ACE is not idle (asleep / muted for more than 5 s); Motion (`motion/react`, `MotionConfig reducedMotion="user"`) is used only for enter / exit transitions. One Zustand store per domain (connection, core state + health, tasks, notifications, settings cache, shell status). The IPC client fetches port + token with `get_ipc_info` before every attempt, reconnects after 0.25, 0.5, 1, 2, 4, then 5 s, and at once when the shell reports a new core. Control Center pages live in the URL hash; the component gallery exists only in development builds. CSP: `default-src 'self'`, no inline scripts in release builds, `connect-src` = Tauri IPC + `ws://127.0.0.1:*`; the dev CSP also allows Vite's inline preamble and HMR socket. | Engineering | S05; NFR-2 (idle CPU ~0 %), NFR-10 (reduced motion, keyboard navigation), §15.1. |
 
 ---
 
@@ -469,7 +470,7 @@ E:\ACE-Models\                      (configurable "models dir"; chosen at onboar
 | Layer | Choice | License | Notes |
 |---|---|---|---|
 | Desktop shell | Tauri 2.x on Rust stable; plugins: single-instance, global-shortcut (S04), updater, notification (later stages); autostart through the `auto-launch` crate (D-53); the core is started with `std::process` + a Job Object (`windows-sys`), no shell / process plugin (D-52) | MIT / Apache-2.0 | Checked at S04: single-instance 2.5.5, global-shortcut 2.4.1 (global-hotkey 0.8.0), auto-launch 0.6.0 and the v2 capability format (PL-0006); the updater and notification plugins are checked at their stages. Use v2 docs only. |
-| UI | React + TypeScript (strict) + Vite + Tailwind CSS + Motion + Zustand + Radix primitives + lucide-react | MIT | Fonts bundled locally (no CDN): Orbitron or Rajdhani (HUD headings), Inter (body), JetBrains Mono (code) — all OFL [VERIFY]. |
+| UI | React + TypeScript (strict) + Vite + Tailwind CSS + Motion + Zustand + Radix primitives + lucide-react | MIT (lucide-react ISC) | Fonts bundled locally (no CDN): Orbitron (HUD headings), Inter (body), JetBrains Mono (code) — all SIL OFL 1.1, checked at S05 (PL-0007, D-54). |
 | Core runtime | Python 3.12 via uv; FastAPI + Uvicorn; Pydantic v2 + pydantic-settings; SQLAlchemy 2 + Alembic; structlog; httpx; anyio | MIT / BSD | |
 | Audio I/O | sounddevice (PortAudio) + numpy | MIT / BSD | |
 | VAD | Silero VAD (ONNX) | MIT | |
@@ -488,6 +489,7 @@ E:\ACE-Models\                      (configurable "models dir"; chosen at onboar
 ### 6.2 Version policy
 - At S00, choose the latest **stable** versions and record them in the Progress Log. Lockfiles (`uv.lock`, `pnpm-lock.yaml`, `Cargo.lock`) are committed.
 - Never use open-ended "latest" ranges in manifests. Upgrades happen only in dedicated maintenance commits with tests.
+- pnpm refuses JavaScript packages younger than its minimum release age (a supply-chain guard). Never add `minimumReleaseAgeExclude` entries to get a brand-new version; let pnpm pick the newest allowed one (`pnpm add --save-exact <name>`) and record it (S05).
 - If an API differs from this doc for the pinned version, the pinned version's official docs win; update this doc (R10).
 
 ### 6.3 Why this stack (summary of D-18)
@@ -977,7 +979,7 @@ Online backups with the SQLite backup API to `data\backups\` (D-49): regular bac
 | `--accent` | `#3B82F6` (electric blue) |
 | `--success` / `--warning` / `--danger` | `#34D399` / `#FBBF24` / `#F87171` |
 | `--text` / `--text-dim` | `#E6F7FF` / `#7FA7B8` |
-| Headings font | Orbitron or Rajdhani, uppercase, letter-spacing 0.08em |
+| Headings font | Orbitron (chosen at S05, D-54), uppercase, letter-spacing 0.08em |
 | Body / mono fonts | Inter 13–14 px / JetBrains Mono |
 | Shapes | 1 px glowing borders, corner brackets, thin SVG rings for the orb |
 | Motion | 150–250 ms ease-out for UI; orb rings rotate (6–12 s per turn) only while active; waveform ≤ 30 fps from real audio levels; everything paused when hidden or idle > 5 s; `prefers-reduced-motion` → static |
@@ -1105,7 +1107,7 @@ E:\A.C.E\                            (git repository root)
 │  │  │  ├─ ipc/                       client + generated.ts
 │  │  │  ├─ shell/                     the shell's status (banner, hotkey notices)
 │  │  │  ├─ hud/                       design system components
-│  │  │  ├─ overlay/  control-center/  state/
+│  │  │  ├─ control-center/  state/  platform/ (Tauri glue)  styles/  overlay/ (S06)
 │  │  ├─ src-tauri/                    Rust shell: tray, hotkeys, windows, supervisor, click-through
 │  │  └─ package.json
 │  └─ bridge-extension/                Chrome MV3 extension (TypeScript)
@@ -2241,6 +2243,43 @@ Template for every entry:
 - Tests: `uv run pytest --cov` → 201 passed, 94.8 % · `ruff check`, `ruff format --check`, `mypy` (strict) → clean · `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings` → clean · `cargo test` → 17 passed · `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test` (desktop 7, extension 1), `pnpm build` → clean · `pre-commit run --all-files` → 15/15 passed · `python tools/dev/check_plan.py` → all checks passed.
 - Next step: Sharan runs the manual checklist and approves (including the two stage-text changes above) → `[S04]` commit → S05 (UI foundation).
 - Approval: Sharan approved S04 on 2026-11-07 ("Approve, continue"), including both stage-text changes (the `auto-launch` crate instead of tauri-plugin-autostart; `ace-desktop --quit`) → committed as `[S04] Tauri desktop shell` on branch `stage/s04-tauri-shell`; S05 continues on `stage/s05-ui-foundation`. The manual tray / banner checklist was not reported back yet.
+
+### PL-0007 — 2026-11-07 — S05 — UI foundation, HUD design system, Control Center shell
+- Done:
+  - Tooling: Tailwind CSS 4 through `@tailwindcss/vite`; the §14.4 tokens as a Tailwind theme in `src/styles/index.css` (only ACE's palette, Orbitron / Inter / JetBrains Mono, glow, corner brackets, orb keyframes, dark thin scrollbars); fonts bundled from @fontsource latin subsets (about 100 KB of woff2); TypeScript target and lib ES2022; Vitest in jsdom with Testing Library (`vitest.config.ts`, `src/test/setup.ts`).
+  - IPC client (`src/ipc/client.ts`): port + token from `get_ipc_info` before every attempt, the token as the first message (never in the URL), connected on `session.ready`, typed `request` (id correlation, 10 s timeout, typed errors) and `onEvent` from the generated types, reconnects after 0.25 → 5 s, `reconnectNow` when the shell reports a new core port, `stop`.
+  - Stores (`src/state/`): connection, core state + health, tasks (placeholder for S07), notifications (newest 4), settings cache (`loadSetting` / `saveSetting` through the core), shell status. `core-link.ts` feeds them from the client; `platform/tauri-link.ts` is the only module that calls Tauri.
+  - HUD library (`src/hud/`): Panel, Button, Toggle (Radix Switch), Chip, StatusDot, Orb (every §5.4 state), Waveform (canvas, redraws only when levels change, ≤ 30 fps), StepList (✓ ⚠ ✗ ↺), ConfirmCard (exact action, Yes / No, countdown), ClarifyCard, Toast + ToastViewport (Motion enter / exit, closes after 6 s), TextInput (Enter sends, Esc clears, ↑ / ↓ history).
+  - Animation policy (`hud/activity.ts`): motion only while the window is visible, prefers-reduced-motion is off and ACE is not asleep / muted for more than 5 s; the stylesheet also stops orb motion under reduced motion; `MotionConfig reducedMotion="user"`.
+  - Control Center (`src/control-center/`): all 17 §14.5 pages (each stub names its stage), arrow-key navigation, pages in the URL hash, header (orb, state, connection, verification mode), the shell banner, a live Dashboard (core, connection, health, hotkeys; recent tasks and quotas as placeholders), and the component gallery in development builds only.
+  - CSP (task 8): release `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost ws://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'none'`; the dev CSP also allows inline scripts (Vite's React preamble) and `ws://localhost:1420` (HMR).
+  - The S04 status page, `App.css` and the S00 placeholder test are gone.
+  - Tests: UI 54 (IPC client 9 incl. reconnects with a fake WebSocket, stores 4, HUD components 25, animation policy 5, Control Center 5, shell banner logic 6).
+- Not done / known issues:
+  - Nothing committed yet — the `[S05]` commit waits for Sharan's approval.
+  - Repository events (Sharan's pushes, seen 2026-11-07): `stage/s04-tauri-shell` was pushed while it still pointed at the S03 commit, and PR #1 merged it into `origin/main` (merge `0b1693f` = S03); the `[S04]` commit `f303aa8` reached GitHub through `stage/s05-ui-foundation` (now tracking `origin`), not `main` yet. Local `main` is behind `origin/main`. CI results are not visible from here (`gh` is not installed).
+  - Only debug builds were run; the release CSP and a release build with live data need the frozen core (S44).
+  - The UI was inspected through WebView2's DevTools protocol (dev run only, 127.0.0.1:9223) with screenshots of the webview itself; how it looks on Sharan's screen, opened from the tray, is for Sharan to check.
+  - pnpm 12 refused the newest releases (1–4 days old) under its minimum-release-age policy; pinning them made pnpm add `minimumReleaseAgeExclude` entries, which were reverted (supply-chain baseline). pnpm then picked tailwindcss / @tailwindcss/vite 4.3.4, motion 14.9.1, zustand 5.0.16 and lucide-react 1.69.0. §6.2 now forbids such exclusions.
+  - The gallery's page-list entry (text only) is still in release bundles; its component code is not.
+  - The ConfirmCard countdown, toast actions and the tasks store are UI only until the Supervisor and tasks arrive (S07); the overlay windows (S06) will reuse the client and stores.
+- [VERIFY] results (2026-11-07):
+  - Tailwind + Vite → Tailwind CSS 4.3.4 with `@tailwindcss/vite` 4.3.4 (peer Vite ^5.2 || ^6 || ^7 || ^8; ours is 8.3.6): `tailwindcss()` in `vite.config.ts`, `@import "tailwindcss";`, tokens in `@theme`, `--color-*: initial` removes the default palette — https://tailwindcss.com/docs/installation/using-vite , https://tailwindcss.com/docs/theme
+  - Motion API → package `motion` 14.9.1, React entry `motion/react` (re-exports framer-motion 14.9.1): `motion.*`, `AnimatePresence`, `MotionConfig` with `reducedMotion` `"user" | "always" | "never"` (default `"never"`; reduced motion still allows opacity and colour) — https://motion.dev/docs/react , https://motion.dev/docs/react-motion-config + installed types.
+  - Font licences → @fontsource/inter, /orbitron, /jetbrains-mono 5.3.0 are OFL-1.1 on npm; their LICENSE files: Inter (github.com/rsms/inter), Orbitron (github.com/theleagueof/orbitron) and JetBrains Mono (github.com/JetBrains/JetBrainsMono) under the SIL Open Font License 1.1.
+  - Also checked: Zustand 5.0.16 `create<T>()(initializer)` and `getInitialState` (installed types); @radix-ui/react-switch 1.4.1 `Root` / `Thumb` (installed types); Testing Library React 16.3.3 cleans up automatically only with a global `afterEach`, so the setup file calls `cleanup` (installed source); lucide-react 1.69.0 has no `History` icon (`ClockArrowLeft` used); Tauri CSP — `csp` also applies in dev unless `devCsp` is set (tauri-utils 2.10.2 source), Tauri adds hashes / nonces for its own assets, IPC needs `connect-src ipc: http://ipc.localhost` — https://v2.tauri.app/security/csp/
+- Acceptance evidence (real `tauri dev` + real core, throwaway `LOCALAPPDATA` under `E:\.cache\ace-setup\s05-live\`; screenshots in `s05-live\shots\`):
+  - Control Center live (`dashboard-3.png`): header "ACE · Asleep" with CONNECTED and BALANCED; Core (Asleep, no flags, 0.0.1 dev), Connection (core port), Health (core, database, desktop ok), Hotkeys from the shell. The dev CSP blocked nothing: React rendered, the Tauri commands answered, the WebSocket connected.
+  - Core killed → 0.7 s later "RECONNECTING…" and the banner "Starting the ACE core…"; 4.7 s later CONNECTED on the new port, "restarted 1×".
+  - Gallery (`gallery-top.png`, `gallery-mid.png`, `gallery-bottom.png`): the orb in all 12 states plus "not connected", panel tones, buttons, toggles, chips, dots, waveform (silent / quiet / loud), the step list, confirm cards (plain, countdown, busy), the clarify card, four toasts and a live one, text inputs.
+  - Animations: gallery 0 running animations with "Animate" off and 14 with it on; Dashboard with ACE asleep for more than 5 s → 0 running animations, orb `data-animate="false"`.
+  - Idle CPU over 10 s with the window visible: WebView2 processes 0 ms (0.00 % of 20 logical CPUs), shell 0 ms, core 16 ms (0.01 %).
+  - `ace-desktop --quit` → gone after 1.1 s, no ACE processes left.
+- New dependencies: shipped in the UI — motion 14.9.1 with framer-motion / motion-dom 14.9.1 and motion-utils 14.7.0 (MIT), zustand 5.0.16 (MIT), @radix-ui/react-switch 1.4.1 and its Radix helpers (MIT), lucide-react 1.69.0 (ISC), @fontsource/inter, /orbitron, /jetbrains-mono 5.3.0 (fonts: SIL OFL 1.1); build / test only — tailwindcss and @tailwindcss/vite 4.3.4 (MIT; uses lightningcss 1.33.0, MPL-2.0, at build time only), @testing-library/react 16.3.3 and @testing-library/dom 10.4.2 (MIT), jsdom 31.0.0 (MIT; its dependency lru-cache is BlueOak-1.0.0, test-only).
+- Decisions added: D-54 (UI foundation); §6.1 UI row, §6.2 release-age rule, §14.4 heading font (Orbitron), §17.1 UI folders.
+- Tests: `pnpm lint`, `pnpm format:check`, `pnpm typecheck` → clean · `pnpm test` → desktop 54, extension 1 passed · `pnpm build` → release bundle without the gallery code · `cargo build` (CSP config accepted) · `pre-commit run --all-files` → 15/15 passed · `python tools/dev/check_plan.py` → all checks passed. Core unchanged (201 tests from S04).
+- Next step: Sharan opens ACE (`pnpm --filter ace-desktop tauri dev`), looks at the Control Center and the component gallery, and approves → `[S05]` commit → S06 (overlay v1).
+- Approval: Sharan approved S05 on 2026-11-07 ("Approve, continue") → committed as `[S05] UI foundation, HUD design system, Control Center shell` on branch `stage/s05-ui-foundation`; S06 continues on `stage/s06-overlay`.
 
 ---
 

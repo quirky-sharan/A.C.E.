@@ -1,0 +1,186 @@
+@import "tailwindcss";
+
+/*
+ * JARVIS HUD design tokens (ACE_MASTER_PLAN.md §14.4, D-14). Tailwind turns every token into
+ * utilities: bg-panel, text-primary, border-line, font-heading, shadow-glow ...
+ * Only ACE's palette exists: the default Tailwind colours are switched off.
+ */
+@theme {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-bg: #05080d;
+  --color-panel: #0b1320;
+  --color-line: #1e3a4c;
+  --color-primary: #22d3ee;
+  --color-primary-glow: rgb(34 211 238 / 0.35);
+  --color-accent: #3b82f6;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+  --color-violet: #a78bfa;
+  --color-orange: #fb923c;
+  --color-text: #e6f7ff;
+  --color-text-dim: #7fa7b8;
+
+  --font-*: initial;
+  --font-heading: "Orbitron", "Segoe UI", sans-serif;
+  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, monospace;
+
+  --shadow-glow: 0 0 0 1px var(--color-primary-glow), 0 0 14px var(--color-primary-glow);
+  --ease-hud: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@layer base {
+  :root {
+    color-scheme: dark; /* dark scrollbars and form controls in WebView2 */
+    scrollbar-color: var(--color-line) transparent;
+  }
+
+  * {
+    scrollbar-width: thin;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* Panel corner brackets (§14.4 "corner brackets"). */
+.hud-corners {
+  position: relative;
+}
+
+.hud-corners::before,
+.hud-corners::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
+  border-color: var(--color-primary);
+  border-style: solid;
+}
+
+.hud-corners::before {
+  top: -1px;
+  left: -1px;
+  border-width: 1px 0 0 1px;
+}
+
+.hud-corners::after {
+  right: -1px;
+  bottom: -1px;
+  border-width: 0 1px 1px 0;
+}
+
+/*
+ * Orb animations (§5.4 visuals, §14.4 motion). They only run while the orb has data-animate="true",
+ * which the UI sets when the page is visible, motion is allowed and ACE is not idle (D-14, NFR-2).
+ */
+@keyframes hud-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes hud-breathe {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes hud-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes hud-shimmer {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes hud-flash {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+.orb .orb-spin,
+.orb .orb-core {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.orb[data-animate="true"][data-motion="breathe"] .orb-core {
+  animation: hud-breathe 4s ease-in-out infinite;
+}
+
+.orb[data-animate="true"][data-motion="pulse"] .orb-core {
+  animation: hud-pulse 1.2s var(--ease-hud) infinite;
+}
+
+.orb[data-animate="true"][data-motion="pulse"] .orb-spin {
+  animation: hud-spin 8s linear infinite;
+}
+
+.orb[data-animate="true"][data-motion="spin"] .orb-spin {
+  animation: hud-spin 6s linear infinite;
+}
+
+.orb[data-animate="true"][data-motion="progress"] .orb-spin {
+  animation: hud-spin 12s linear infinite;
+}
+
+.orb[data-animate="true"][data-motion="shimmer"] .orb-core {
+  animation: hud-shimmer 1.5s ease-in-out infinite;
+}
+
+.orb[data-animate="true"][data-motion="outline"] .orb-outline {
+  animation: hud-shimmer 1.6s ease-in-out infinite;
+}
+
+.orb[data-animate="true"][data-motion="flash"] .orb-core {
+  animation: hud-flash 0.4s linear 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb * {
+    animation: none !important;
+  }
+}
