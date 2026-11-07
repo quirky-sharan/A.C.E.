@@ -16,14 +16,16 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, field_validator
 from sqlalchemy.orm import Session
 
+from ace_core.app.events import EventBus
 from ace_core.db.database import Database
+from ace_core.db.events import SettingChanged
 from ace_core.db.ids import new_id
 from ace_core.db.models import AuditLogEntry
 from ace_core.db.repositories import AuditLogRepository, SettingsRepository
 from ace_core.security.redaction import redact_text, redact_value
+from ace_core.security.tiers import Tier
 
 Actor = Literal["user", "ace", "verifier", "system"]
-Tier = Literal["T0", "T1", "T2", "T3"]
 
 
 def _utcnow() -> datetime:
@@ -87,7 +89,7 @@ class AuditLog:
             event_type=entry.event_type,
             summary=redact_text(entry.summary),
             data_json=_dumps(redact_value(entry.data)),
-            tier=entry.tier,
+            tier=entry.tier.value if entry.tier is not None else None,
             task_id=entry.task_id,
             step_id=entry.step_id,
         )
@@ -140,11 +142,19 @@ class AuditLog:
 
 
 class SettingsStore:
+    """Settings as JSON values. With a ``bus``, every change publishes :class:`SettingChanged`."""
+
     def __init__(
-        self, db: Database, audit: AuditLog, *, clock: Callable[[], datetime] = _utcnow
+        self,
+        db: Database,
+        audit: AuditLog,
+        *,
+        bus: EventBus | None = None,
+        clock: Callable[[], datetime] = _utcnow,
     ) -> None:
         self._db = db
         self._audit = audit
+        self._bus = bus
         self._clock = clock
 
     async def lookup(self, key: str) -> tuple[bool, JsonValue]:
@@ -181,6 +191,8 @@ class SettingsStore:
             AuditLogRepository.add(session, audit_row)
 
         await self._db.run(save)
+        if self._bus is not None:
+            await self._bus.publish(SettingChanged(key=write.key, actor=actor))
 
     async def delete(self, key: str, *, actor: Actor = "system") -> bool:
         audit_row = self._audit.build(
@@ -198,7 +210,10 @@ class SettingsStore:
                 AuditLogRepository.add(session, audit_row)
             return deleted
 
-        return await self._db.run(remove)
+        deleted = await self._db.run(remove)
+        if deleted and self._bus is not None:
+            await self._bus.publish(SettingChanged(key=key, actor=actor, deleted=True))
+        return deleted
 
     async def all(self) -> dict[str, JsonValue]:
         def load(session: Session) -> dict[str, JsonValue]:

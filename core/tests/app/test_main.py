@@ -84,3 +84,57 @@ def test_process_prints_ready_and_exits_cleanly_on_ctrl_break(tmp_path: Path) ->
     assert "ipc listening" in events
     assert "shutdown complete" in events
     assert not runtime_file.exists()  # removed on a clean shutdown
+
+
+def test_supervised_process_talks_over_stdio_and_stops_at_end_of_input(tmp_path: Path) -> None:
+    """What ace-desktop does (D-52): token in the environment, READY, snapshot, input, close."""
+    token = "ab" * 32
+    env = {**os.environ, "LOCALAPPDATA": str(tmp_path), "ACE_IPC_TOKEN": token}
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "ace_core", "--supervised", "--safe-mode"],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        env=env,
+    )
+    stdout: queue.Queue[str] = queue.Queue()
+    stderr: queue.Queue[str] = queue.Queue()
+    assert proc.stdin is not None
+    assert proc.stdout is not None
+    assert proc.stderr is not None
+    threading.Thread(target=_pump, args=(proc.stdout, stdout), daemon=True).start()
+    threading.Thread(target=_pump, args=(proc.stderr, stderr), daemon=True).start()
+    try:
+        assert re.fullmatch(r"ACE_READY port=[1-9]\d*", stdout.get(timeout=30).strip())
+        prefix, _, payload = stdout.get(timeout=10).strip().partition(" ")
+        assert prefix == "ACE_DESKTOP"
+        snapshot = json.loads(payload)
+        assert snapshot["hotkeys"]["emergency_stop"] == "Ctrl+Alt+Escape"
+        assert snapshot["state"]["conversation"] == "asleep"
+        endpoint = json.loads((tmp_path / "ACE" / "runtime" / "ipc.json").read_text("utf-8"))
+        assert endpoint["token"] == token  # the shell's token, not a generated one
+
+        proc.stdin.write('{"type": "input", "action": "emergency_stop", "source": "hotkey"}\n')
+        proc.stdin.flush()
+        proc.stdin.close()  # what the shell does to quit
+        started = time.monotonic()
+        exit_code = proc.wait(timeout=10)
+        elapsed = time.monotonic() - started
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+            proc.wait()
+
+    assert exit_code == 0, "".join(stderr.queue)
+    assert elapsed < 5.0
+    (log_file,) = (tmp_path / "ACE" / "logs").glob("core-*.jsonl")
+    records = [json.loads(line) for line in log_file.read_text("utf-8").splitlines()]
+    events = [record["event"] for record in records]
+    assert "running in safe mode" in events
+    assert "desktop link enabled" in events
+    (desktop_input,) = [r for r in records if r["event"] == "desktop input"]
+    assert desktop_input["action"] == "emergency_stop"
+    (requested,) = [r for r in records if r["event"] == "shutdown requested"]
+    assert requested["reason"] == "the desktop shell closed the control channel"
+    assert "shutdown complete" in events

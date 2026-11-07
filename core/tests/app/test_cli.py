@@ -30,3 +30,8 @@ def test_version_flag(capsys: pytest.CaptureFixture[str]) -> None:
         parse_args(["--version"])
     assert excinfo.value.code == 0
     assert capsys.readouterr().out.startswith("ace-core ")
+
+
+def test_flags_used_by_the_desktop_shell() -> None:
+    options = parse_args(["--dev", "--supervised", "--safe-mode"])
+    assert options == CliOptions(dev=True, supervised=True, safe_mode=True)

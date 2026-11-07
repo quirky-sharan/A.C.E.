@@ -1,51 +1,46 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
-import "./App.css";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { useEffect, useState } from "react";
 
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+import { ControlCenter } from "./control-center/control-center";
+import { IpcClient } from "./ipc/client";
+import { OrbWindow } from "./overlay/orb-window";
+import { SidebarWindow } from "./overlay/sidebar-window";
+import { fetchEndpoint, watchShell } from "./platform/tauri-link";
+import { linkCore } from "./state/core-link";
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
+/** Which window this webview is: "control-center", "orb" or "sidebar" (outside ACE: the first). */
+export function windowLabel(): string {
+  try {
+    return getCurrentWindow().label;
+  } catch {
+    return "control-center";
   }
+}
 
-  return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
+const LABEL = windowLabel();
+const OVERLAY = LABEL === "orb" || LABEL === "sidebar";
+if (OVERLAY) {
+  document.documentElement.classList.add("overlay"); // transparent page (D-55)
+}
 
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
+// Every window keeps its own IPC client for its lifetime, fed into its own stores.
+function App() {
+  const [client] = useState(() => new IpcClient({ endpoint: fetchEndpoint }));
 
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
-  );
+  useEffect(() => {
+    const unlink = linkCore(client);
+    const stopShell = watchShell(client);
+    client.start();
+    return () => {
+      stopShell();
+      unlink();
+      client.stop();
+    };
+  }, [client]);
+
+  if (LABEL === "orb") return <OrbWindow client={client} />;
+  if (LABEL === "sidebar") return <SidebarWindow client={client} />;
+  return <ControlCenter client={client} />;
 }
 
 export default App;

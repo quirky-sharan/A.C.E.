@@ -10,10 +10,12 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Annotated, Final, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, JsonValue
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, field_validator
 
 from ace_core.app.health import HealthStatus
 from ace_core.app.state import ConversationState
+from ace_core.brain.records import MessageRole, MessageSource, Origin, StepStatus, TaskStatus
+from ace_core.security.tiers import Tier
 
 PROTOCOL_VERSION: Final = 1
 MAX_MESSAGE_BYTES: Final = 1024 * 1024  # 1 MiB
@@ -116,6 +118,56 @@ class SubsystemHealthInfo(_Model):
     since: datetime
 
 
+class StepInfo(_Model):
+    id: str
+    idx: int
+    skill_id: str
+    label: str
+    tier: Tier
+    status: StepStatus
+    started_at: datetime | None
+    finished_at: datetime | None
+    error_code: str | None
+
+
+class ConfirmationInfo(_Model):
+    id: str
+    task_id: str
+    step_id: str
+    prompt: str
+    requested_at: datetime
+    expires_at: datetime
+
+
+class TaskInfo(_Model):
+    id: str
+    conversation_id: str | None
+    origin: Origin
+    utterance: str
+    intent: str
+    mode: str
+    status: TaskStatus
+    created_at: datetime
+    started_at: datetime | None
+    finished_at: datetime | None
+    result_summary: str | None
+    error_code: str | None
+    steps: list[StepInfo]
+    confirmation: ConfirmationInfo | None  # set only while the task waits for Sharan's answer
+
+
+class MessageInfo(_Model):
+    id: str
+    conversation_id: str
+    ts: datetime
+    role: MessageRole
+    text: str
+    source: MessageSource
+    detail: str | None
+    task_id: str | None
+    reply_to: str | None
+
+
 # ---- method params and results ----
 
 
@@ -156,6 +208,59 @@ class LogTailResult(_Model):
     lines: list[str]
 
 
+class CommandSubmitParams(_Model):
+    text: str = Field(min_length=1, max_length=2000)
+
+    @field_validator("text")
+    @classmethod
+    def _not_blank(cls, text: str) -> str:
+        text = text.strip()
+        if not text:
+            raise ValueError("the command is empty")
+        return text
+
+
+class CommandSubmitResult(_Model):
+    conversation_id: str
+    message_id: str
+    intent: str
+    task_id: str | None  # the new task, or the task a yes / no answered
+
+
+class TaskListParams(_Model):
+    limit: int = Field(default=50, ge=1, le=200)
+    query: str | None = Field(default=None, max_length=200)
+
+
+class TaskListResult(_Model):
+    tasks: list[TaskInfo]
+
+
+class TaskCancelParams(_Model):
+    task_id: str = Field(min_length=1, max_length=36)
+
+
+class TaskCancelResult(_Model):
+    cancelled: bool
+
+
+class ConfirmRespondParams(_Model):
+    confirmation_id: str = Field(min_length=1, max_length=36)
+    answer: Literal["yes", "no"]
+
+
+class ConfirmRespondResult(_Model):
+    accepted: bool  # false when the confirmation was already answered or has expired
+
+
+class MessageListParams(_Model):
+    limit: int = Field(default=50, ge=1, le=200)
+
+
+class MessageListResult(_Model):
+    messages: list[MessageInfo]  # oldest first
+
+
 # ---- event payloads ----
 
 
@@ -185,3 +290,20 @@ class SystemStoppingPayload(_Model):
 class DatabaseRecoveredPayload(_Model):
     corrupt_copy: str
     restored_from: str | None
+
+
+class TaskEventPayload(_Model):
+    task: TaskInfo
+
+
+class ConfirmRequestedPayload(_Model):
+    confirmation: ConfirmationInfo
+
+
+class MessageCreatedPayload(_Model):
+    message: MessageInfo
+
+
+class SettingsChangedPayload(_Model):
+    key: str
+    deleted: bool

@@ -10,15 +10,23 @@ from ace_core.db import migrate
 from ace_core.db.engine import create_sqlite_engine
 from ace_core.db.models import Base
 
-APP_TABLES = {"settings", "audit_log"}
+APP_TABLES = {
+    "settings",
+    "audit_log",
+    "conversations",
+    "messages",
+    "tasks",
+    "task_steps",
+    "confirmations",
+}
 
 
 def app_tables(engine: Engine) -> set[str]:
     return set(inspect(engine).get_table_names()) - {"alembic_version"}
 
 
-def test_head_is_the_initial_revision() -> None:
-    assert migrate.head_revision() == "0001"
+def test_head_is_the_latest_revision() -> None:
+    assert migrate.head_revision() == "0002"  # S07: conversations, messages, tasks
 
 
 def test_upgrade_downgrade_upgrade_round_trip(tmp_path: Path) -> None:
@@ -28,7 +36,7 @@ def test_upgrade_downgrade_upgrade_round_trip(tmp_path: Path) -> None:
             migrate.upgrade(connection, "head")
         assert app_tables(engine) == APP_TABLES
         with engine.connect() as connection:
-            assert migrate.current_revision(connection) == "0001"
+            assert migrate.current_revision(connection) == migrate.head_revision()
 
         with engine.begin() as connection:
             migrate.downgrade(connection, "base")

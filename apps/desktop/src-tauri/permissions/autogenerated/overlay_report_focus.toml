@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-overlay-report-focus"
+description = "Enables the overlay_report_focus command without any pre-configured scope."
+commands.allow = ["overlay_report_focus"]
+
+[[permission]]
+identifier = "deny-overlay-report-focus"
+description = "Denies the overlay_report_focus command without any pre-configured scope."
+commands.deny = ["overlay_report_focus"]

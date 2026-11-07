@@ -9,10 +9,16 @@ from ace_core.app.events import EventBus
 from ace_core.app.health import HealthRegistry
 from ace_core.app.paths import AppPaths
 from ace_core.app.state import StateStore
+from ace_core.brain.pipeline import CommandPipeline
+from ace_core.brain.router import Router
+from ace_core.brain.supervisor import Supervisor
 from ace_core.db.backup import BackupKind, BackupStore
 from ace_core.db.database import Database
+from ace_core.db.history import HistoryStore
 from ace_core.db.maintenance import Maintenance, audit_retention_job
 from ace_core.db.stores import AuditLog, SettingsStore
+from ace_core.skills.catalog import build_registry
+from ace_core.skills.registry import SkillRegistry
 
 DB_FILE_NAME = "ace.db"
 
@@ -28,6 +34,10 @@ class Container:
     audit: AuditLog
     settings_store: SettingsStore
     maintenance: Maintenance
+    history: HistoryStore
+    skills: SkillRegistry
+    supervisor: Supervisor
+    pipeline: CommandPipeline
 
 
 def build_container(settings: Settings, paths: AppPaths) -> Container:
@@ -40,14 +50,33 @@ def build_container(settings: Settings, paths: AppPaths) -> Container:
     audit = AuditLog(db)
     maintenance = Maintenance(db)
     maintenance.register(audit_retention_job(settings.audit_retention_days))
+    state = StateStore(bus)
+    settings_store = SettingsStore(db, audit, bus=bus)
+    history = HistoryStore(db)
+    skills = build_registry(settings=settings_store, dev=settings.dev)
+    supervisor = Supervisor(history=history, audit=audit, bus=bus)
+    pipeline = CommandPipeline(
+        registry=skills,
+        router=Router(skills),
+        supervisor=supervisor,
+        history=history,
+        audit=audit,
+        bus=bus,
+        state=state,
+        settings=settings_store,
+    )
     return Container(
         settings=settings,
         paths=paths,
         bus=bus,
         health=HealthRegistry(bus),
-        state=StateStore(bus),
+        state=state,
         db=db,
         audit=audit,
-        settings_store=SettingsStore(db, audit),
+        settings_store=settings_store,
         maintenance=maintenance,
+        history=history,
+        skills=skills,
+        supervisor=supervisor,
+        pipeline=pipeline,
     )

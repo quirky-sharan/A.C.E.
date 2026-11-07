@@ -1,4 +1,4 @@
-"""ace-cli against a real IPC server: health, call, errors, watch, not-running."""
+"""ace-cli against a real IPC server: health, call, errors, watch, send, not-running."""
 
 import asyncio
 import json
@@ -11,6 +11,7 @@ from ipc_harness import start_harness, stop_harness
 
 from ace_core.app.events import AppStopping
 from ace_core.app.state import ConversationState
+from ace_core.brain.records import ConfirmationAnswer
 from ace_core.ipc.cli import EXIT_ERROR, EXIT_NOT_RUNNING, EXIT_OK, build_parser, run
 from ace_core.ipc.runtime_file import IpcEndpoint, write_runtime_file
 
@@ -88,5 +89,44 @@ async def test_cli_watch_reports_when_the_core_goes_away(
         captured = capsys.readouterr()
         assert '"system.stopping"' in captured.out
         assert "closed the connection (1001" in captured.err
+    finally:
+        await stop_harness(harness)
+
+
+async def test_cli_send_follows_a_command_to_the_end(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    harness = await start_harness(tmp_path)
+    runtime = harness.container.paths.runtime
+    endpoint = IpcEndpoint(harness.server.port, harness.server.token, os.getpid(), "test")
+    write_runtime_file(runtime, endpoint)
+    parser = build_parser()
+    capsys.readouterr()
+    try:
+        assert await run(parser.parse_args(["send", "echo", "hello"]), runtime) == EXIT_OK
+        out = capsys.readouterr().out
+        assert "task succeeded: echo hello" in out
+        assert "ace: hello" in out
+
+        assert await run(parser.parse_args(["send", "help"]), runtime) == EXIT_OK
+        assert '"open spotify"' in capsys.readouterr().out  # the detail lines are printed
+
+        assert await run(parser.parse_args(["send", "demo", "forbidden"]), runtime) == EXIT_ERROR
+        assert "forbidden list" in capsys.readouterr().out
+
+        assert await run(parser.parse_args(["send", "what", "is", "this"]), runtime) == EXIT_OK
+        assert "I don't know that one yet" in capsys.readouterr().out
+
+        sender = asyncio.create_task(run(parser.parse_args(["send", "demo dangerous"]), runtime))
+        async with asyncio.timeout(5):
+            while not harness.container.supervisor.pending():
+                await asyncio.sleep(0.01)
+        [pending] = harness.container.supervisor.pending()
+        harness.container.pipeline.respond(pending.id, ConfirmationAnswer.YES)
+        assert await asyncio.wait_for(sender, 5) == EXIT_OK
+        out = capsys.readouterr().out
+        assert "confirm: Run the demo dangerous action" in out
+        assert "ace-cli call confirm.respond" in out
+        assert "task succeeded" in out
     finally:
         await stop_harness(harness)

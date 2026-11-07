@@ -15,17 +15,28 @@
     "gen:ipc": "json2ts -i src/ipc/ipc.schema.json -o src/ipc/generated.ts --unknownAny"
   },
   "dependencies": {
+    "@fontsource/inter": "5.3.0",
+    "@fontsource/jetbrains-mono": "5.3.0",
+    "@fontsource/orbitron": "5.3.0",
+    "@radix-ui/react-switch": "1.4.1",
     "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-opener": "^2",
+    "lucide-react": "1.69.0",
+    "motion": "14.9.1",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "zustand": "5.0.16"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "4.3.4",
     "@tauri-apps/cli": "^2",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/react": "16.3.3",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^6.0.2",
+    "jsdom": "31.0.0",
     "json-schema-to-typescript": "^16.0.0",
+    "tailwindcss": "4.3.4",
     "typescript": "~6.0.3",
     "vite": "^8.0.16",
     "vitest": "^5.1.0"

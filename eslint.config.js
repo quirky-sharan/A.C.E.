@@ -27,7 +27,7 @@ export default defineConfig([
     languageOptions: { globals: { ...globals.browser, ...globals.serviceworker } },
   },
   {
-    files: ["eslint.config.js", "**/vite.config.ts"],
+    files: ["eslint.config.js", "**/vite.config.ts", "**/vitest.config.ts"],
     languageOptions: { globals: globals.node },
   },
 ]);

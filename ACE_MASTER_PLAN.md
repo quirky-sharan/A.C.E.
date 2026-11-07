@@ -12,8 +12,8 @@
 | Last updated | 2026-11-07 |
 | Owner / client | Sharan (ACE addresses Sharan as "Sharan" or "boss") |
 | Project folder | `E:\A.C.E` |
-| Current stage | **S04 — Tauri desktop shell** (in progress, branch `stage/s04-tauri-shell`) |
-| Last completed stage | S03 — IPC API (approved by Sharan 2026-11-07) |
+| Current stage | **S08 — Apps & windows skills → M1** (in progress, branch `stage/s08-apps-windows`) |
+| Last completed stage | S07 — Command pipeline, skill framework, confirmations (approved by Sharan 2026-11-07) |
 | Next milestone | M1 — Typed commands control the PC |
 | Blocking user actions | none · pending, non-blocking: [USER-ACTION] run `tools/dev/set-dev-env.ps1` once in a normal PowerShell window (§17.4) |
 | Repository | GitHub `quirky-sharan/A.C.E.` (private), created by Sharan 2026-11-06; `main` = approved stages (pushed by Sharan); stage branches are local until Sharan asks to push |
@@ -307,7 +307,7 @@ Status values: **Decided** = confirmed by Sharan in the 2026-11-06 Q&A. **Defaul
 | D-26 | Retention: raw messages 30 days (then compacted into summaries); audit log 90 days; verifications 30 days; tasks 90 days; transcripts stored as text only; no audio stored. | Default | |
 | D-27 | Zero telemetry. | Default | |
 | D-28 | Browser support: Chrome only for v1 (the extension is Chromium-compatible; Edge / Brave later). | Default | Sharan uses Chrome. |
-| D-29 | Hotkeys (configurable; conflicts checked at S04): `Ctrl+Alt+Space` summon sidebar + focus input · hold `Ctrl+Alt+A` push-to-talk · `Ctrl+Alt+Esc` emergency stop · `Ctrl+Alt+H` hide/show overlay · `Ctrl+Alt+M` mic mute. | Default | Avoids `Ctrl+Space` (VS Code suggestions) and `Alt+Space` (window menu / PowerToys). |
+| D-29 | Hotkeys (configurable, D-53): `Ctrl+Alt+Shift+Space` summon sidebar + focus input · hold `Ctrl+Alt+A` push-to-talk · `Ctrl+Alt+Esc` emergency stop · `Ctrl+Alt+H` hide/show overlay · `Ctrl+Alt+Shift+M` mic mute. | Decided | Avoids `Ctrl+Space` (VS Code suggestions) and `Alt+Space` (window menu / PowerToys). S04 found `Ctrl+Alt+Space` and `Ctrl+Alt+M` already taken by another app on Sharan's PC, so Sharan chose to add Shift to those two (2026-11-07); on the India keyboard layout `Ctrl+Alt+A` / `+H` also capture ā / ḥ (accepted). |
 | D-30 | Cloud vision only on an explicit "look at my screen"-type request; otherwise local OCR / UI Automation. | Default | Privacy. |
 | D-31 | Database: SQLite (WAL, FTS5) + SQLAlchemy 2 + Alembic. Secrets in Windows Credential Manager via `keyring`. | Default | Right fit for a single-user local app; no server to run. |
 | D-32 | Local LLM runtime: llama.cpp `llama-server` (OpenAI-compatible API) managed by ACE. Ollama / LM Studio supported as optional external providers. | Engineering | Self-contained, no extra install for users. |
@@ -318,7 +318,7 @@ Status values: **Decided** = confirmed by Sharan in the 2026-11-06 Q&A. **Defaul
 | D-37 | STT baseline: faster-whisper `large-v3-turbo` on CUDA (int8_float16) with CPU fallback; final choice by the S10 benchmark. | Engineering | |
 | D-38 | Contacts: ACE keeps its own local contact book (name, aliases, WhatsApp number, Instagram handle, emails). Never synced or uploaded. | Engineering | Needed for "tell Mom…". |
 | D-39 | Phone push: ntfy (public ntfy.sh server by default, with a long random secret topic; self-hosting optional). Push content is minimal (no message bodies). | Engineering | Free and open source. |
-| D-40 | Overlay click-through: the Rust shell polls the cursor position (~60 Hz) and toggles ignore-cursor-events when the cursor is over the orb/sidebar hit-area [VERIFY at S06]. | Engineering | Tauri has no "forward mouse events" option like Electron. |
+| D-40 | Overlay click-through: the Rust shell polls the cursor position (~60 Hz) and toggles click-through (WS_EX_TRANSPARENT | WS_EX_LAYERED, set directly on the window: Tauri's `set_ignore_cursor_events` re-shows and activates it, D-55) when the cursor is over the orb / sidebar hit areas reported by the UI. Verified at S06 (PL-0008). | Engineering | Tauri has no "forward mouse events" option like Electron. |
 | D-41 | App identifier: `io.github.quirky-sharan.ace` (Windows app-data folder, notifications). Changing it later moves user data. | Decided | Chosen by Sharan at S00 (2026-11-06). |
 | D-42 | Build toolchain, all on E: (§17.4): VS 2022 Build Tools (MSVC v143) + standalone Windows 11 SDK 10.0.26100; Rust stable via rustup (minimal profile + rustfmt + clippy); pnpm 12 installed with npm; uv-managed CPython 3.12. Exact versions in PL-0002. | Engineering | rustup's MSVC docs cover VS 2022 (2026 not yet documented); Sharan asked for everything on E:. |
 | D-43 | Workspace layout: one pnpm workspace (`apps/*`, single `pnpm-lock.yaml`); the Python core is its own uv project in `core/`; shared ESLint flat config (`defineConfig`) + Prettier at the repo root; Markdown is excluded from Prettier. | Engineering | One lockfile per ecosystem; the master plan is never reflowed. |
@@ -330,6 +330,11 @@ Status values: **Decided** = confirmed by Sharan in the 2026-11-06 Q&A. **Defaul
 | D-49 | Backups and recovery: regular backups `ace-YYYYMMDD-HHMMSS.db` (daily + on demand) keep 7; `ace-premigration-*` and `ace-prerestore-*` keep 5 each. On a failed `quick_check` the damaged file is moved to `data\ace-corrupt-*.db` (never auto-deleted), the newest valid backup is restored, and the `database` health turns DEGRADED with an audit entry and a `DatabaseRecovered` event (UI and notifications surface it in later stages). | Engineering | S02; refines §13.4's "7 kept + one before every migration" so pre-migration copies can't pile up forever. |
 | D-50 | IPC server (§5.5): FastAPI on Uvicorn started in-process (`ws="websockets-sansio"`, no access log or `Server` header, Uvicorn's signal handlers disabled so the App lifecycle keeps them), bound to `127.0.0.1` on an exclusive socket (`SO_EXCLUSIVEADDRUSE`); the Host header must be `127.0.0.1`. Limits: auth within 2 s · ≤ 8 clients · ≤ 1 MiB per frame · 30 messages/s per connection (burst 60) · 256 queued frames per client (events are dropped for a stuck client; a response waits ≤ 5 s, then the client is disconnected). Close codes: 4401 auth missing / wrong / late · HTTP 403 for a foreign Origin or too many clients · 1009 frame too big · 1001 core stopping (queued frames are flushed first, ≤ 0.5 s). Token: `ACE_IPC_TOKEN` from the shell (removed from the environment at once), else generated (256-bit). `runtime\ipc.json` = port, token, pid, version, with a protected current-user-only DACL; removed on exit only by the process that wrote it. Clients see only allowlisted events (`ipc/events.py`); `session.ready` is always a client's first frame. | Engineering | S03; §15.1 baseline. |
 | D-51 | IPC types for the UI: the Pydantic models are the single source → one JSON Schema `apps/desktop/src/ipc/ipc.schema.json` (no per-field titles; outgoing fields with defaults marked required) → json-schema-to-typescript 16 (`--unknownAny`) → `apps/desktop/src/ipc/generated.ts`. Both files are committed and skipped by Prettier / ESLint; `pnpm gen:ipc` regenerates them; CI fails if either is stale. | Engineering | S03; the exporter imports the models, so it lives in `core/` (`ace_core.ipc.export_schema`), not `tools/`. |
+| D-52 | Desktop shell ↔ core supervision (§5.6): the shell starts the core as a plain child process, not a Tauri sidecar (debug builds: `uv run --project <repo>\core ace-core --dev --supervised`; release builds: `<resources>\core\ace-core.exe --supervised`, packaging finalised at S44), with `CREATE_NO_WINDOW`, a fresh 256-bit token per core start (`ACE_IPC_TOKEN`, 64 hex characters) and `ACE_IPC_PORT=0`. Each core run gets its own Job Object with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`: stopping ends the whole tree (uv → python), and a crashed shell takes the core with it. **Control channel = the child's stdio** (private to the two processes, no token): stdout carries `ACE_READY port=<n>`, then `ACE_DESKTOP <json>` snapshots (conversation state, hotkeys, autostart, verification mode; sent after READY and on every change); stdin carries JSON lines (`input` from hotkeys / tray, `set_mode`, `desktop_status` with hotkey conflicts and autostart errors → health subsystem `desktop`); end of stdin = graceful shutdown. Restarts: the first at once (Sharan's choice, 2026-11-07), then backoff 1, 2, 4, 8, 16, then 30 s, reset after 60 s of healthy running; READY timeout 30 s (180 s in debug builds); 5 crashes within 5 minutes → the core restarts with `--safe-mode` (health `core` degraded) until ACE restarts. Quit: close stdin, wait ≤ 6 s, then end the job. A second launch with `--quit` asks the running ACE to quit (scripts, installer). | Engineering | S04; sidecars ship single files only and the dev core runs from the checkout; one pipe pair per child is simpler and safer than a second WebSocket client in Rust. |
+| D-53 | Desktop settings live in the core's settings table and reach the shell through the snapshot: `hotkeys.<action>` (actions `summon`, `push_to_talk`, `emergency_stop`, `toggle_overlay`, `mic_mute`; text such as `Ctrl+Alt+Space`; null or empty = off; defaults D-29), `desktop.autostart` (default false), `verification.mode` (`fast` / `balanced` / `paranoid`, default `balanced`, D-09). Invalid stored values fall back to the defaults. Hotkeys use tauri-plugin-global-shortcut; a combination another app holds is reported with a suggested alternative (+Shift). Autostart uses the `auto-launch` crate (the library inside tauri-plugin-autostart) directly: current user's Run key only, quoted exe path, `--autostart` (starts hidden in the tray); debug builds use their own entry `ACE (dev build)`. Hotkey and tray input reach the core as `DesktopInput` bus events: S04 logs them, later stages act on them (S06 overlay, S09 mic mute, S13 push-to-talk, S17 emergency stop, S18 modes). | Engineering | S04; the shell stays thin (§5.2) and settings have one owner; the plugin would try the all-users Run key when elevated and leaves the exe path unquoted. |
+| D-54 | UI foundation (S05): Tailwind CSS 4 configured CSS-first in `apps/desktop/src/styles/index.css` (`@theme` holds only ACE's §14.4 palette, fonts and glow); fonts bundled from @fontsource latin subsets — Orbitron for headings (chosen over Rajdhani), Inter, JetBrains Mono (all SIL OFL 1.1). Continuous motion (the orb) is CSS keyframes that run only while the window is visible, reduced motion is off and ACE is not idle (asleep / muted for more than 5 s); Motion (`motion/react`, `MotionConfig reducedMotion="user"`) is used only for enter / exit transitions. One Zustand store per domain (connection, core state + health, tasks, notifications, settings cache, shell status). The IPC client fetches port + token with `get_ipc_info` before every attempt, reconnects after 0.25, 0.5, 1, 2, 4, then 5 s, and at once when the shell reports a new core. Control Center pages live in the URL hash; the component gallery exists only in development builds. CSP: `default-src 'self'`, no inline scripts in release builds, `connect-src` = Tauri IPC + `ws://127.0.0.1:*`; the dev CSP also allows Vite's inline preamble and HMR socket. | Engineering | S05; NFR-2 (idle CPU ~0 %), NFR-10 (reduced motion, keyboard navigation), §15.1. |
+| D-55 | Overlay windows (S06, §14.1–§14.2): `orb` (72×72 logical px window, 56 px orb, 4 px from the edge, position `overlay.orb_y` 0–1 along the edge) and `sidebar` (396 logical px wide, work-area height minus 8 px margins) are transparent, undecorated, shadowless, always-on-top, `focusable(false)` (WS_EX_NOACTIVATE) windows, created hidden and owned by a hidden window (`GWLP_HWNDPARENT`), which keeps them off the taskbar and out of Alt+Tab. After creation no Tauri / tao window setter is used except position and size: tao re-runs `ShowWindow(SW_SHOW)` (activating) on every window-flag change and applies always-on-top only when that flag changes. The shell itself, on its main thread: shows a window with `ShowWindow(SW_SHOWNOACTIVATE)` only while it has something to show and hides it with `SW_HIDE` (a closed sidebar is really hidden: once activated on purpose, Windows 11 re-activated it when the foreground app closed, WS_EX_NOACTIVATE notwithstanding); sets click-through (D-40) from a ~60 Hz cursor-polling thread, never while a mouse button is held; every ~2 s re-checks the work area, HWND_TOPMOST (without activation), which windows are shown and the end of "hide for N minutes"; moves focus only with `SetForegroundWindow` (summon hotkey, a click into the sidebar's text box) and gives it back to the previous window (else the desktop) as soon as the sidebar closes. Placement: `overlay.monitor` (`cursor` = the cursor's monitor whenever the overlay appears, or `primary`), `overlay.edge` (`right` / `left`), physical pixels (per-monitor DPI v2). Overlay settings live in the core (D-53 pattern); open / closed / hidden state lives in the shell; each overlay window may call only its own commands (capabilities `orb.json`, `sidebar.json`). | Engineering | S06; §14.2 "never steals focus": the first live runs showed tao's setters and a shown-but-empty sidebar taking the focus (R-18). |
+| D-56 | Command pipeline (S07; §5.3 steps 5–9, §8.1 stages 1–2, §8.4, §10.1, §15.3): one entry point `CommandPipeline.submit(text, origin)` for typed commands now and for voice, routines and MCP later. Each command is stored as a message (a new conversation after 15 minutes without a command) and routed by the fast path: normalization (spaces, edge punctuation, English + Hinglish fillers at the start / end; entities keep their case), then ordered grammar rules where the first full match wins (stop, yes, no, help, modes, echo, demo, switch to / close / open an app); rules of unregistered skills are skipped and invalid params fall through. The result is a one-step task run in the background, a stop of every live task, an answer to the newest pending confirmation, or an honest "not yet" reply. The Supervisor decides in code: T0 run · T1 run + audit · T2 confirm (30 s, then cancelled; "ok" / "sure" never confirm) · T3 refuse · a skill outside the task's capability scope is refused. Skills implement §10.1 as the abstract generic class `Skill[P]` plus `describe(params)` (the exact action for task cards and confirmations); `demo.*` skills exist only in dev mode. Replies are a short spoken line + sidebar detail (D-04). IPC: `command.submit`, `task.list`, `task.cancel`, `confirm.respond`, `message.list`; events `task.created` / `task.updated` / `task.finished` (the whole task with its steps and pending confirmation), `confirm.requested`, `message.created`, `settings.changed` (key only). The conversation state follows the work (THINKING → ACTING / AWAITING_CONFIRM → ASLEEP) and leaves the voice states alone; on shutdown live tasks become `interrupted`; the emergency-stop hotkey cancels every live task (§15.1 item 10; S17 adds releasing held input). | Engineering | S07; one pipeline means voice, routines and MCP cannot skip tiers or confirmations (FR-IN-3, FR-SEC-1). |
 
 ---
 
@@ -417,19 +422,20 @@ Main transitions: ASLEEP —wake/hotkey→ LISTENING —speech end→ TRANSCRIBI
   "error": { "code": "E_AREA_NAME", "message": "human readable", "details": {} },
   "ts": "2026-11-06T10:00:00.000Z" }
 ```
-- **Initial methods:** `system.health`, `system.state.get`, `command.submit`, `task.list`, `task.cancel`, `confirm.respond`, `clarify.respond`, `settings.get`, `settings.set`, `log.tail` (dev only). Later stages add `memory.*`, `routines.*`, `providers.*`, `voice.*`, `devices.*`, `overlay.*`, `accounts.*`, `contacts.*`, `models.*`, `bridge.*`.
-- **Initial events:** `state.changed`, `transcript.partial`, `transcript.final`, `task.created`, `task.updated`, `task.step`, `task.verified`, `task.finished`, `confirm.requested`, `clarify.requested`, `notification.created`, `health.changed`, `audio.level`, plus `session.ready` (always a client's first frame after auth), `system.stopping`, `db.recovered`.
+- **Initial methods:** `system.health`, `system.state.get`, `command.submit`, `task.list`, `task.cancel`, `confirm.respond`, `clarify.respond`, `settings.get`, `settings.set`, `message.list` (S07), `log.tail` (dev only). Later stages add `memory.*`, `routines.*`, `providers.*`, `voice.*`, `devices.*`, `overlay.*`, `accounts.*`, `contacts.*`, `models.*`, `bridge.*`.
+- **Initial events:** `state.changed`, `transcript.partial`, `transcript.final`, `task.created`, `task.updated`, `task.step`, `task.verified`, `task.finished`, `confirm.requested`, `clarify.requested`, `notification.created`, `health.changed`, `audio.level`, plus `session.ready` (always a client's first frame after auth), `system.stopping`, `db.recovered`, `message.created` and `settings.changed` (S07; the key only, clients re-read the value). S07 sends `task.created` / `task.updated` / `task.finished` with the whole task (its steps and pending confirmation); `task.step` and `task.verified` arrive with the multi-step runtime (S17) and the council (S18).
 - **Schemas:** Pydantic v2 models in `core/src/ace_core/ipc/schemas.py` → JSON Schema (`ace_core.ipc.export_schema` → `apps/desktop/src/ipc/ipc.schema.json`) → generated TypeScript in `apps/desktop/src/ipc/generated.ts` (json-schema-to-typescript; run `pnpm gen:ipc`, D-51). CI fails if either file is stale.
 - **Limits & errors:** max message 1 MiB; per-connection rate limit; exact limits and close codes in D-50. Error codes: `E_IPC_BAD_MESSAGE`, `E_IPC_UNKNOWN_METHOD`, `E_IPC_BAD_PARAMS`, `E_IPC_RATE_LIMITED`, `E_IPC_DEV_ONLY`, `E_IPC_INTERNAL`. Error details carry field locations and messages only, never the rejected input.
 - **Native messaging:** the extension talks to the ACE native host (the core executable launched by Chrome in native-host mode, §11.2) over stdio (Chrome framing: 4-byte little-endian length + UTF-8 JSON; host → extension max 1 MB per message [VERIFY]). The native host connects to the core WebSocket using port + token read from `%LOCALAPPDATA%\ACE\runtime\ipc.json` (file ACL: current user only).
+- **Desktop shell ↔ core:** not over the WebSocket: the shell talks to the core it started over the child's stdin / stdout (D-52).
 
 ### 5.6 Process lifecycle
-1. ace-desktop starts (at login if autostart is on).
-2. It generates a token and spawns ace-core with env `ACE_IPC_TOKEN=<token>` and `ACE_IPC_PORT=0`.
-3. ace-core binds an ephemeral port, writes `runtime\ipc.json`, and prints `ACE_READY port=<port>` on stdout.
-4. The shell gives port + token to its webviews through a Tauri command (never through the URL). The UI connects.
-5. Core crash → the shell restarts it with backoff 1 s, 2 s, 4 s … max 30 s and shows a banner. After 5 crashes in 5 minutes → **safe mode** (voice off, minimal skills) and asks Sharan to open Diagnostics.
-6. Quit: the shell asks the core to shut down gracefully (≤ 5 s), then kills it if needed. No orphan processes (use a Windows Job Object or an equivalent [VERIFY]).
+1. ace-desktop starts (at login if autostart is on; then with `--autostart`, hidden in the tray).
+2. For every core start it generates a fresh token and spawns ace-core with `--supervised`, env `ACE_IPC_TOKEN=<token>` and `ACE_IPC_PORT=0`, inside the core run's own Job Object (D-52).
+3. ace-core binds an ephemeral port, writes `runtime\ipc.json`, prints `ACE_READY port=<port>` on stdout, then an `ACE_DESKTOP <json>` snapshot whenever the shell's view changes (D-52).
+4. The shell gives port + token to its webviews through the `get_ipc_info` Tauri command (never through the URL). The UI connects.
+5. Core crash → the shell restarts it at once, then with backoff 1 s, 2 s, 4 s … max 30 s if it keeps crashing (reset after 60 s of healthy running), and shows a banner. After 5 crashes in 5 minutes → **safe mode**: the core restarts with `--safe-mode` (voice off, minimal skills; health `core` degraded) and the banner points Sharan to Diagnostics.
+6. Quit: the shell closes the core's stdin (the core shuts down gracefully, ≤ 5 s), waits ≤ 6 s, then ends the core's Job Object. No orphan processes: the job ends the whole tree, also when the shell itself dies (checked at S04, PL-0006).
 
 ### 5.7 Concurrency inside ace-core
 - One asyncio event loop (Windows Proactor loop) for orchestration and IPC.
@@ -465,8 +471,8 @@ E:\ACE-Models\                      (configurable "models dir"; chosen at onboar
 
 | Layer | Choice | License | Notes |
 |---|---|---|---|
-| Desktop shell | Tauri 2.x on Rust stable; plugins: single-instance, global-shortcut, autostart, updater, notification, shell / process | MIT / Apache-2.0 | [VERIFY] plugin names, APIs and the v2 capabilities/permissions format. Use v2 docs only. |
-| UI | React + TypeScript (strict) + Vite + Tailwind CSS + Motion + Zustand + Radix primitives + lucide-react | MIT | Fonts bundled locally (no CDN): Orbitron or Rajdhani (HUD headings), Inter (body), JetBrains Mono (code) — all OFL [VERIFY]. |
+| Desktop shell | Tauri 2.x on Rust stable; plugins: single-instance, global-shortcut (S04), updater, notification (later stages); autostart through the `auto-launch` crate (D-53); the core is started with `std::process` + a Job Object (`windows-sys`), no shell / process plugin (D-52) | MIT / Apache-2.0 | Checked at S04: single-instance 2.5.5, global-shortcut 2.4.1 (global-hotkey 0.8.0), auto-launch 0.6.0 and the v2 capability format (PL-0006); the updater and notification plugins are checked at their stages. Use v2 docs only. |
+| UI | React + TypeScript (strict) + Vite + Tailwind CSS + Motion + Zustand + Radix primitives + lucide-react | MIT (lucide-react ISC) | Fonts bundled locally (no CDN): Orbitron (HUD headings), Inter (body), JetBrains Mono (code) — all SIL OFL 1.1, checked at S05 (PL-0007, D-54). |
 | Core runtime | Python 3.12 via uv; FastAPI + Uvicorn; Pydantic v2 + pydantic-settings; SQLAlchemy 2 + Alembic; structlog; httpx; anyio | MIT / BSD | |
 | Audio I/O | sounddevice (PortAudio) + numpy | MIT / BSD | |
 | VAD | Silero VAD (ONNX) | MIT | |
@@ -485,6 +491,7 @@ E:\ACE-Models\                      (configurable "models dir"; chosen at onboar
 ### 6.2 Version policy
 - At S00, choose the latest **stable** versions and record them in the Progress Log. Lockfiles (`uv.lock`, `pnpm-lock.yaml`, `Cargo.lock`) are committed.
 - Never use open-ended "latest" ranges in manifests. Upgrades happen only in dedicated maintenance commits with tests.
+- pnpm refuses JavaScript packages younger than its minimum release age (a supply-chain guard). Never add `minimumReleaseAgeExclude` entries to get a brand-new version; let pnpm pick the newest allowed one (`pnpm add --save-exact <name>`) and record it (S05).
 - If an API differs from this doc for the pinned version, the pinned version's official docs win; update this doc (R10).
 
 ### 6.3 Why this stack (summary of D-18)
@@ -659,20 +666,21 @@ Simulated: wrong window focused, app never launched, DOM selector missing, stale
 
 ### 10.1 Skill contract (every skill MUST implement)
 ```python
-class Skill(Protocol):
+class Skill[P: SkillParams](ABC):    # ace_core.skills.base; SkillParams = Pydantic, extra fields rejected
     id: str                          # e.g. "apps.open"
     description: str                 # one line; becomes the LLM tool description
-    params_model: type[BaseModel]    # Pydantic → JSON Schema for tool calling
+    params_model: type[P]            # Pydantic → JSON Schema for tool calling
     background_capable: bool         # True if no synthetic mouse/keyboard input is needed
     timeout_s: float
-    examples: list[str]              # utterances (EN + Hinglish) for the golden set
+    examples: tuple[str, ...]        # utterances (EN + Hinglish) for help and the golden set
     def tier_for(self, params) -> Tier: ...                 # T0..T3, may depend on params
+    def describe(self, params) -> str: ...                  # the exact action in one line (§15.3)
     async def preconditions(self, ctx, params) -> list[str]: ...   # unmet → ask/explain
     async def execute(self, ctx, params) -> StepResult: ...
     async def verify(self, ctx, params, result) -> RuleCheckResult: ...  # deterministic postconditions
     async def undo(self, ctx, params, result) -> UndoResult | None: ...  # None = not undoable
 ```
-Every skill ships with unit tests using fakes and golden-set entries.
+Every skill ships with unit tests using fakes and golden-set entries. `execute` and `verify` are abstract; the base class defaults to no preconditions, `describe` = the description, not undoable. The registry checks ids (`pack.name`), duplicates and timeouts and exports every skill's params as JSON Schema (`python -m ace_core.skills.export_schema`, D-56).
 
 ### 10.2 Catalog
 
@@ -902,8 +910,8 @@ SQLite FTS5 first. Embeddings (a small local embedding model + `sqlite-vec`) onl
 | `conversations` | `id`, `started_at`, `ended_at`, `channel` (voice/text) | S07 |
 | `messages` | `id`, `conversation_id` FK, `ts`, `role` (user/ace/system), `text`, `source` (voice/text/notification), `stt_confidence`?, `meta_json` | S07 |
 | `tasks` | `id`, `conversation_id`?, `origin`, `utterance`, `intent`, `mode`, `status`, `allowed_caps_json`, `created_at`, `started_at`, `finished_at`, `result_summary`, `error_code`? | S07 |
-| `task_steps` | `id`, `task_id` FK, `idx`, `skill_id`, `params_json` (redacted), `tier`, `status`, `started_at`, `finished_at`, `observation_json`, `error_code`? | S07 |
-| `confirmations` | `id`, `task_id`, `step_id`, `prompt_text`, `response` (yes/no/timeout), `channel`, `responded_at` | S07 |
+| `task_steps` | `id`, `task_id` FK, `idx`, `skill_id`, `label` (the exact action), `params_json` (redacted), `tier`, `status`, `started_at`, `finished_at`, `observation_json` (redacted), `error_code`? | S07 |
+| `confirmations` | `id`, `task_id` FK, `step_id` FK, `prompt_text`, `requested_at`, `response` (yes/no/timeout; empty if the core stopped first), `channel`, `responded_at` | S07 |
 | `app_index` | `id`, `name`, `normalized_name`, `kind` (lnk/aumid/exe), `target`, `aumid`?, `icon_path`?, `last_seen_at`, `launch_count` | S08 |
 | `models` | `id`, `kind` (stt/tts/wake/vad/llm/embed), `name`, `version`, `path`, `sha256`, `size_bytes`, `license`, `installed_at`, `status` | S14 |
 | `providers` | `id`, `name`, `kind`, `base_url`, `enabled`, `priority`, `family`, `capabilities_json` (no keys) | S15 |
@@ -942,15 +950,15 @@ Online backups with the SQLite backup API to `data\backups\` (D-49): regular bac
 ## §14 UI / UX
 
 ### 14.1 Windows
-- **Overlay `orb`**: ~56×56 px, docked to the screen edge (right by default; left optional), draggable along the edge; transparent, always-on-top, no taskbar entry, not focusable by default.
+- **Overlay `orb`**: ~56×56 px, docked to the screen edge (right by default; left optional), draggable along the edge; transparent, always-on-top, no taskbar or Alt+Tab entry, not focusable by default (window details: D-55).
 - **Overlay `sidebar`**: ~380 px wide, full height minus margins, slides out from the orb's edge.
-- **Control Center**: a normal window (min 1000×680), opened from the tray, by right-clicking the orb, or by voice ("open ACE settings").
+- **Control Center**: a normal window (label `control-center`, min 1000×680), opened from the tray, by right-clicking the orb, or by voice ("open ACE settings"). Closing it only hides it; ACE keeps running in the tray. It stays hidden when ACE starts with Windows.
 - **Toasts**: Windows notifications with actions (Snooze / Dismiss / Show) [VERIFY Tauri notification plugin action support; fallback: WinRT toasts from the core].
 
 ### 14.2 Overlay behavior
-- Never steals focus when it appears, unless summoned by hotkey or by clicking into the text box.
+- Never steals focus when it appears, unless summoned by hotkey or by clicking into the text box. Closing the sidebar gives the focus back to the window Sharan was using.
 - Click-through everywhere except the orb and sidebar hit areas (D-40).
-- Hidden in game mode and when Sharan chooses "hide for 1 hour".
+- Hidden in game mode, with `Ctrl+Alt+H` / the tray (until shown again) and when Sharan chooses "hide for 1 hour".
 - Multi-monitor: appears on the monitor with the mouse cursor (setting). DPI-aware. Respects taskbar position.
 - Stays topmost; re-asserts topmost after fullscreen apps exit and on display changes.
 
@@ -974,7 +982,7 @@ Online backups with the SQLite backup API to `data\backups\` (D-49): regular bac
 | `--accent` | `#3B82F6` (electric blue) |
 | `--success` / `--warning` / `--danger` | `#34D399` / `#FBBF24` / `#F87171` |
 | `--text` / `--text-dim` | `#E6F7FF` / `#7FA7B8` |
-| Headings font | Orbitron or Rajdhani, uppercase, letter-spacing 0.08em |
+| Headings font | Orbitron (chosen at S05, D-54), uppercase, letter-spacing 0.08em |
 | Body / mono fonts | Inter 13–14 px / JetBrains Mono |
 | Shapes | 1 px glowing borders, corner brackets, thin SVG rings for the orb |
 | Motion | 150–250 ms ease-out for UI; orb rings rotate (6–12 s per turn) only while active; waveform ≤ 30 fps from real audio levels; everything paused when hidden or idle > 5 s; `prefers-reduced-motion` → static |
@@ -985,7 +993,7 @@ Orb visuals per state: §5.4.
 Dashboard (status, recent tasks, quotas, latency) · History (search conversations and tasks, verification details) · Memory · Routines · Skills & Permissions (enable/disable skills, tier view, pre-approvals) · Accounts & Contacts · Providers & Keys (add, test, quotas) · Voice (audition, speed, wake sensitivity) · Devices (mic / speaker select + test) · Models (downloads, VRAM) · Browser Bridge (install / status / adapter self-tests / ToS opt-ins) · Projects (dev) · Games · Notifications (ntfy setup + QR) · Appearance (overlay skin, edge, opacity) · Diagnostics (logs, health checks, backups / restore, safe mode) · About / Updates.
 
 ### 14.6 Hotkeys
-As in D-29. Every hotkey is configurable. Registration failures (conflicts) are shown in Control Center with a suggested alternative. Note: on keyboard layouts with AltGr, `Ctrl+Alt+<key>` can collide with AltGr characters — check at S04 and when porting.
+As in D-29. Every hotkey is configurable (settings `hotkeys.<action>`, D-53). Registration failures (conflicts) are shown in Control Center with a suggested alternative (health subsystem `desktop` until then). Note: on keyboard layouts with AltGr, `Ctrl+Alt+<key>` can collide with AltGr characters — check at S04 and when porting. **Checked at S04 (PL-0006):** Sharan's PC has the US and the India (KBDINEN) layouts; on the India layout AltGr + A / H / M type ā / ḥ / ṁ, so `Ctrl+Alt+A`, `+H` and `+M` capture those characters. Another app on the PC already holds `Ctrl+Alt+Space` and `Ctrl+Alt+M`. Sharan chose (2026-11-07) to add Shift to the two taken ones — D-29 now has `Ctrl+Alt+Shift+Space` and `Ctrl+Alt+Shift+M` — and accepted that ā / ḥ are captured on the India layout.
 
 ### 14.7 Onboarding wizard (S42)
 Welcome → choose models drive + download → mic test + wake-word calibration → voice audition → hotkeys → providers & keys → Chrome extension install → accounts map → Spotify connect → site opt-ins with ToS notice → phone push (ntfy) → finish (autostart on/off).
@@ -1100,8 +1108,9 @@ E:\A.C.E\                            (git repository root)
 │  ├─ desktop/                         Tauri 2 app (standard create-tauri-app layout)
 │  │  ├─ src/                          React UI
 │  │  │  ├─ ipc/                       client + generated.ts
+│  │  │  ├─ shell/                     the shell's status (banner, hotkey notices)
 │  │  │  ├─ hud/                       design system components
-│  │  │  ├─ overlay/  control-center/  state/
+│  │  │  ├─ control-center/  state/  platform/ (Tauri glue)  styles/  overlay/ (S06)
 │  │  ├─ src-tauri/                    Rust shell: tray, hotkeys, windows, supervisor, click-through
 │  │  └─ package.json
 │  └─ bridge-extension/                Chrome MV3 extension (TypeScript)
@@ -1109,12 +1118,14 @@ E:\A.C.E\                            (git repository root)
 ├─ core/                               Python 3.12 package (uv project)
 │  ├─ pyproject.toml, uv.lock
 │  ├─ src/ace_core/
-│  │  ├─ app/        main, lifecycle, config, paths, logging, events, container
+│  │  ├─ app/        main, lifecycle, config, paths, logging, events, container, modes
 │  │  ├─ ipc/        server, auth, schemas, methods
-│  │  ├─ db/         engine, models, repositories, migrations/
+│  │  ├─ db/         engine, models, repositories, stores, history, migrations/
 │  │  ├─ voice/      audio, vad, wake, stt, tts, dictation, earcons
-│  │  ├─ brain/      router, grammar, gateway, providers/, prompts/, agent, council, memory
-│  │  ├─ skills/     base, registry, apps, windows, system, media, spotify, alarms, files, screen,
+│  │  ├─ brain/      router, grammar, supervisor, pipeline, responses, records, gateway, providers/,
+│  │  │              prompts/, agent, council, memory
+│  │  ├─ skills/     base, registry, catalog, demo (dev only), apps, windows, system, media, spotify,
+│  │  │              alarms, files, screen,
 │  │  │              browser, ai_sites, youtube, gmail, whatsapp, instagram, dev, study, routines, notify, mcp
 │  │  ├─ bridge/     native_host, client
 │  │  ├─ models/     manager, downloader, lock
@@ -1165,6 +1176,7 @@ E:\A.C.E\                            (git repository root)
 2. Inside Claude's shells, load the toolchain environment first: `. E:\.cache\ace-setup\env.ps1`.
 3. Anything other programs must see — the Chrome native-messaging host registration (S24), autostart entries (S04), ACE's real `%LOCALAPPDATA%\ACE` data — must be created by ACE itself at runtime or by Sharan, never from Claude's shell. Test those parts by launching ACE outside Claude.
 4. Keep scratch and helper files on `E:` (e.g. `E:\.cache\ace-setup\`); files under AppData\Local\Temp may not stay visible.
+5. Dev runs of the desktop app started from Claude's shell set `WEBVIEW2_USER_DATA_FOLDER` to a throwaway folder on `E:` as well as `LOCALAPPDATA`: Tauri finds the WebView2 data folder through the Windows known-folder API, so `LOCALAPPDATA` does not move it, and the Claude app keeps such files in its private store on C: (S04–S06 runs left ~151 MB there, PL-0008).
 
 ---
 
@@ -1299,7 +1311,7 @@ Every stage uses the same template: **Goal · Prereqs · Spec · Tasks · Accept
   3. Spawn the core (dev: `uv run ace-core`; prod: bundled executable) with the token env var; parse the READY line; expose `get_ipc_info` as a Tauri command.
   4. Supervisor: restart with backoff (§5.6), banner event to the UI, safe mode after 5 crashes in 5 min; kill-on-exit for the child process [VERIFY Job Object approach].
   5. Global hotkeys (D-29) with conflict detection → Control Center notice.
-  6. Autostart plugin wired to a setting (default **off** until M2; S13 asks Sharan).
+  6. Autostart wired to the `desktop.autostart` setting (default **off** until M2; S13 asks Sharan), through the `auto-launch` crate, current user only (D-53).
   7. Graceful quit (core first).
 - **Acceptance criteria:**
   - [ ] Launching twice focuses the first instance.
@@ -1323,6 +1335,8 @@ Every stage uses the same template: **Goal · Prereqs · Spec · Tasks · Accept
   5. Animation pausing when hidden or idle; `prefers-reduced-motion`.
   6. Control Center window with navigation and all §14.5 pages as stubs; Dashboard shows live health and state.
   7. Dev-only component gallery page.
+  8. Strict CSP in `tauri.conf.json` (still `null` from the template): own assets only, `connect-src` for `ws://127.0.0.1:*` and Tauri's IPC.
+  9. Replace the S04 status page (`src/App.tsx`, `src/shell/status.ts`) with the Control Center; keep the shell banner (`get_shell_status` + the `ace://shell-status` event).
 - **Acceptance criteria:**
   - [ ] Control Center opens from the tray and shows live core state and connection status.
   - [ ] The gallery shows every HUD component in every state.
@@ -1338,11 +1352,12 @@ Every stage uses the same template: **Goal · Prereqs · Spec · Tasks · Accept
 - **Spec:** §14.1–§14.3, D-13, D-40.
 - **Tasks:**
   1. Create the `orb` and `sidebar` windows: transparent, no decorations, always-on-top, skip taskbar, not focusable by default.
-  2. Click-through: a Rust thread polls the cursor (~60 Hz) and toggles ignore-cursor-events using the hit-rectangles reported by the UI.
+  2. Click-through: a Rust thread polls the cursor (~60 Hz) and toggles click-through (D-40, D-55) using the hit-rectangles reported by the UI.
   3. Edge docking (right default, left optional), drag along the edge, multi-monitor and DPI handling, taskbar awareness.
   4. Slide animation; the summon hotkey shows the sidebar and focuses the input; Esc closes.
   5. Sidebar sections per §14.3 (placeholder data where backends don't exist yet); "hide for 1 hour".
   6. Topmost re-assertion on display changes and after fullscreen apps exit; orb visuals driven by conversation state.
+  7. The shell side of the overlay controls: the `summon` / `toggle_overlay` hotkeys and the tray item "Show / hide overlay" only reach the core so far (D-53); make them open and hide the overlay windows.
 - **Acceptance criteria:**
   - [ ] The overlay stays above normal windows and borderless-fullscreen apps (Chrome F11, VS Code).
   - [ ] Clicks pass through everywhere outside the orb and sidebar.
@@ -1395,7 +1410,7 @@ Every stage uses the same template: **Goal · Prereqs · Spec · Tasks · Accept
 - **Tests:** unit tests with a fake OS adapter (index parsing, fuzzy matching, clarification thresholds); `windows_ui`-marked tests on the dev machine.
 - **Definition of Done:** Standard + the M1 manual checklist passed with Sharan.
 - **[VERIFY]:** AppsFolder enumeration from Python; Spotify Store AUMID; SetForegroundWindow restrictions; chosen UIA library API.
-- **Pitfalls:** Store apps have no launchable exe path; Chrome has many windows per process; a non-elevated ACE cannot control elevated windows (UIPI).
+- **Pitfalls:** Store apps have no launchable exe path; Chrome has many windows per process; a non-elevated ACE cannot control elevated windows (UIPI). The core runs inside ACE's Job Object (D-52), so apps it starts with a plain `CreateProcess` would be killed when ACE quits or the core restarts: launch Sharan's apps outside the job (`JOB_OBJECT_LIMIT_BREAKAWAY_OK` on the job + `CREATE_BREAKAWAY_FROM_JOB`, or through the shell / Explorer) — decide here.
 
 ### S09 — Audio I/O
 - **Goal:** Robust microphone capture and speaker playback with device management and a level meter.
@@ -1892,7 +1907,7 @@ Every stage uses the same template: **Goal · Prereqs · Spec · Tasks · Accept
 - **Goal:** ACE survives long sessions and failures; full-duplex "stop".
 - **Prereqs:** S40.
 - **Spec:** NFR-3, §7.7, SC-22.
-- **Tasks:** watchdogs and health checks; safe mode; offline behavior review; "Hey Ace, run diagnostics"; local crash dumps; log viewer; AEC-based barge-in.
+- **Tasks:** watchdogs and health checks; safe mode; offline behavior review; "Hey Ace, run diagnostics"; local crash dumps; log viewer; the desktop shell's own log file (`logs\desktop-YYYYMMDD.log`, §5.8; S04 only prints debug lines); AEC-based barge-in.
 - **Acceptance criteria:**
   - [ ] An 8-hour soak test (idle + periodic commands) shows no crash and < 10 % RAM growth.
   - [ ] SC-22 passes.
@@ -1992,6 +2007,8 @@ Every stage uses the same template: **Goal · Prereqs · Spec · Tasks · Accept
 | R-14 | AI builder drifts or hallucinates APIs | High / High | §0 rules, [VERIFY] tags, small stages, Progress Log, tests, Sharan's approval gate per stage |
 | R-15 | Laptop speakers + mic make barge-in hard | High / Low | Half-duplex in v1; AEC at S41 |
 | R-16 | The Claude desktop sandbox hides AppData / HKCU writes made from its shells (env vars, registry keys, app data) | High / Medium | §17.4 sandbox rules; `tools/dev/set-dev-env.ps1`; system-visible items registered by ACE itself; integration tested outside Claude |
+| R-17 | Global hotkeys collide with other apps or with AltGr characters on Sharan's keyboard layouts | High (found at S04) / Low | Conflict detection with suggestions (health `desktop`), every hotkey configurable (D-53), defaults re-chosen by Sharan at S04 (D-29) |
+| R-18 | Windows focus rules: an overlay window takes or keeps the keyboard focus (tao's window setters re-show with activation; Windows re-activates a remembered window when the foreground app closes, even with WS_EX_NOACTIVATE) | High (found at S06) / High | D-55: no tao window setters after creation, show without activation, closed windows really hidden, focus given back on close; repeat the PL-0008 probe-window focus tests whenever overlay code changes |
 
 ---
 
@@ -2190,6 +2207,157 @@ Template for every entry:
 - Tests: `uv run pytest --cov` → 188 passed, 95.4 % · `ruff check`, `ruff format --check`, `mypy` (strict) → clean · `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm build` → clean · `pre-commit run --all-files` → 15/15 passed · `python tools/dev/check_plan.py` → all checks passed.
 - Next step: Sharan reviews S03 (including the two changes above) and approves → `[S03]` commit → S04 (Tauri shell).
 - Approval: Sharan approved S03 on 2026-11-07 ("Approve, continue"), including both changes above (`ace-cli send` → S07; exporter in `core/`) → committed as `[S03] IPC API` on branch `stage/s03-ipc`; S04 continues on `stage/s04-tauri-shell`.
+
+### PL-0006 — 2026-11-07 — S04 — Tauri desktop shell
+- Done:
+  - Shell (`apps/desktop/src-tauri/src`): `supervisor` (one core at a time: fresh token, READY wait, snapshots, crash → restart with backoff, safe mode, graceful stop), `core_process` (debug / release command, `CREATE_NO_WINDOW`, piped stdio with reader threads), `job` (one Job Object per core run, kill on close), `policy` (backoff 1–30 s, reset after 60 s healthy, 5 crashes in 5 min → safe mode), `protocol` (stdout lines, stdin messages), `token` (256-bit, OS generator), `tray` (ring icon drawn at runtime and tinted by state: filled while the core runs, hollow while it starts / restarts / is stopped; menu Show / hide overlay · Control Center · Mute mic · Mode ▸ · Quit ACE; left click opens the Control Center), `hotkeys` (D-29 shortcuts from the core's settings, conflict detection with a +Shift suggestion, push-to-talk press and release), `autostart` (auto-launch, current user), `status` (shared status, `ace://shell-status` event). `lib.rs`: single-instance first (a second launch shows the Control Center; `--quit` quits), closing the window hides it, `RunEvent::Exit` stops the core first; commands `get_ipc_info` and `get_shell_status` behind the generated permissions `allow-get-ipc-info` / `allow-get-shell-status` in the `control-center` capability.
+  - Core: flags `--supervised` and `--safe-mode`, setting `safe_mode` (health `core` degraded), `ace_core.ipc.desktop_link` (D-52: snapshots; `input` → `DesktopInput` bus event + log; `set_mode` → `verification.mode`, audited as `user`; `desktop_status` → health `desktop`; end of stdin → graceful shutdown), `SettingChanged` bus event from `SettingsStore`.
+  - UI: the template page became a plain status page in the `control-center` window (min 1000×680, hidden when started by autostart): banner for starting / restarting / stopped / safe mode, hotkey notices, autostart state. Template assets and the opener plugin (Rust + JS) removed.
+  - Tests: core 201 (13 new; coverage 94.8 %), Rust 17 (including two real Job Object tree tests), UI 7.
+- Not done / known issues:
+  - Nothing committed yet — the `[S04]` commit waits for Sharan's approval.
+  - Decided by Sharan during the stage (2026-11-07, R5): (1) **Restart time:** the first restart after a crash now happens at once, then 1, 2, 4 … 30 s (§5.6, D-52). With the old 1 s first wait, kill → READY took 3.55 s, because Python imports take ~2.4 s (SQLAlchemy, FastAPI, Alembic; the core's own startup after the imports is 0.1 s; uv adds 0.09 s); import time is revisited at S40. (2) **D-29:** another app on this PC holds `Ctrl+Alt+Space` and `Ctrl+Alt+M`, so summon and mic mute got Shift (`Ctrl+Alt+Shift+Space`, `Ctrl+Alt+Shift+M`); on the India layout `Ctrl+Alt+A` / `+H` still capture ā / ḥ (accepted).
+  - Changed from the stage text (needs Sharan's OK): autostart uses the `auto-launch` crate directly instead of tauri-plugin-autostart (current-user Run key only, quoted exe path, D-53); `ace-desktop --quit` added (graceful quit for scripts and the S44 installer).
+  - The tray (tint, menu, ticks) and the banner were not looked at on screen from here; Sharan's manual checklist below covers them. The hotkey presses were synthetic key events (user32 `keybd_event`), sent only while ACE held every combination.
+  - Autostart was tested inside Claude's sandbox, where HKCU writes are virtualised (R-16): the Run entry appears and disappears with the setting. A real start at sign-in needs a check outside Claude (or at S13).
+  - "Mute mic", "Mode ▸", "Show / hide overlay" and the hotkeys only reach the core so far (logged; the mode is stored) until their stages act on them (D-53); the overlay item does nothing visible until S06.
+  - Release builds expect the frozen core at `<resources>\core\ace-core.exe`, which arrives at S44; only debug builds were run.
+  - The shell writes no log file yet (debug builds print to the terminal) — moved to S41. No CSP yet (`csp: null` from the template) — added to S05.
+  - A microsecond gap remains between starting the core and putting it into its job; the core starts no process that early.
+- [VERIFY] results (2026-11-07):
+  - Single instance → tauri-plugin-single-instance 2.5.5: `init(|app, args, cwd|)`, registered first; a second instance forwards its arguments (`WM_COPYDATA`) and exits inside the plugin's setup, which Tauri 2.12.5 runs in `Builder::build`, before the app's own `setup` hook; no JS API, no capability needed — https://v2.tauri.app/plugin/single-instance/ + installed source.
+  - Global shortcuts → tauri-plugin-global-shortcut 2.4.1 on global-hotkey 0.8.0: `Builder::new().with_handler(|app, shortcut, event|)`, `app.global_shortcut().register(..)`; Windows uses `RegisterHotKey` with `MOD_NOREPEAT`; a taken combination fails with "HotKey already registered"; release is found by polling `GetAsyncKeyState` every 50 ms; JS permissions are all off by default and ACE grants none — https://v2.tauri.app/plugin/global-shortcut/ + installed source. `unregister_all` / `register_multiple` hold the plugin's lock while waiting for the main thread, so ACE uses single `register` / `unregister` calls.
+  - Autostart → tauri-plugin-autostart 2.7.0 wraps auto-launch 0.6.0 in `WindowsEnableMode::Dynamic` (tries the all-users key first) with an unquoted exe path, so ACE uses auto-launch directly with `CurrentUser` (HKCU `Software\Microsoft\Windows\CurrentVersion\Run` + the Task Manager `StartupApproved` value) — https://v2.tauri.app/plugin/autostart/ + installed source.
+  - Capability permissions → app commands are allowed for every window unless listed in `tauri_build::AppManifest::commands`, which generates `allow-<command>` / `deny-<command>`; capabilities cover bundled content only unless `remote` is set; `core:default` includes `core:event:default` (listen) — https://v2.tauri.app/security/capabilities/ + tauri-build 2.7.4 source.
+  - Sidecar vs plain spawning → sidecars (`bundle.externalBin`) are single executables with a target-triple suffix — https://v2.tauri.app/develop/sidecar/ . The dev core runs from the checkout through uv and the S44 frozen core is a folder, so ACE uses `std::process::Command` (`creation_flags` stable since Rust 1.16 — https://doc.rust-lang.org/std/os/windows/process/trait.CommandExt.html ; `CREATE_NO_WINDOW` = 0x08000000 — https://learn.microsoft.com/en-us/windows/win32/procthread/process-creation-flags).
+  - Job Object approach → confirmed: child processes join the job unless breakaway is allowed; nested jobs since Windows 8; with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`, closing the last handle ends every process in the job and its child jobs — https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects ; windows-sys 0.61.2 signatures checked in source.
+  - AltGr check (§14.6) → Sharan's layouts are US (00000409) and India (00004009, KBDINEN); India has AltGr characters on A, H, M and most letters, none on Space or Esc — https://kbdlayout.info/kbdinen
+  - Token generator → getrandom 0.3.4 `fill(&mut [u8])`, Windows backend `ProcessPrng` (installed source).
+- Acceptance evidence (real shell via `tauri dev` + real core, throwaway `LOCALAPPDATA` under `E:\.cache\ace-setup\s04-live\`):
+  - Start: shell → `uv run ... ace-core --dev --supervised` (tree: ace-desktop → uv → ace-core.exe trampoline → venv python → python); READY on a random port; first snapshot applied.
+  - Conflicts: `Ctrl+Alt+Space` and `Ctrl+Alt+M` were already taken → `ace-cli health` showed `desktop: degraded` with "another app already uses this combination - try Ctrl+Alt+Shift+Space" (and `+M`). After `settings.set` of `hotkeys.summon` / `hotkeys.mic_mute` to the suggestions, the shell re-registered live (5 of 5) and `desktop` turned ok.
+  - Each hotkey → core log `desktop input`: summon, push_to_talk pressed and released (405 ms apart for a 400 ms hold), emergency_stop, toggle_overlay, mic_mute.
+  - Second launch → exited with code 0 after 1.2 s; the running instance showed the Control Center; one `ace-desktop` process.
+  - Killing the core process (first run, still with the 1 s first wait) → READY again 3.55 s after the kill; the status went Restarting → Starting → Running (sent to the UI as events).
+  - 5 crashes within 5 minutes (waits 1, 1, 2, 4, 8 s; the first run had been healthy for over a minute) → "restarting in 8 s in SAFE MODE"; the core came back with `--safe-mode` and `ace-cli health` showed `core: degraded` with the safe-mode detail.
+  - `desktop.autostart` true → Run entry `"E:\A.C.E\apps\desktop\src-tauri\target\debug\ace-desktop.exe" --autostart`; false → removed (inside Claude's sandbox, R-16).
+  - `ace-desktop --quit` → the shell closed the core's stdin → core `shutdown requested` ("the desktop shell closed the control channel") → `shutdown complete` in 219 ms, exit code 0; the shell was gone 1.1 s after the request; no ACE processes left; `runtime\ipc.json` removed; `tauri dev` exited 0.
+  - Shell killed hard → all four core-tree processes gone within 0.5 s (Job Object).
+  - Second run after Sharan's two decisions (fresh `LOCALAPPDATA` under `E:\.cache\ace-setup\s04-live2\`): the new defaults registered 5 of 5 with no setting changes (`desktop: ok`); first kill → "restarting now", READY again after 2.85 s; a second kill within the minute → waited 1 s, READY after 3.58 s; `--quit` → core exit code 0, shell gone after 1.1 s, no ACE processes left, `runtime\ipc.json` removed.
+- Manual checklist for Sharan (normal terminal, `pnpm --filter ace-desktop tauri dev`): the tray ring is cyan with a centre dot while the core runs; right-click shows the five menu items with Balanced ticked; picking Fast ticks Fast and stays ticked after a restart; left-click opens the Control Center; closing the window keeps ACE in the tray; ending the deepest `python.exe` of ACE in Task Manager shows the "Starting the ACE core…" banner and an amber hollow ring for about 3 s, then cyan again (a second kill within a minute shows "The core stopped — restarting in 1 s"); Quit ACE leaves no `ace-desktop`, `uv` or ACE `python` processes.
+- New dependencies: shell (Rust) — tauri-plugin-single-instance 2.5.5 (Apache-2.0 OR MIT), tauri-plugin-global-shortcut 2.4.1 (Apache-2.0 OR MIT) with global-hotkey 0.8.0 (Apache-2.0 OR MIT) and keyboard-types 0.7.0 (MIT OR Apache-2.0), auto-launch 0.6.0 (MIT) with windows-registry 0.6.1 (MIT OR Apache-2.0), getrandom 0.3.4 (MIT OR Apache-2.0), windows-sys 0.61.2 (MIT OR Apache-2.0); Tauri's `tray-icon` feature (tray-icon 0.25.1, MIT OR Apache-2.0). Removed: tauri-plugin-opener (Rust and JS).
+- Decisions added: D-52 (desktop shell ↔ core supervision and control channel), D-53 (desktop settings, hotkeys, autostart); changed with Sharan's approval: D-29 (two hotkeys got Shift) and the §5.6 restart backoff (first restart at once); §5.5, §5.6, §6.1, §14.1, §14.6 and §17.1 updated; S05, S06, S08 and S41 notes; risk R-17.
+- Tests: `uv run pytest --cov` → 201 passed, 94.8 % · `ruff check`, `ruff format --check`, `mypy` (strict) → clean · `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings` → clean · `cargo test` → 17 passed · `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test` (desktop 7, extension 1), `pnpm build` → clean · `pre-commit run --all-files` → 15/15 passed · `python tools/dev/check_plan.py` → all checks passed.
+- Next step: Sharan runs the manual checklist and approves (including the two stage-text changes above) → `[S04]` commit → S05 (UI foundation).
+- Approval: Sharan approved S04 on 2026-11-07 ("Approve, continue"), including both stage-text changes (the `auto-launch` crate instead of tauri-plugin-autostart; `ace-desktop --quit`) → committed as `[S04] Tauri desktop shell` on branch `stage/s04-tauri-shell`; S05 continues on `stage/s05-ui-foundation`. The manual tray / banner checklist was not reported back yet.
+
+### PL-0007 — 2026-11-07 — S05 — UI foundation, HUD design system, Control Center shell
+- Done:
+  - Tooling: Tailwind CSS 4 through `@tailwindcss/vite`; the §14.4 tokens as a Tailwind theme in `src/styles/index.css` (only ACE's palette, Orbitron / Inter / JetBrains Mono, glow, corner brackets, orb keyframes, dark thin scrollbars); fonts bundled from @fontsource latin subsets (about 100 KB of woff2); TypeScript target and lib ES2022; Vitest in jsdom with Testing Library (`vitest.config.ts`, `src/test/setup.ts`).
+  - IPC client (`src/ipc/client.ts`): port + token from `get_ipc_info` before every attempt, the token as the first message (never in the URL), connected on `session.ready`, typed `request` (id correlation, 10 s timeout, typed errors) and `onEvent` from the generated types, reconnects after 0.25 → 5 s, `reconnectNow` when the shell reports a new core port, `stop`.
+  - Stores (`src/state/`): connection, core state + health, tasks (placeholder for S07), notifications (newest 4), settings cache (`loadSetting` / `saveSetting` through the core), shell status. `core-link.ts` feeds them from the client; `platform/tauri-link.ts` is the only module that calls Tauri.
+  - HUD library (`src/hud/`): Panel, Button, Toggle (Radix Switch), Chip, StatusDot, Orb (every §5.4 state), Waveform (canvas, redraws only when levels change, ≤ 30 fps), StepList (✓ ⚠ ✗ ↺), ConfirmCard (exact action, Yes / No, countdown), ClarifyCard, Toast + ToastViewport (Motion enter / exit, closes after 6 s), TextInput (Enter sends, Esc clears, ↑ / ↓ history).
+  - Animation policy (`hud/activity.ts`): motion only while the window is visible, prefers-reduced-motion is off and ACE is not asleep / muted for more than 5 s; the stylesheet also stops orb motion under reduced motion; `MotionConfig reducedMotion="user"`.
+  - Control Center (`src/control-center/`): all 17 §14.5 pages (each stub names its stage), arrow-key navigation, pages in the URL hash, header (orb, state, connection, verification mode), the shell banner, a live Dashboard (core, connection, health, hotkeys; recent tasks and quotas as placeholders), and the component gallery in development builds only.
+  - CSP (task 8): release `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost ws://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'none'`; the dev CSP also allows inline scripts (Vite's React preamble) and `ws://localhost:1420` (HMR).
+  - The S04 status page, `App.css` and the S00 placeholder test are gone.
+  - Tests: UI 54 (IPC client 9 incl. reconnects with a fake WebSocket, stores 4, HUD components 25, animation policy 5, Control Center 5, shell banner logic 6).
+- Not done / known issues:
+  - Nothing committed yet — the `[S05]` commit waits for Sharan's approval.
+  - Repository events (Sharan's pushes, seen 2026-11-07): `stage/s04-tauri-shell` was pushed while it still pointed at the S03 commit, and PR #1 merged it into `origin/main` (merge `0b1693f` = S03); the `[S04]` commit `f303aa8` reached GitHub through `stage/s05-ui-foundation` (now tracking `origin`), not `main` yet. Local `main` is behind `origin/main`. CI results are not visible from here (`gh` is not installed).
+  - Only debug builds were run; the release CSP and a release build with live data need the frozen core (S44).
+  - The UI was inspected through WebView2's DevTools protocol (dev run only, 127.0.0.1:9223) with screenshots of the webview itself; how it looks on Sharan's screen, opened from the tray, is for Sharan to check.
+  - pnpm 12 refused the newest releases (1–4 days old) under its minimum-release-age policy; pinning them made pnpm add `minimumReleaseAgeExclude` entries, which were reverted (supply-chain baseline). pnpm then picked tailwindcss / @tailwindcss/vite 4.3.4, motion 14.9.1, zustand 5.0.16 and lucide-react 1.69.0. §6.2 now forbids such exclusions.
+  - The gallery's page-list entry (text only) is still in release bundles; its component code is not.
+  - The ConfirmCard countdown, toast actions and the tasks store are UI only until the Supervisor and tasks arrive (S07); the overlay windows (S06) will reuse the client and stores.
+- [VERIFY] results (2026-11-07):
+  - Tailwind + Vite → Tailwind CSS 4.3.4 with `@tailwindcss/vite` 4.3.4 (peer Vite ^5.2 || ^6 || ^7 || ^8; ours is 8.3.6): `tailwindcss()` in `vite.config.ts`, `@import "tailwindcss";`, tokens in `@theme`, `--color-*: initial` removes the default palette — https://tailwindcss.com/docs/installation/using-vite , https://tailwindcss.com/docs/theme
+  - Motion API → package `motion` 14.9.1, React entry `motion/react` (re-exports framer-motion 14.9.1): `motion.*`, `AnimatePresence`, `MotionConfig` with `reducedMotion` `"user" | "always" | "never"` (default `"never"`; reduced motion still allows opacity and colour) — https://motion.dev/docs/react , https://motion.dev/docs/react-motion-config + installed types.
+  - Font licences → @fontsource/inter, /orbitron, /jetbrains-mono 5.3.0 are OFL-1.1 on npm; their LICENSE files: Inter (github.com/rsms/inter), Orbitron (github.com/theleagueof/orbitron) and JetBrains Mono (github.com/JetBrains/JetBrainsMono) under the SIL Open Font License 1.1.
+  - Also checked: Zustand 5.0.16 `create<T>()(initializer)` and `getInitialState` (installed types); @radix-ui/react-switch 1.4.1 `Root` / `Thumb` (installed types); Testing Library React 16.3.3 cleans up automatically only with a global `afterEach`, so the setup file calls `cleanup` (installed source); lucide-react 1.69.0 has no `History` icon (`ClockArrowLeft` used); Tauri CSP — `csp` also applies in dev unless `devCsp` is set (tauri-utils 2.10.2 source), Tauri adds hashes / nonces for its own assets, IPC needs `connect-src ipc: http://ipc.localhost` — https://v2.tauri.app/security/csp/
+- Acceptance evidence (real `tauri dev` + real core, throwaway `LOCALAPPDATA` under `E:\.cache\ace-setup\s05-live\`; screenshots in `s05-live\shots\`):
+  - Control Center live (`dashboard-3.png`): header "ACE · Asleep" with CONNECTED and BALANCED; Core (Asleep, no flags, 0.0.1 dev), Connection (core port), Health (core, database, desktop ok), Hotkeys from the shell. The dev CSP blocked nothing: React rendered, the Tauri commands answered, the WebSocket connected.
+  - Core killed → 0.7 s later "RECONNECTING…" and the banner "Starting the ACE core…"; 4.7 s later CONNECTED on the new port, "restarted 1×".
+  - Gallery (`gallery-top.png`, `gallery-mid.png`, `gallery-bottom.png`): the orb in all 12 states plus "not connected", panel tones, buttons, toggles, chips, dots, waveform (silent / quiet / loud), the step list, confirm cards (plain, countdown, busy), the clarify card, four toasts and a live one, text inputs.
+  - Animations: gallery 0 running animations with "Animate" off and 14 with it on; Dashboard with ACE asleep for more than 5 s → 0 running animations, orb `data-animate="false"`.
+  - Idle CPU over 10 s with the window visible: WebView2 processes 0 ms (0.00 % of 20 logical CPUs), shell 0 ms, core 16 ms (0.01 %).
+  - `ace-desktop --quit` → gone after 1.1 s, no ACE processes left.
+- New dependencies: shipped in the UI — motion 14.9.1 with framer-motion / motion-dom 14.9.1 and motion-utils 14.7.0 (MIT), zustand 5.0.16 (MIT), @radix-ui/react-switch 1.4.1 and its Radix helpers (MIT), lucide-react 1.69.0 (ISC), @fontsource/inter, /orbitron, /jetbrains-mono 5.3.0 (fonts: SIL OFL 1.1); build / test only — tailwindcss and @tailwindcss/vite 4.3.4 (MIT; uses lightningcss 1.33.0, MPL-2.0, at build time only), @testing-library/react 16.3.3 and @testing-library/dom 10.4.2 (MIT), jsdom 31.0.0 (MIT; its dependency lru-cache is BlueOak-1.0.0, test-only).
+- Decisions added: D-54 (UI foundation); §6.1 UI row, §6.2 release-age rule, §14.4 heading font (Orbitron), §17.1 UI folders.
+- Tests: `pnpm lint`, `pnpm format:check`, `pnpm typecheck` → clean · `pnpm test` → desktop 54, extension 1 passed · `pnpm build` → release bundle without the gallery code · `cargo build` (CSP config accepted) · `pre-commit run --all-files` → 15/15 passed · `python tools/dev/check_plan.py` → all checks passed. Core unchanged (201 tests from S04).
+- Next step: Sharan opens ACE (`pnpm --filter ace-desktop tauri dev`), looks at the Control Center and the component gallery, and approves → `[S05]` commit → S06 (overlay v1).
+- Approval: Sharan approved S05 on 2026-11-07 ("Approve, continue") → committed as `[S05] UI foundation, HUD design system, Control Center shell` on branch `stage/s05-ui-foundation`; S06 continues on `stage/s06-overlay`.
+
+### PL-0008 — 2026-11-07 — S06 — Overlay v1 (edge orb + sidebar)
+- Done:
+  - Shell (`src-tauri/src/overlay.rs`, `geometry.rs`): the `orb` and `sidebar` windows per D-55 — created hidden, shown without activation only while they have something to show, owned by a hidden window (no taskbar or Alt+Tab entry), click-through from a ~60 Hz cursor-polling thread using the hit rectangles the UI reports, and ~2 s housekeeping (work area, topmost, shown / hidden state, end of "hide for N minutes").
+  - Placement: right (default) or left edge; `overlay.orb_y` 0–1 (drag the orb; saved in the core when the drag ends); the cursor's monitor whenever the overlay appears (or the primary monitor); taskbar-aware work area; physical pixels at any scaling.
+  - Focus: the summon hotkey opens the sidebar on the cursor's monitor and focuses its input; a click into the text box takes focus; Esc, the X button, a click on the orb, `Ctrl+Alt+H` or the tray close it and give focus straight back to the previous window (else the desktop); the panel slides out, then the window hides.
+  - Hiding: `Ctrl+Alt+H` / the tray item hide or show the overlay; "Hide for 1 hour" hides it until then (or until shown again); the core's game-mode / paused-overlay flags hide it.
+  - Core (`ipc/desktop_link.py`): settings `overlay.edge`, `overlay.orb_y`, `overlay.monitor` with defaults and type checks, sent in the desktop snapshot; input source `overlay` (the sidebar's "Mute mic" reaches the core like the tray item).
+  - UI (`src/overlay/`): the orb window (state from the core; click, drag, right-click → Control Center) and the sidebar with every §14.3 section (placeholders name their stages: conversation S07 / S13, tasks and confirmations S07, background jobs S17, providers S15, Chrome bridge S24, microphone S09, DND S37), text input with history (typed commands arrive in S07) and footer (mute mic, DND disabled until S37, hide for 1 hour).
+- Not done / known issues:
+  - Nothing committed yet — the `[S06]` commit waits for Sharan's approval.
+  - Tested on this laptop's single monitor at 125 % only; a second monitor, 150 %, Chrome F11 / VS Code full screen, dragging, real clicks through the transparent parts and the Alt+Tab list are in Sharan's checklist below (no mouse input was simulated).
+  - An open, unfocused sidebar that was focused earlier could still get the focus back from Windows when the foreground app closes (it is visible then); watch for it (R-18).
+  - Dev runs from Claude's shell left ~151 MB of WebView2 data (S04–S06) in the Claude app's private copy of `%LOCALAPPDATA%\io.github.quirky-sharan.ace\EBWebView` on C:, because Tauri finds that folder through the Windows known-folder API, not `LOCALAPPDATA`. §17.4 item 5 fixes this for future runs; deleting the old copy waits for Sharan.
+- [VERIFY] results (2026-11-07):
+  - Tauri 2 `set_ignore_cursor_events` → changed: in tauri 2.12.5 / tao 0.37.2 it sets WS_EX_TRANSPARENT | WS_EX_LAYERED through `apply_diff`, which ends with `ShowWindow(SW_SHOW)` for a visible window — it stole the focus in the first live run (after Esc the orb was the foreground window). ACE sets the same styles directly (D-40, D-55) — tao 0.37.2 `src/platform_impl/windows/window_state.rs` (`to_window_styles`, `apply_diff`), registry source.
+  - Focus / focusable → confirmed with limits: `focusable(false)` = WS_EX_NOACTIVATE; `focused(false)` affects only the first show (SW_SHOWNOACTIVATE); `set_focus` sends a synthetic Alt press before `SetForegroundWindow`; `skip_taskbar` only calls `ITaskbarList::DeleteTab`, so Alt+Tab still lists the window — tao 0.37.2 `window.rs`. Win32: a WS_EX_NOACTIVATE window is activated with SetActiveWindow / SetForegroundWindow and "the system does not bring this window to the foreground when the user minimizes or closes the foreground window" — https://learn.microsoft.com/en-us/windows/win32/winmsg/extended-window-styles (2025-07-14), which build 26300 did not honour for a window activated before; `SW_SHOWNOACTIVATE` / `SW_HIDE` — https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showwindow
+  - Transparency with WebView2 on Windows 11 → confirmed: `transparent(true)` adds WS_EX_NOREDIRECTIONBITMAP (tao) and both pages render on `rgba(0, 0, 0, 0)` (checked over DevTools); the look on screen is in Sharan's checklist.
+  - Always-on-top over fullscreen windows → partly: both windows keep WS_EX_TOPMOST and sit above the foreground window in the z-order; tao applies the flag only when it changes, so the shell re-asserts HWND_TOPMOST every ~2 s; Chrome F11 / VS Code need Sharan's check.
+  - Also checked: windows-sys 0.61.2 `ShowWindow`, `IsWindowVisible`, `SW_HIDE`, `SW_SHOWNOACTIVATE`, `SetWindowLongPtrW` / `GWLP_HWNDPARENT`, `GetAsyncKeyState`; synchronous Tauri commands run on the main thread; `WEBVIEW2_USER_DATA_FOLDER` replaces the app's data folder — https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/webview2-idl#createcorewebview2environmentwithoptions
+- Acceptance evidence (real `tauri dev` + real core, throwaway `LOCALAPPDATA` under `E:\.cache\ace-setup\s06-live2` … `s06-live4`; helpers `s06_win.py`, `s06_focus.ps1`, `s06_probe.ps1`, `s06_close.ps1`, `s06_cdp.py`, `s06_cpu.ps1`, `s06_env.py` in `E:\.cache\ace-setup\`):
+  - Start: orb shown at (1825, 525) 90×90 physical px (72 logical at 125 %, work area 1920×1140), sidebar hidden at (1415, 10) 495×1120; both TOPMOST | NOACTIVATE | LAYERED | TRANSPARENT, owned by "ACE overlay owner"; the focus stayed where it was.
+  - Summon with ACE's Control Center in front → "input focused in 63 ms"; with a probe window of another process in front → 24 ms and 50 ms (NFR ≤ 150 ms). Esc → focus back to the probe within 1 ms; the window hid after the slide-out.
+  - Closing the probe after a summon + Esc: with the old always-shown sidebar the invisible sidebar became the foreground window (without a summon the Control Center did); with the sidebar really hidden the next real window (Chrome) got the focus.
+  - `Ctrl+Alt+H` twice → orb window hidden / shown, foreground unchanged. Hide The orb page may not call it (the ACL refusal names the sidebar).
+  - Idle CPU over 20 s for the whole tree (shell, core via uv, 8 WebView2 processes): 0.34 s = 0.09 % of 20 logical CPUs.
+  - `ace-desktop --quit` → core "shutdown complete" in 187 ms, exit code 0; no ACE, core or WebView2 process left.
+- Manual checklist for Sharan (`pnpm --filter ace-desktop tauri dev`):
+  1. Type in Notepad while pressing `Ctrl+Alt+H` twice: no lost keys, the caret stays in Notepad.
+  2. Click the orb → the sidebar opens without taking focus; click into its text box → typing goes there; Esc → typing goes back to Notepad.
+  3. Clicks on the transparent corners around the orb and outside the sidebar panel reach the window below.
+  4. Drag the orb along the edge; restart ACE → it stays there.
+  5. Chrome F11 and VS Code full screen: the orb stays on top (within 2 s).
+  6. Alt+Tab and the taskbar never show the orb or the sidebar.
+  7. If available: a second monitor (summon opens where the cursor is) and 150 % scaling (orb round and on the edge).
+- New dependencies: none (windows-sys features `Win32_UI_Input_KeyboardAndMouse`, `Win32_System_LibraryLoader`).
+- Decisions added / changed: D-55 (overlay windows); D-40 updated (same design, the click-through styles are set directly); §14.1–§14.2, S06 task 2, §17.4 item 5, R-18.
+- Tests: core 204 passed (+3 overlay settings) · UI: desktop 68 (+14 overlay), extension 1 · Rust 22 (incl. 5 geometry) · `pnpm lint`, `pnpm typecheck`, clippy → clean · `pre-commit run --all-files` → 15/15 passed · `python tools/dev/check_plan.py` → all checks passed.
+- Next step: Sharan runs the checklist and approves → `[S06]` commit → S07 (command pipeline).
+- Approval: Sharan approved S06 on 2026-11-07 ("Approve, continue"), including D-55 and the D-40 rewording → committed as `[S06] Overlay v1 (edge orb + sidebar)` on branch `stage/s06-overlay`; S07 continues on `stage/s07-command-pipeline`. The manual checklist above was not reported back yet.
+
+### PL-0009 — 2026-11-07 — S07 — Command pipeline, skill framework, confirmations
+- Done:
+  - Command pipeline (`brain/pipeline.py`, D-56): `submit(text, origin)` stores the command as a message (a new conversation after 15 minutes without a command), routes it, then starts a one-step task in the background, stops what runs, answers the newest pending confirmation, or replies "not yet". Every task change is stored and published; replies are a short spoken line + detail (`brain/responses.py`, persona D-04); the conversation state follows the work (THINKING → ACTING / AWAITING_CONFIRM → ASLEEP; MUTED and the other voice states are left alone); on shutdown live tasks become `interrupted`.
+  - Router stages 1–2 (`brain/grammar.py`, `brain/router.py`): normalization (spaces, edge punctuation, English + Hinglish fillers such as please / can you / zara / na / yaar at the start or end; entities keep their case) and ordered fast-path rules: stop (stop / cancel / ruko / bas …), yes (yes / haan / send it / confirm / do it …; "ok" and "sure" never confirm), no (no / nahi / mat karo …), help, verification-mode switches (stored only until S18), echo, the demo skills, and switch to / close / open an app (stubs until S08). Rules of unregistered skills are skipped; invalid params fall through.
+  - Skill framework (`skills/`): the §10.1 contract as `Skill[P]` plus `describe(params)`; registry checks (id pattern, duplicates, timeouts) and JSON Schema export (`python -m ace_core.skills.export_schema [--dev]`); skills `system.echo` (T0), `system.help` (T0, built from the registry), `system.set_mode` (T1), `apps.open` / `apps.close` (T1) and `apps.focus` (T0) as S08 stubs, `demo.dangerous` (T2) and `demo.forbidden` (T3) in dev mode only.
+  - Supervisor (`brain/supervisor.py`): the tier policy in code (T0 run, T1 run + audit, T2 confirm, T3 refuse), the basic capability scope (a task may only call the skill it was created for; `pack.*` is supported), confirmations stored with a 30 s timeout → cancelled, answered once, audited (`confirm.requested`, `confirm.answered`).
+  - Storage: migration 0002 — `conversations`, `messages`, `tasks`, `task_steps` (+ `label`), `confirmations` (+ `requested_at`) with the §13.3 indexes and foreign keys (a task's steps and confirmations go with it); `db/history.py` stores step params and observations redacted. Audit entries `task.created`, `step.executed` (T1 and up), `supervisor.refused`, `task.cancelled`.
+  - IPC: `command.submit`, `task.list` (newest first; search by utterance, intent or reply with an escaped LIKE), `task.cancel`, `confirm.respond`, `message.list`; events `task.created` / `task.updated` / `task.finished`, `confirm.requested`, `message.created`, `settings.changed`; generated types refreshed (`pnpm gen:ipc`). `ace-cli send <text>` follows a command to the end and prints ACE's reply (moved here from S03).
+  - Emergency stop (§15.1 item 10, mandatory since S01): `Ctrl+Alt+Esc` now cancels every live task and says "Stopped." — the same as typing "stop".
+  - UI: tasks and messages stores (a finished task is never replaced by an older `task.list` result); the sidebar's conversation (✓ / ✗ / ⚠ on each task's final reply), the current / last task card with a working Stop, confirmation cards with countdown and Yes / No, and the input sends commands; Control Center → History (live list, search through the core, steps, tiers, error codes; the stage label is gone); Dashboard recent tasks; Skills & Permissions now names S08.
+  - Golden set `core/tests/golden/commands.yaml`: 47 utterances (26 skill routes, 15 control words, 6 non-matches), English + Hinglish.
+- Not done / known issues:
+  - Nothing committed yet — the `[S07]` commit waits for Sharan's approval.
+  - A task that was running when the core crashed stays `running` in History until S17 adds the after-restart `interrupted` handling (a normal quit already marks it `interrupted`).
+  - App commands are understood but answer "arrives in stage S08" (✗).
+  - No retention job for messages and tasks yet (D-26; compaction comes with memory at S31).
+  - Found in the live run and fixed afterwards: a confirmation's countdown first showed ~62 s because its clock started when the sidebar mounted; a question message also got the task's ✓. Both fixes are unit-tested, not re-run live.
+- Changed from the stage text (needs Sharan's OK): the skill contract gains `describe(params)` (the exact action for confirmations, §15.3); the demo skills are dev-mode only; extra IPC `message.list`, `message.created`, `settings.changed`; `task.step` is folded into `task.updated` until S17; columns `task_steps.label` and `confirmations.requested_at`; the emergency-stop hotkey cancels tasks already (S17 still owns the full version).
+- [VERIFY] results (2026-11-07): S07 has no external [VERIFY] items. Library facts relied on: SQLAlchemy 2.1.8 `ColumnOperators.contains(..., autoescape=True)` escapes `%`, `_` and `/` (the installed package's docstring); PyYAML 6.0.3 `yaml.safe_load` builds only standard YAML types (https://pyyaml.org/wiki/PyYAMLDocumentation; released 2025-09-25, MIT); types-PyYAML 6.0.12.20261103 (Apache-2.0, https://pypi.org/project/types-PyYAML/).
+- Acceptance evidence (one live dev run; data in a throwaway folder `E:\.cache\ace-setup\s07-live`):
+  - [x] "echo hello" → reply "hello" in the sidebar with ✓ (conversation badge; task card "Last task · Done ✓"); `ace-cli send echo hello` → task succeeded, exit 0.
+  - [x] "demo dangerous" → a confirmation card with the exact action, countdown and Yes / No; "No" → "Okay, cancelled." (stored as `no`); "Yes" → it ran.
+  - [x] "demo forbidden" → refused with an explanation ("on the forbidden list"; the detail names T3), `E_SUPERVISOR_FORBIDDEN`, audit `supervisor.refused`; `ace-cli send` exits 1.
+  - [x] Control Center → History lists all six tasks, newest first, with Done / Refused / Cancelled, steps, tiers and error codes.
+  - Quit → gone after 0.5 s, nothing left running.
+- New dependencies: dev only — PyYAML 6.0.3 (MIT) for the golden set, types-PyYAML 6.0.12.20261103 (Apache-2.0).
+- Decisions added: D-56 (command pipeline); §5.5 methods and events, §10.1 contract, §13.3 columns and §17.1 layout updated; the verification-mode names moved to `app/modes.py` (no behaviour change).
+- Tests: core 325 passed (+121: router and golden set, Supervisor, pipeline, skills, history store, IPC event sequence, `ace-cli send`, emergency stop) · UI: desktop 83 (+15), extension 1 · `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, mypy strict → clean · `pre-commit run --all-files` → 15/15 passed · `python tools/dev/check_plan.py` → all checks passed. Rust shell unchanged (22 tests from S06).
+- Next step: Sharan types a few commands in the sidebar (try "help", "echo hi", "demo dangerous" → yes / no, "demo forbidden", "paranoid mode", "open spotify") and approves → `[S07]` commit → S08 (apps & windows → M1).
+- Approval: Sharan approved S07 on 2026-11-07 ("Approve, continue"), including the changes from the stage text above (`describe(params)`, dev-only demo skills, the extra IPC messages, the emergency-stop hotkey cancelling tasks) → committed as `[S07] Command pipeline, skill framework, confirmations` on branch `stage/s07-command-pipeline`; S08 continues on `stage/s08-apps-windows`. Sharan did not report trying the sidebar commands.
 
 ---
 

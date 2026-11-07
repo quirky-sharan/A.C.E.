@@ -1,0 +1,16 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "orb",
+  "description": "The overlay orb: live state from the core, its hit area, clicks, dragging, and opening the Control Center.",
+  "windows": ["orb"],
+  "permissions": [
+    "core:default",
+    "allow-get-ipc-info",
+    "allow-get-shell-status",
+    "allow-overlay-state",
+    "allow-overlay-hit-rects",
+    "allow-overlay-orb-clicked",
+    "allow-overlay-drag",
+    "allow-open-control-center"
+  ]
+}

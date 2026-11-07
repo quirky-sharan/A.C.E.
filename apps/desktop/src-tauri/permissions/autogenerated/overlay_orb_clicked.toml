@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-overlay-orb-clicked"
+description = "Enables the overlay_orb_clicked command without any pre-configured scope."
+commands.allow = ["overlay_orb_clicked"]
+
+[[permission]]
+identifier = "deny-overlay-orb-clicked"
+description = "Denies the overlay_orb_clicked command without any pre-configured scope."
+commands.deny = ["overlay_orb_clicked"]

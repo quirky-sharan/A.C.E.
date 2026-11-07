@@ -10,14 +10,19 @@ from pydantic import BaseModel
 from ace_core.app.events import AppStopping, Event
 from ace_core.app.health import HealthChanged
 from ace_core.app.state import StateChanged
-from ace_core.db.events import DatabaseRecovered
-from ace_core.ipc.methods import core_state_info
+from ace_core.brain.records import ConfirmationRequested, MessageCreated, TaskChanged
+from ace_core.db.events import DatabaseRecovered, SettingChanged
+from ace_core.ipc.methods import confirmation_info, core_state_info, message_info, task_info
 from ace_core.ipc.schemas import (
+    ConfirmRequestedPayload,
     DatabaseRecoveredPayload,
     HealthChangedPayload,
+    MessageCreatedPayload,
     SessionReadyPayload,
+    SettingsChangedPayload,
     StateChangedPayload,
     SystemStoppingPayload,
+    TaskEventPayload,
 )
 
 EVENT_PAYLOADS: Final[dict[str, type[BaseModel]]] = {
@@ -26,6 +31,12 @@ EVENT_PAYLOADS: Final[dict[str, type[BaseModel]]] = {
     "health.changed": HealthChangedPayload,
     "system.stopping": SystemStoppingPayload,
     "db.recovered": DatabaseRecoveredPayload,
+    "task.created": TaskEventPayload,
+    "task.updated": TaskEventPayload,
+    "task.finished": TaskEventPayload,
+    "confirm.requested": ConfirmRequestedPayload,
+    "message.created": MessageCreatedPayload,
+    "settings.changed": SettingsChangedPayload,  # the key only: clients re-read the value
 }
 
 
@@ -48,4 +59,14 @@ def to_ipc_event(event: Event) -> tuple[str, BaseModel] | None:
         return "db.recovered", DatabaseRecoveredPayload(
             corrupt_copy=event.corrupt_copy, restored_from=event.restored_from
         )
+    if isinstance(event, TaskChanged):
+        return f"task.{event.change.value}", TaskEventPayload(task=task_info(event.task))
+    if isinstance(event, ConfirmationRequested):
+        return "confirm.requested", ConfirmRequestedPayload(
+            confirmation=confirmation_info(event.confirmation)
+        )
+    if isinstance(event, MessageCreated):
+        return "message.created", MessageCreatedPayload(message=message_info(event.message))
+    if isinstance(event, SettingChanged):
+        return "settings.changed", SettingsChangedPayload(key=event.key, deleted=event.deleted)
     return None
