@@ -71,11 +71,22 @@ def create_app(
         await container.com.close()
 
     app.on_startup("apps", start_apps)
+
+    async def start_audio() -> None:
+        if container.audio is not None:
+            await container.audio.start()
+
+    async def stop_audio() -> None:
+        if container.audio is not None:
+            await container.audio.close()
+
+    app.on_startup("audio", start_audio)
     app.on_startup("ipc", start_ipc)
     # Shutdown hooks run in reverse: IPC closes first, then the pipeline, maintenance, database.
     app.on_shutdown("database", container.db.close)
     app.on_shutdown("maintenance", container.maintenance.stop)
     app.on_shutdown("apps", stop_apps)
+    app.on_shutdown("audio", stop_audio)
     app.on_shutdown("pipeline", container.pipeline.close)  # running tasks -> interrupted
     app.on_shutdown("ipc", stop_ipc)
     if supervised:

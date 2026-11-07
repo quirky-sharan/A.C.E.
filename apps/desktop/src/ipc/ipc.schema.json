@@ -222,6 +222,118 @@
           ],
           "additionalProperties": false
         },
+        "devices.list": {
+          "type": "object",
+          "properties": {
+            "params": {
+              "$ref": "#/$defs/EmptyParams"
+            },
+            "result": {
+              "$ref": "#/$defs/DevicesResult"
+            }
+          },
+          "required": [
+            "params",
+            "result"
+          ],
+          "additionalProperties": false
+        },
+        "devices.select": {
+          "type": "object",
+          "properties": {
+            "params": {
+              "$ref": "#/$defs/DevicesSelectParams"
+            },
+            "result": {
+              "$ref": "#/$defs/DevicesSelectResult"
+            }
+          },
+          "required": [
+            "params",
+            "result"
+          ],
+          "additionalProperties": false
+        },
+        "devices.record_test": {
+          "type": "object",
+          "properties": {
+            "params": {
+              "$ref": "#/$defs/DevicesRecordParams"
+            },
+            "result": {
+              "$ref": "#/$defs/DevicesRecordResult"
+            }
+          },
+          "required": [
+            "params",
+            "result"
+          ],
+          "additionalProperties": false
+        },
+        "devices.play_test": {
+          "type": "object",
+          "properties": {
+            "params": {
+              "$ref": "#/$defs/EmptyParams"
+            },
+            "result": {
+              "$ref": "#/$defs/DevicesPlayResult"
+            }
+          },
+          "required": [
+            "params",
+            "result"
+          ],
+          "additionalProperties": false
+        },
+        "devices.stop": {
+          "type": "object",
+          "properties": {
+            "params": {
+              "$ref": "#/$defs/EmptyParams"
+            },
+            "result": {
+              "$ref": "#/$defs/DevicesPlayResult"
+            }
+          },
+          "required": [
+            "params",
+            "result"
+          ],
+          "additionalProperties": false
+        },
+        "devices.earcon": {
+          "type": "object",
+          "properties": {
+            "params": {
+              "$ref": "#/$defs/DevicesEarconParams"
+            },
+            "result": {
+              "$ref": "#/$defs/DevicesPlayResult"
+            }
+          },
+          "required": [
+            "params",
+            "result"
+          ],
+          "additionalProperties": false
+        },
+        "devices.mute": {
+          "type": "object",
+          "properties": {
+            "params": {
+              "$ref": "#/$defs/DevicesMuteParams"
+            },
+            "result": {
+              "$ref": "#/$defs/DevicesMuteResult"
+            }
+          },
+          "required": [
+            "params",
+            "result"
+          ],
+          "additionalProperties": false
+        },
         "log.tail": {
           "type": "object",
           "properties": {
@@ -252,6 +364,13 @@
         "message.list",
         "apps.list",
         "apps.refresh",
+        "devices.list",
+        "devices.select",
+        "devices.record_test",
+        "devices.play_test",
+        "devices.stop",
+        "devices.earcon",
+        "devices.mute",
         "log.tail"
       ],
       "additionalProperties": false
@@ -292,6 +411,9 @@
         "message.created": {
           "$ref": "#/$defs/MessageCreatedPayload"
         },
+        "audio.level": {
+          "$ref": "#/$defs/AudioLevelPayload"
+        },
         "settings.changed": {
           "$ref": "#/$defs/SettingsChangedPayload"
         }
@@ -308,6 +430,7 @@
         "confirm.requested",
         "clarify.requested",
         "message.created",
+        "audio.level",
         "settings.changed"
       ],
       "additionalProperties": false
@@ -402,6 +525,36 @@
         "count"
       ],
       "title": "AppsRefreshResult",
+      "type": "object"
+    },
+    "AudioDeviceInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "is_default": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "is_default"
+      ],
+      "title": "AudioDeviceInfo",
+      "type": "object"
+    },
+    "AudioLevelPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "level": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "level"
+      ],
+      "title": "AudioLevelPayload",
       "type": "object"
     },
     "AuthMessage": {
@@ -736,6 +889,227 @@
         "restored_from"
       ],
       "title": "DatabaseRecoveredPayload",
+      "type": "object"
+    },
+    "DevicesEarconParams": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "default": "test",
+          "enum": [
+            "wake",
+            "done",
+            "error",
+            "mute",
+            "unmute",
+            "test"
+          ],
+          "type": "string"
+        }
+      },
+      "title": "DevicesEarconParams",
+      "type": "object"
+    },
+    "DevicesMuteParams": {
+      "additionalProperties": false,
+      "properties": {
+        "muted": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "muted"
+      ],
+      "title": "DevicesMuteParams",
+      "type": "object"
+    },
+    "DevicesMuteResult": {
+      "additionalProperties": false,
+      "properties": {
+        "muted": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "muted"
+      ],
+      "title": "DevicesMuteResult",
+      "type": "object"
+    },
+    "DevicesPlayResult": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "seconds": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "ok",
+        "error",
+        "seconds"
+      ],
+      "title": "DevicesPlayResult",
+      "type": "object"
+    },
+    "DevicesRecordParams": {
+      "additionalProperties": false,
+      "properties": {
+        "seconds": {
+          "default": 5.0,
+          "maximum": 8.0,
+          "minimum": 0.5,
+          "type": "number"
+        }
+      },
+      "title": "DevicesRecordParams",
+      "type": "object"
+    },
+    "DevicesRecordResult": {
+      "additionalProperties": false,
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "seconds": {
+          "type": "number"
+        },
+        "peak": {
+          "type": "number"
+        },
+        "level": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "ok",
+        "error",
+        "seconds",
+        "peak",
+        "level"
+      ],
+      "title": "DevicesRecordResult",
+      "type": "object"
+    },
+    "DevicesResult": {
+      "additionalProperties": false,
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "muted": {
+          "type": "boolean"
+        },
+        "capturing": {
+          "type": "boolean"
+        },
+        "input": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "output": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "inputs": {
+          "items": {
+            "$ref": "#/$defs/AudioDeviceInfo"
+          },
+          "type": "array"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/AudioDeviceInfo"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "available",
+        "muted",
+        "capturing",
+        "input",
+        "output",
+        "inputs",
+        "outputs"
+      ],
+      "title": "DevicesResult",
+      "type": "object"
+    },
+    "DevicesSelectParams": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "input",
+            "output"
+          ],
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "DevicesSelectParams",
+      "type": "object"
+    },
+    "DevicesSelectResult": {
+      "additionalProperties": false,
+      "properties": {
+        "saved": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "saved"
+      ],
+      "title": "DevicesSelectResult",
       "type": "object"
     },
     "EmptyParams": {

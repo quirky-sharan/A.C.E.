@@ -299,6 +299,60 @@ class AppsRefreshResult(_Model):
     count: int
 
 
+class AudioDeviceInfo(_Model):
+    name: str
+    is_default: bool  # the Windows default device
+
+
+class DevicesResult(_Model):
+    available: bool  # false where audio is not supported
+    muted: bool
+    capturing: bool  # the microphone is open right now
+    input: str | None  # the chosen device name; null = the Windows default
+    output: str | None
+    inputs: list[AudioDeviceInfo]
+    outputs: list[AudioDeviceInfo]
+
+
+class DevicesSelectParams(_Model):
+    kind: Literal["input", "output"]
+    name: str | None = Field(default=None, max_length=256)  # null = the Windows default
+
+
+class DevicesSelectResult(_Model):
+    saved: bool
+
+
+class DevicesRecordParams(_Model):
+    seconds: float = Field(default=5.0, ge=0.5, le=8.0)
+
+
+class DevicesRecordResult(_Model):
+    ok: bool
+    error: str | None
+    seconds: float
+    peak: float  # 0..1
+    level: float  # 0..1 (dB scale)
+
+
+class DevicesPlayResult(_Model):
+    ok: bool
+    error: str | None
+    seconds: float
+
+
+class DevicesEarconParams(_Model):
+    name: Literal["wake", "done", "error", "mute", "unmute", "test"] = "test"
+
+
+class DevicesMuteParams(_Model):
+    muted: bool
+
+
+class DevicesMuteResult(_Model):
+    muted: bool
+
+
 class MessageListParams(_Model):
     limit: int = Field(default=50, ge=1, le=200)
 
@@ -348,6 +402,10 @@ class ConfirmRequestedPayload(_Model):
 
 class ClarifyRequestedPayload(_Model):
     clarification: ClarificationInfo
+
+
+class AudioLevelPayload(_Model):
+    level: float  # 0..1, about 20 times a second while the microphone is open
 
 
 class MessageCreatedPayload(_Model):

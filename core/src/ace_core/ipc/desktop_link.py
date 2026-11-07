@@ -353,6 +353,10 @@ class DesktopLink:
             if message.action is DesktopAction.EMERGENCY_STOP and message.phase == "pressed":
                 stopped = await self._container.pipeline.stop_all()  # §15.1 item 10
                 log.info("emergency stop", tasks_cancelled=stopped)
+            audio = self._container.audio
+            if message.action is DesktopAction.MIC_MUTE and message.phase == "pressed" and audio:
+                muted = await audio.toggle_mute()  # S09: closes or allows the microphone
+                log.info("microphone mute", muted=muted)
             await self._container.bus.publish(
                 DesktopInput(action=message.action, source=message.source, phase=message.phase)
             )

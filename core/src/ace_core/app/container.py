@@ -24,6 +24,7 @@ from ace_core.skills.app_index import AppIndex
 from ace_core.skills.apps import AppsPorts
 from ace_core.skills.catalog import build_registry
 from ace_core.skills.registry import SkillRegistry
+from ace_core.voice.audio import AudioService
 
 DB_FILE_NAME = "ace.db"
 
@@ -45,6 +46,7 @@ class Container:
     pipeline: CommandPipeline
     com: ComThread
     apps: AppsPorts | None  # None where app control is unavailable (not Windows)
+    audio: AudioService | None  # None where audio is unavailable
 
 
 def build_container(settings: Settings, paths: AppPaths) -> Container:
@@ -74,11 +76,12 @@ def build_container(settings: Settings, paths: AppPaths) -> Container:
         state=state,
         settings=settings_store,
     )
+    health = HealthRegistry(bus)
     return Container(
         settings=settings,
         paths=paths,
         bus=bus,
-        health=HealthRegistry(bus),
+        health=health,
         state=state,
         db=db,
         audit=audit,
@@ -90,7 +93,28 @@ def build_container(settings: Settings, paths: AppPaths) -> Container:
         pipeline=pipeline,
         com=com,
         apps=apps,
+        audio=_audio(settings, bus, state, settings_store, health),
     )
+
+
+def _audio(
+    settings: Settings,
+    bus: EventBus,
+    state: StateStore,
+    settings_store: SettingsStore,
+    health: HealthRegistry,
+) -> AudioService | None:
+    """WASAPI audio through sounddevice (D-58); None off Windows, without PortAudio, in safe
+    mode (§5.6: voice off) or with ``audio_enabled = false``."""
+    if sys.platform != "win32" or settings.safe_mode or not settings.audio_enabled:
+        return None
+    try:
+        from ace_core.voice.devices import SoundDeviceBackend
+
+        backend = SoundDeviceBackend()
+    except Exception:
+        return None
+    return AudioService(backend, bus=bus, state=state, settings=settings_store, health=health)
 
 
 def _desktop_ports(db: Database, com: ComThread) -> AppsPorts | None:

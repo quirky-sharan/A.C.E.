@@ -25,6 +25,7 @@ ACE_SETTING_ENV_VARS = (
     "ACE_IPC_PORT",
     "ACE_SAFE_MODE",
     "ACE_HOME",  # a dev-only paths override (S08)
+    "ACE_AUDIO_ENABLED",
 )
 
 
@@ -44,6 +45,8 @@ def _no_ace_settings_from_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     """Settings must come only from what each test provides, not from the developer's shell."""
     for name in ACE_SETTING_ENV_VARS:
         monkeypatch.delenv(name, raising=False)
+    # Never touch the real microphone or speakers in tests (S09): tests that want audio use fakes.
+    monkeypatch.setenv("ACE_AUDIO_ENABLED", "false")
 
 
 # ---- database fixtures: every test gets its own database under tmp_path ----

@@ -25,6 +25,7 @@ from ace_core.ipc.methods import (
     task_info,
 )
 from ace_core.ipc.schemas import (
+    AudioLevelPayload,
     ClarifyRequestedPayload,
     ConfirmRequestedPayload,
     DatabaseRecoveredPayload,
@@ -36,6 +37,7 @@ from ace_core.ipc.schemas import (
     SystemStoppingPayload,
     TaskEventPayload,
 )
+from ace_core.voice.audio import AudioLevel
 
 EVENT_PAYLOADS: Final[dict[str, type[BaseModel]]] = {
     "session.ready": SessionReadyPayload,  # sent once, right after a client authenticates
@@ -49,6 +51,7 @@ EVENT_PAYLOADS: Final[dict[str, type[BaseModel]]] = {
     "confirm.requested": ConfirmRequestedPayload,
     "clarify.requested": ClarifyRequestedPayload,
     "message.created": MessageCreatedPayload,
+    "audio.level": AudioLevelPayload,
     "settings.changed": SettingsChangedPayload,  # the key only: clients re-read the value
 }
 
@@ -84,6 +87,8 @@ def to_ipc_event(event: Event) -> tuple[str, BaseModel] | None:
         )
     if isinstance(event, MessageCreated):
         return "message.created", MessageCreatedPayload(message=message_info(event.message))
+    if isinstance(event, AudioLevel):
+        return "audio.level", AudioLevelPayload(level=event.level)
     if isinstance(event, SettingChanged):
         return "settings.changed", SettingsChangedPayload(key=event.key, deleted=event.deleted)
     return None

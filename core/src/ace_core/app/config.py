@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     audit_retention_days: int = Field(default=90, ge=1, le=3650)  # D-26
     ipc_port: int = Field(default=0, ge=0, le=65535)  # 0 = a random free port (§5.6)
     safe_mode: bool = False  # set by ace-desktop after repeated crashes (§5.6, D-52)
+    audio_enabled: bool = True  # false: no microphone or speaker use at all (tests, servers)
 
 
 def load_settings(

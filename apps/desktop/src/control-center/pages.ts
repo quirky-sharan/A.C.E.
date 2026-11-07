@@ -93,7 +93,7 @@ export const PAGES: readonly PageInfo[] = [
     id: "devices",
     title: "Devices",
     summary: "Choose and test the microphone and speakers.",
-    stage: "S09",
+    stage: null,
     icon: Mic,
   },
   {

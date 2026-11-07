@@ -32,6 +32,7 @@ from ace_core.ipc.schemas import (
     AppsListParams,
     AppsListResult,
     AppsRefreshResult,
+    AudioDeviceInfo,
     ClarificationInfo,
     ClarifyOptionInfo,
     ClarifyRespondParams,
@@ -42,6 +43,15 @@ from ace_core.ipc.schemas import (
     ConfirmRespondParams,
     ConfirmRespondResult,
     CoreStateInfo,
+    DevicesEarconParams,
+    DevicesMuteParams,
+    DevicesMuteResult,
+    DevicesPlayResult,
+    DevicesRecordParams,
+    DevicesRecordResult,
+    DevicesResult,
+    DevicesSelectParams,
+    DevicesSelectResult,
     EmptyParams,
     HealthResult,
     LogTailParams,
@@ -61,6 +71,9 @@ from ace_core.ipc.schemas import (
     TaskListParams,
     TaskListResult,
 )
+from ace_core.voice.audio import MicMutedError
+from ace_core.voice.devices import AudioDeviceError
+from ace_core.voice.dsp import CAPTURE_RATE, peak, rms_level
 
 MAX_LOG_LINE_CHARS: Final = 4000
 
@@ -249,6 +262,102 @@ async def _apps_refresh(ctx: MethodContext, _: EmptyParams) -> AppsRefreshResult
     return AppsRefreshResult(count=await ports.index.refresh() if ports is not None else 0)
 
 
+NO_AUDIO: Final = "Audio is not available on this system."
+
+
+async def _devices_list(ctx: MethodContext, _: EmptyParams) -> DevicesResult:
+    audio = ctx.container.audio
+    if audio is None:
+        return DevicesResult(
+            available=False,
+            muted=False,
+            capturing=False,
+            input=None,
+            output=None,
+            inputs=[],
+            outputs=[],
+        )
+    devices = await audio.devices()
+    chosen_in, chosen_out = await audio.selection()
+    return DevicesResult(
+        available=True,
+        muted=audio.muted,
+        capturing=audio.capturing,
+        input=chosen_in,
+        output=chosen_out,
+        inputs=[
+            AudioDeviceInfo(name=d.name, is_default=d.is_default) for d in devices if d.is_input
+        ],
+        outputs=[
+            AudioDeviceInfo(name=d.name, is_default=d.is_default) for d in devices if not d.is_input
+        ],
+    )
+
+
+async def _devices_select(ctx: MethodContext, params: DevicesSelectParams) -> DevicesSelectResult:
+    audio = ctx.container.audio
+    if audio is None:
+        return DevicesSelectResult(saved=False)
+    await audio.select(is_input=params.kind == "input", name=params.name)
+    return DevicesSelectResult(saved=True)
+
+
+async def _devices_record(ctx: MethodContext, params: DevicesRecordParams) -> DevicesRecordResult:
+    audio = ctx.container.audio
+    if audio is None:
+        return DevicesRecordResult(ok=False, error=NO_AUDIO, seconds=0, peak=0, level=0)
+    try:
+        samples = await audio.record(params.seconds)
+    except (MicMutedError, AudioDeviceError) as exc:
+        return DevicesRecordResult(ok=False, error=str(exc), seconds=0, peak=0, level=0)
+    return DevicesRecordResult(
+        ok=True,
+        error=None,
+        seconds=round(len(samples) / CAPTURE_RATE, 2),
+        peak=round(peak(samples), 3),
+        level=round(rms_level(samples), 3),
+    )
+
+
+async def _devices_play(ctx: MethodContext, _: EmptyParams) -> DevicesPlayResult:
+    audio = ctx.container.audio
+    if audio is None:
+        return DevicesPlayResult(ok=False, error=NO_AUDIO, seconds=0)
+    try:
+        seconds = await audio.play_recording()
+    except AudioDeviceError as exc:
+        return DevicesPlayResult(ok=False, error=str(exc), seconds=0)
+    if seconds == 0:
+        return DevicesPlayResult(ok=False, error="Nothing has been recorded yet.", seconds=0)
+    return DevicesPlayResult(ok=True, error=None, seconds=round(seconds, 2))
+
+
+async def _devices_stop(ctx: MethodContext, _: EmptyParams) -> DevicesPlayResult:
+    audio = ctx.container.audio
+    if audio is not None:
+        await audio.stop_playback()
+    return DevicesPlayResult(ok=audio is not None, error=None if audio else NO_AUDIO, seconds=0)
+
+
+async def _devices_earcon(ctx: MethodContext, params: DevicesEarconParams) -> DevicesPlayResult:
+    audio = ctx.container.audio
+    if audio is None:
+        return DevicesPlayResult(ok=False, error=NO_AUDIO, seconds=0)
+    try:
+        await audio.earcon(params.name)
+    except AudioDeviceError as exc:
+        return DevicesPlayResult(ok=False, error=str(exc), seconds=0)
+    return DevicesPlayResult(ok=True, error=None, seconds=0)
+
+
+async def _devices_mute(ctx: MethodContext, params: DevicesMuteParams) -> DevicesMuteResult:
+    audio = ctx.container.audio
+    if audio is None:
+        return DevicesMuteResult(muted=False)
+    await audio.set_muted(params.muted)
+    return DevicesMuteResult(muted=audio.muted)
+
+
 async def _message_list(ctx: MethodContext, params: MessageListParams) -> MessageListResult:
     messages = await ctx.container.pipeline.recent_messages(params.limit)
     return MessageListResult(messages=[message_info(message) for message in messages])
@@ -284,6 +393,15 @@ METHODS: Final[dict[str, MethodSpec]] = {
         MethodSpec("message.list", MessageListParams, MessageListResult, _message_list),
         MethodSpec("apps.list", AppsListParams, AppsListResult, _apps_list),
         MethodSpec("apps.refresh", EmptyParams, AppsRefreshResult, _apps_refresh),
+        MethodSpec("devices.list", EmptyParams, DevicesResult, _devices_list),
+        MethodSpec("devices.select", DevicesSelectParams, DevicesSelectResult, _devices_select),
+        MethodSpec(
+            "devices.record_test", DevicesRecordParams, DevicesRecordResult, _devices_record
+        ),
+        MethodSpec("devices.play_test", EmptyParams, DevicesPlayResult, _devices_play),
+        MethodSpec("devices.stop", EmptyParams, DevicesPlayResult, _devices_stop),
+        MethodSpec("devices.earcon", DevicesEarconParams, DevicesPlayResult, _devices_earcon),
+        MethodSpec("devices.mute", DevicesMuteParams, DevicesMuteResult, _devices_mute),
         MethodSpec("log.tail", LogTailParams, LogTailResult, _log_tail, dev_only=True),
     )
 }

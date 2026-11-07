@@ -290,3 +290,66 @@ async def test_queued_events_are_delivered_before_the_server_stops(harness: Harn
     stopping = await next_event(ws, "system.stopping")
     assert stopping["params"] == {"reason": "test"}
     assert await close_code(ws) == 1001
+
+
+async def test_a_slow_request_does_not_hold_up_the_next(
+    harness: Harness, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from ace_core.ipc import methods
+    from ace_core.ipc.schemas import EmptyParams, HealthResult
+
+    async def slow(ctx: methods.MethodContext, _: EmptyParams) -> HealthResult:
+        await asyncio.sleep(0.5)
+        return methods.health_result(ctx.container)
+
+    spec = methods.MethodSpec("test.slow", EmptyParams, HealthResult, slow)
+    monkeypatch.setitem(methods.METHODS, "test.slow", spec)
+    ws = await authed(harness)
+    try:
+        for rid, method in (("slow", "test.slow"), ("fast", "system.health")):
+            message = {"v": 1, "type": "request", "id": rid, "method": method, "params": {}}
+            await ws.send(json.dumps(message))
+        order: list[str] = []
+        async with asyncio.timeout(5):
+            while len(order) < 2:
+                reply = json.loads(await ws.recv())
+                if reply.get("type") == "response":
+                    order.append(reply["id"])
+        assert order == ["fast", "slow"]
+    finally:
+        await ws.close()
+
+
+async def test_too_many_requests_in_flight_are_refused(tmp_path: Path) -> None:
+    from ace_core.ipc import methods
+    from ace_core.ipc.schemas import EmptyParams, HealthResult
+
+    started = await start_harness(tmp_path, limits=IpcLimits(max_in_flight=1))
+    gate = asyncio.Event()
+
+    async def held(ctx: methods.MethodContext, _: EmptyParams) -> HealthResult:
+        await gate.wait()
+        return methods.health_result(ctx.container)
+
+    methods.METHODS["test.held"] = methods.MethodSpec("test.held", EmptyParams, HealthResult, held)
+    try:
+        ws = await authed(started)
+        for rid in ("one", "two"):
+            message = {"v": 1, "type": "request", "id": rid, "method": "test.held", "params": {}}
+            await ws.send(json.dumps(message))
+        refused = await next_reply(ws, "two")
+        assert refused["error"]["code"] == "E_IPC_RATE_LIMITED"
+        gate.set()
+        assert (await next_reply(ws, "one"))["type"] == "response"
+        await ws.close()
+    finally:
+        methods.METHODS.pop("test.held", None)
+        await stop_harness(started)
+
+
+async def next_reply(ws: ClientConnection, rid: str) -> dict[str, Any]:
+    async with asyncio.timeout(5):
+        while True:
+            reply: dict[str, Any] = json.loads(await ws.recv())
+            if reply.get("id") == rid:
+                return reply

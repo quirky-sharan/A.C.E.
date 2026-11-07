@@ -9,6 +9,7 @@ import { ORB_LOOKS } from "../hud/orb";
 import { useConnectionStore, useCoreStore, useSettingsStore, useShellStore } from "../state/stores";
 import type { IpcClient } from "../ipc/client";
 import { Dashboard, StubPage } from "./dashboard";
+import { Devices } from "./devices";
 import { History } from "./history";
 import { Skills } from "./skills";
 import { DEFAULT_PAGE, visiblePages, type PageInfo } from "./pages";
@@ -120,6 +121,8 @@ export function ControlCenter({
             <History client={client} />
           ) : page.id === "skills" ? (
             <Skills client={client} />
+          ) : page.id === "devices" ? (
+            <Devices client={client} />
           ) : page.id === "gallery" && Gallery ? (
             <Suspense fallback={<p className="text-text-dim">Loading the gallery…</p>}>
               <Gallery />

@@ -90,6 +90,34 @@ export interface AceIpc {
       params: EmptyParams;
       result: AppsRefreshResult;
     };
+    "devices.list": {
+      params: EmptyParams;
+      result: DevicesResult;
+    };
+    "devices.select": {
+      params: DevicesSelectParams;
+      result: DevicesSelectResult;
+    };
+    "devices.record_test": {
+      params: DevicesRecordParams;
+      result: DevicesRecordResult;
+    };
+    "devices.play_test": {
+      params: EmptyParams;
+      result: DevicesPlayResult;
+    };
+    "devices.stop": {
+      params: EmptyParams;
+      result: DevicesPlayResult;
+    };
+    "devices.earcon": {
+      params: DevicesEarconParams;
+      result: DevicesPlayResult;
+    };
+    "devices.mute": {
+      params: DevicesMuteParams;
+      result: DevicesMuteResult;
+    };
     "log.tail": {
       params: LogTailParams;
       result: LogTailResult;
@@ -107,6 +135,7 @@ export interface AceIpc {
     "confirm.requested": ConfirmRequestedPayload;
     "clarify.requested": ClarifyRequestedPayload;
     "message.created": MessageCreatedPayload;
+    "audio.level": AudioLevelPayload;
     "settings.changed": SettingsChangedPayload;
   };
 }
@@ -312,6 +341,50 @@ export interface AppInfo {
 export interface AppsRefreshResult {
   count: number;
 }
+export interface DevicesResult {
+  available: boolean;
+  muted: boolean;
+  capturing: boolean;
+  input: string | null;
+  output: string | null;
+  inputs: AudioDeviceInfo[];
+  outputs: AudioDeviceInfo[];
+}
+export interface AudioDeviceInfo {
+  name: string;
+  is_default: boolean;
+}
+export interface DevicesSelectParams {
+  kind: "input" | "output";
+  name?: string | null;
+}
+export interface DevicesSelectResult {
+  saved: boolean;
+}
+export interface DevicesRecordParams {
+  seconds?: number;
+}
+export interface DevicesRecordResult {
+  ok: boolean;
+  error: string | null;
+  seconds: number;
+  peak: number;
+  level: number;
+}
+export interface DevicesPlayResult {
+  ok: boolean;
+  error: string | null;
+  seconds: number;
+}
+export interface DevicesEarconParams {
+  name?: "wake" | "done" | "error" | "mute" | "unmute" | "test";
+}
+export interface DevicesMuteParams {
+  muted: boolean;
+}
+export interface DevicesMuteResult {
+  muted: boolean;
+}
 export interface LogTailParams {
   lines?: number;
 }
@@ -352,6 +425,9 @@ export interface ClarifyRequestedPayload {
 }
 export interface MessageCreatedPayload {
   message: MessageInfo;
+}
+export interface AudioLevelPayload {
+  level: number;
 }
 export interface SettingsChangedPayload {
   key: string;
