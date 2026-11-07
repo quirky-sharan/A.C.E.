@@ -39,8 +39,8 @@ function App() {
   }, [client]);
 
   if (LABEL === "orb") return <OrbWindow client={client} />;
-  if (LABEL === "sidebar") return <SidebarWindow />;
-  return <ControlCenter />;
+  if (LABEL === "sidebar") return <SidebarWindow client={client} />;
+  return <ControlCenter client={client} />;
 }
 
 export default App;

@@ -17,12 +17,13 @@ from ace_core.app.config import load_settings
 from ace_core.app.container import Container, build_container
 from ace_core.app.events import AppStarted
 from ace_core.app.health import HealthStatus
+from ace_core.app.modes import MODE_SETTING, VerificationMode
 from ace_core.app.paths import AppPaths
+from ace_core.brain.records import TaskStatus
 from ace_core.ipc.desktop_link import (
     DEFAULT_HOTKEYS,
     HEALTH_SUBSYSTEM,
     MAX_LINE_BYTES,
-    MODE_SETTING,
     SHUTDOWN_REASON,
     SNAPSHOT_PREFIX,
     DesktopAction,
@@ -30,10 +31,10 @@ from ace_core.ipc.desktop_link import (
     DesktopLink,
     OverlayEdge,
     OverlayMonitor,
-    VerificationMode,
     overlay_settings,
     shell_settings,
 )
+from ace_core.skills.demo import DemoDangerousSkill
 
 
 @dataclass
@@ -291,3 +292,29 @@ async def test_overlay_input_is_accepted(link: Link) -> None:
     link.send({"type": "input", "action": "mic_mute", "source": "overlay"})
     await eventually(lambda: len(link.inputs) == 1)
     assert link.inputs[0].source == "overlay"
+
+
+async def test_the_emergency_stop_cancels_running_tasks(link: Link) -> None:
+    link.container.skills.register(DemoDangerousSkill())  # a task that waits for a yes
+    result = await link.container.pipeline.submit("demo dangerous")
+    assert result.task_id is not None
+    for _ in range(200):  # the question is on screen
+        messages = await link.container.history.recent_messages(10)
+        if messages and messages[-1].text.endswith("Yes or no."):
+            break
+        await asyncio.sleep(0.01)
+    assert link.container.supervisor.pending()
+    link.send({"type": "input", "action": "emergency_stop", "source": "hotkey"})
+    await eventually(lambda: not link.container.supervisor.pending())
+    task = None
+    for _ in range(200):
+        task = await link.container.history.get_task(result.task_id)
+        if task is not None and task.status is TaskStatus.CANCELLED:
+            break
+        await asyncio.sleep(0.01)
+    assert task is not None
+    assert (task.status, task.result_summary) == (TaskStatus.CANCELLED, "Stopped.")
+    messages = await link.container.history.recent_messages(10)
+    assert messages[-1].text == "Stopped."
+    await eventually(lambda: [e.action for e in link.inputs] == [DesktopAction.EMERGENCY_STOP])
+    await link.container.pipeline.close()

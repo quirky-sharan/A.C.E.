@@ -94,6 +94,86 @@
           ],
           "additionalProperties": false
         },
+        "command.submit": {
+          "type": "object",
+          "properties": {
+            "params": {
+              "$ref": "#/$defs/CommandSubmitParams"
+            },
+            "result": {
+              "$ref": "#/$defs/CommandSubmitResult"
+            }
+          },
+          "required": [
+            "params",
+            "result"
+          ],
+          "additionalProperties": false
+        },
+        "task.list": {
+          "type": "object",
+          "properties": {
+            "params": {
+              "$ref": "#/$defs/TaskListParams"
+            },
+            "result": {
+              "$ref": "#/$defs/TaskListResult"
+            }
+          },
+          "required": [
+            "params",
+            "result"
+          ],
+          "additionalProperties": false
+        },
+        "task.cancel": {
+          "type": "object",
+          "properties": {
+            "params": {
+              "$ref": "#/$defs/TaskCancelParams"
+            },
+            "result": {
+              "$ref": "#/$defs/TaskCancelResult"
+            }
+          },
+          "required": [
+            "params",
+            "result"
+          ],
+          "additionalProperties": false
+        },
+        "confirm.respond": {
+          "type": "object",
+          "properties": {
+            "params": {
+              "$ref": "#/$defs/ConfirmRespondParams"
+            },
+            "result": {
+              "$ref": "#/$defs/ConfirmRespondResult"
+            }
+          },
+          "required": [
+            "params",
+            "result"
+          ],
+          "additionalProperties": false
+        },
+        "message.list": {
+          "type": "object",
+          "properties": {
+            "params": {
+              "$ref": "#/$defs/MessageListParams"
+            },
+            "result": {
+              "$ref": "#/$defs/MessageListResult"
+            }
+          },
+          "required": [
+            "params",
+            "result"
+          ],
+          "additionalProperties": false
+        },
         "log.tail": {
           "type": "object",
           "properties": {
@@ -116,6 +196,11 @@
         "system.state.get",
         "settings.get",
         "settings.set",
+        "command.submit",
+        "task.list",
+        "task.cancel",
+        "confirm.respond",
+        "message.list",
         "log.tail"
       ],
       "additionalProperties": false
@@ -137,6 +222,24 @@
         },
         "db.recovered": {
           "$ref": "#/$defs/DatabaseRecoveredPayload"
+        },
+        "task.created": {
+          "$ref": "#/$defs/TaskEventPayload"
+        },
+        "task.updated": {
+          "$ref": "#/$defs/TaskEventPayload"
+        },
+        "task.finished": {
+          "$ref": "#/$defs/TaskEventPayload"
+        },
+        "confirm.requested": {
+          "$ref": "#/$defs/ConfirmRequestedPayload"
+        },
+        "message.created": {
+          "$ref": "#/$defs/MessageCreatedPayload"
+        },
+        "settings.changed": {
+          "$ref": "#/$defs/SettingsChangedPayload"
         }
       },
       "required": [
@@ -144,7 +247,13 @@
         "state.changed",
         "health.changed",
         "system.stopping",
-        "db.recovered"
+        "db.recovered",
+        "task.created",
+        "task.updated",
+        "task.finished",
+        "confirm.requested",
+        "message.created",
+        "settings.changed"
       ],
       "additionalProperties": false
     }
@@ -181,6 +290,137 @@
         "token"
       ],
       "title": "AuthMessage",
+      "type": "object"
+    },
+    "CommandSubmitParams": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "title": "CommandSubmitParams",
+      "type": "object"
+    },
+    "CommandSubmitResult": {
+      "additionalProperties": false,
+      "properties": {
+        "conversation_id": {
+          "type": "string"
+        },
+        "message_id": {
+          "type": "string"
+        },
+        "intent": {
+          "type": "string"
+        },
+        "task_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "conversation_id",
+        "message_id",
+        "intent",
+        "task_id"
+      ],
+      "title": "CommandSubmitResult",
+      "type": "object"
+    },
+    "ConfirmRequestedPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "confirmation": {
+          "$ref": "#/$defs/ConfirmationInfo"
+        }
+      },
+      "required": [
+        "confirmation"
+      ],
+      "title": "ConfirmRequestedPayload",
+      "type": "object"
+    },
+    "ConfirmRespondParams": {
+      "additionalProperties": false,
+      "properties": {
+        "confirmation_id": {
+          "maxLength": 36,
+          "minLength": 1,
+          "type": "string"
+        },
+        "answer": {
+          "enum": [
+            "yes",
+            "no"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "confirmation_id",
+        "answer"
+      ],
+      "title": "ConfirmRespondParams",
+      "type": "object"
+    },
+    "ConfirmRespondResult": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "accepted"
+      ],
+      "title": "ConfirmRespondResult",
+      "type": "object"
+    },
+    "ConfirmationInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "step_id": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "requested_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "expires_at": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "task_id",
+        "step_id",
+        "prompt",
+        "requested_at",
+        "expires_at"
+      ],
+      "title": "ConfirmationInfo",
       "type": "object"
     },
     "ConversationState": {
@@ -485,6 +725,144 @@
       "title": "LogTailResult",
       "type": "object"
     },
+    "MessageCreatedPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "message": {
+          "$ref": "#/$defs/MessageInfo"
+        }
+      },
+      "required": [
+        "message"
+      ],
+      "title": "MessageCreatedPayload",
+      "type": "object"
+    },
+    "MessageInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "conversation_id": {
+          "type": "string"
+        },
+        "ts": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/MessageRole"
+        },
+        "text": {
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/MessageSource"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "task_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reply_to": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "conversation_id",
+        "ts",
+        "role",
+        "text",
+        "source",
+        "detail",
+        "task_id",
+        "reply_to"
+      ],
+      "title": "MessageInfo",
+      "type": "object"
+    },
+    "MessageListParams": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "default": 50,
+          "maximum": 200,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "title": "MessageListParams",
+      "type": "object"
+    },
+    "MessageListResult": {
+      "additionalProperties": false,
+      "properties": {
+        "messages": {
+          "items": {
+            "$ref": "#/$defs/MessageInfo"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "messages"
+      ],
+      "title": "MessageListResult",
+      "type": "object"
+    },
+    "MessageRole": {
+      "enum": [
+        "user",
+        "ace",
+        "system"
+      ],
+      "title": "MessageRole",
+      "type": "string"
+    },
+    "MessageSource": {
+      "enum": [
+        "voice",
+        "text",
+        "notification"
+      ],
+      "title": "MessageSource",
+      "type": "string"
+    },
+    "Origin": {
+      "enum": [
+        "voice",
+        "text",
+        "routine",
+        "schedule",
+        "mcp"
+      ],
+      "title": "Origin",
+      "type": "string"
+    },
     "RequestMessage": {
       "additionalProperties": false,
       "properties": {
@@ -585,6 +963,23 @@
       "title": "SessionReadyPayload",
       "type": "object"
     },
+    "SettingsChangedPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "deleted": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "key",
+        "deleted"
+      ],
+      "title": "SettingsChangedPayload",
+      "type": "object"
+    },
     "SettingsGetParams": {
       "additionalProperties": false,
       "properties": {
@@ -674,6 +1069,87 @@
       "title": "StateChangedPayload",
       "type": "object"
     },
+    "StepInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "idx": {
+          "type": "integer"
+        },
+        "skill_id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "tier": {
+          "$ref": "#/$defs/Tier"
+        },
+        "status": {
+          "$ref": "#/$defs/StepStatus"
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "idx",
+        "skill_id",
+        "label",
+        "tier",
+        "status",
+        "started_at",
+        "finished_at",
+        "error_code"
+      ],
+      "title": "StepInfo",
+      "type": "object"
+    },
+    "StepStatus": {
+      "enum": [
+        "pending",
+        "running",
+        "waiting_user",
+        "succeeded",
+        "failed",
+        "cancelled",
+        "refused"
+      ],
+      "title": "StepStatus",
+      "type": "string"
+    },
     "SubsystemHealthInfo": {
       "additionalProperties": false,
       "properties": {
@@ -719,6 +1195,225 @@
       ],
       "title": "SystemStoppingPayload",
       "type": "object"
+    },
+    "TaskCancelParams": {
+      "additionalProperties": false,
+      "properties": {
+        "task_id": {
+          "maxLength": 36,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id"
+      ],
+      "title": "TaskCancelParams",
+      "type": "object"
+    },
+    "TaskCancelResult": {
+      "additionalProperties": false,
+      "properties": {
+        "cancelled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "cancelled"
+      ],
+      "title": "TaskCancelResult",
+      "type": "object"
+    },
+    "TaskEventPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "task": {
+          "$ref": "#/$defs/TaskInfo"
+        }
+      },
+      "required": [
+        "task"
+      ],
+      "title": "TaskEventPayload",
+      "type": "object"
+    },
+    "TaskInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "conversation_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "origin": {
+          "$ref": "#/$defs/Origin"
+        },
+        "utterance": {
+          "type": "string"
+        },
+        "intent": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/TaskStatus"
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "finished_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "result_summary": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/StepInfo"
+          },
+          "type": "array"
+        },
+        "confirmation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ConfirmationInfo"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "conversation_id",
+        "origin",
+        "utterance",
+        "intent",
+        "mode",
+        "status",
+        "created_at",
+        "started_at",
+        "finished_at",
+        "result_summary",
+        "error_code",
+        "steps",
+        "confirmation"
+      ],
+      "title": "TaskInfo",
+      "type": "object"
+    },
+    "TaskListParams": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "default": 50,
+          "maximum": 200,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "TaskListParams",
+      "type": "object"
+    },
+    "TaskListResult": {
+      "additionalProperties": false,
+      "properties": {
+        "tasks": {
+          "items": {
+            "$ref": "#/$defs/TaskInfo"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "tasks"
+      ],
+      "title": "TaskListResult",
+      "type": "object"
+    },
+    "TaskStatus": {
+      "enum": [
+        "queued",
+        "running",
+        "waiting_user",
+        "verifying",
+        "succeeded",
+        "failed",
+        "cancelled",
+        "interrupted"
+      ],
+      "title": "TaskStatus",
+      "type": "string"
+    },
+    "Tier": {
+      "enum": [
+        "T0",
+        "T1",
+        "T2",
+        "T3"
+      ],
+      "title": "Tier",
+      "type": "string"
     }
   }
 }

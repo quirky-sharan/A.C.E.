@@ -7,7 +7,9 @@ import { lazy, Suspense, useSyncExternalStore, type KeyboardEvent } from "react"
 import { Chip, cx, Orb, ToastViewport, useOrbAnimating } from "../hud";
 import { ORB_LOOKS } from "../hud/orb";
 import { useConnectionStore, useCoreStore, useSettingsStore, useShellStore } from "../state/stores";
+import type { IpcClient } from "../ipc/client";
 import { Dashboard, StubPage } from "./dashboard";
+import { History } from "./history";
 import { DEFAULT_PAGE, visiblePages, type PageInfo } from "./pages";
 import { ConnectionChip, modeLabel, ShellBanner } from "./status-views";
 
@@ -52,7 +54,13 @@ function Header() {
   );
 }
 
-export function ControlCenter({ dev = import.meta.env.DEV }: { dev?: boolean }) {
+export function ControlCenter({
+  dev = import.meta.env.DEV,
+  client = null,
+}: {
+  dev?: boolean;
+  client?: IpcClient | null;
+}) {
   const pages = visiblePages(dev);
   const page = useSyncExternalStore(subscribeHash, () => pageFromHash(pages));
   const shell = useShellStore((state) => state.status);
@@ -107,6 +115,8 @@ export function ControlCenter({ dev = import.meta.env.DEV }: { dev?: boolean }) 
         <main className="p-6" aria-label={page.title}>
           {page.id === "dashboard" ? (
             <Dashboard />
+          ) : page.id === "history" ? (
+            <History client={client} />
           ) : page.id === "gallery" && Gallery ? (
             <Suspense fallback={<p className="text-text-dim">Loading the gallery…</p>}>
               <Gallery />

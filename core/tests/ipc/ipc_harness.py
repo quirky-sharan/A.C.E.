@@ -35,4 +35,5 @@ async def start_harness(
 
 async def stop_harness(harness: Harness) -> None:
     await harness.server.stop()
+    await harness.container.pipeline.close()
     await harness.container.db.close()

@@ -12,8 +12,8 @@
 | Last updated | 2026-11-07 |
 | Owner / client | Sharan (ACE addresses Sharan as "Sharan" or "boss") |
 | Project folder | `E:\A.C.E` |
-| Current stage | **S07 — Command pipeline, skill framework, confirmations** (in progress, branch `stage/s07-command-pipeline`) |
-| Last completed stage | S06 — Overlay v1 (edge orb + sidebar) (approved by Sharan 2026-11-07) |
+| Current stage | **S08 — Apps & windows skills → M1** (in progress, branch `stage/s08-apps-windows`) |
+| Last completed stage | S07 — Command pipeline, skill framework, confirmations (approved by Sharan 2026-11-07) |
 | Next milestone | M1 — Typed commands control the PC |
 | Blocking user actions | none · pending, non-blocking: [USER-ACTION] run `tools/dev/set-dev-env.ps1` once in a normal PowerShell window (§17.4) |
 | Repository | GitHub `quirky-sharan/A.C.E.` (private), created by Sharan 2026-11-06; `main` = approved stages (pushed by Sharan); stage branches are local until Sharan asks to push |
@@ -334,6 +334,7 @@ Status values: **Decided** = confirmed by Sharan in the 2026-11-06 Q&A. **Defaul
 | D-53 | Desktop settings live in the core's settings table and reach the shell through the snapshot: `hotkeys.<action>` (actions `summon`, `push_to_talk`, `emergency_stop`, `toggle_overlay`, `mic_mute`; text such as `Ctrl+Alt+Space`; null or empty = off; defaults D-29), `desktop.autostart` (default false), `verification.mode` (`fast` / `balanced` / `paranoid`, default `balanced`, D-09). Invalid stored values fall back to the defaults. Hotkeys use tauri-plugin-global-shortcut; a combination another app holds is reported with a suggested alternative (+Shift). Autostart uses the `auto-launch` crate (the library inside tauri-plugin-autostart) directly: current user's Run key only, quoted exe path, `--autostart` (starts hidden in the tray); debug builds use their own entry `ACE (dev build)`. Hotkey and tray input reach the core as `DesktopInput` bus events: S04 logs them, later stages act on them (S06 overlay, S09 mic mute, S13 push-to-talk, S17 emergency stop, S18 modes). | Engineering | S04; the shell stays thin (§5.2) and settings have one owner; the plugin would try the all-users Run key when elevated and leaves the exe path unquoted. |
 | D-54 | UI foundation (S05): Tailwind CSS 4 configured CSS-first in `apps/desktop/src/styles/index.css` (`@theme` holds only ACE's §14.4 palette, fonts and glow); fonts bundled from @fontsource latin subsets — Orbitron for headings (chosen over Rajdhani), Inter, JetBrains Mono (all SIL OFL 1.1). Continuous motion (the orb) is CSS keyframes that run only while the window is visible, reduced motion is off and ACE is not idle (asleep / muted for more than 5 s); Motion (`motion/react`, `MotionConfig reducedMotion="user"`) is used only for enter / exit transitions. One Zustand store per domain (connection, core state + health, tasks, notifications, settings cache, shell status). The IPC client fetches port + token with `get_ipc_info` before every attempt, reconnects after 0.25, 0.5, 1, 2, 4, then 5 s, and at once when the shell reports a new core. Control Center pages live in the URL hash; the component gallery exists only in development builds. CSP: `default-src 'self'`, no inline scripts in release builds, `connect-src` = Tauri IPC + `ws://127.0.0.1:*`; the dev CSP also allows Vite's inline preamble and HMR socket. | Engineering | S05; NFR-2 (idle CPU ~0 %), NFR-10 (reduced motion, keyboard navigation), §15.1. |
 | D-55 | Overlay windows (S06, §14.1–§14.2): `orb` (72×72 logical px window, 56 px orb, 4 px from the edge, position `overlay.orb_y` 0–1 along the edge) and `sidebar` (396 logical px wide, work-area height minus 8 px margins) are transparent, undecorated, shadowless, always-on-top, `focusable(false)` (WS_EX_NOACTIVATE) windows, created hidden and owned by a hidden window (`GWLP_HWNDPARENT`), which keeps them off the taskbar and out of Alt+Tab. After creation no Tauri / tao window setter is used except position and size: tao re-runs `ShowWindow(SW_SHOW)` (activating) on every window-flag change and applies always-on-top only when that flag changes. The shell itself, on its main thread: shows a window with `ShowWindow(SW_SHOWNOACTIVATE)` only while it has something to show and hides it with `SW_HIDE` (a closed sidebar is really hidden: once activated on purpose, Windows 11 re-activated it when the foreground app closed, WS_EX_NOACTIVATE notwithstanding); sets click-through (D-40) from a ~60 Hz cursor-polling thread, never while a mouse button is held; every ~2 s re-checks the work area, HWND_TOPMOST (without activation), which windows are shown and the end of "hide for N minutes"; moves focus only with `SetForegroundWindow` (summon hotkey, a click into the sidebar's text box) and gives it back to the previous window (else the desktop) as soon as the sidebar closes. Placement: `overlay.monitor` (`cursor` = the cursor's monitor whenever the overlay appears, or `primary`), `overlay.edge` (`right` / `left`), physical pixels (per-monitor DPI v2). Overlay settings live in the core (D-53 pattern); open / closed / hidden state lives in the shell; each overlay window may call only its own commands (capabilities `orb.json`, `sidebar.json`). | Engineering | S06; §14.2 "never steals focus": the first live runs showed tao's setters and a shown-but-empty sidebar taking the focus (R-18). |
+| D-56 | Command pipeline (S07; §5.3 steps 5–9, §8.1 stages 1–2, §8.4, §10.1, §15.3): one entry point `CommandPipeline.submit(text, origin)` for typed commands now and for voice, routines and MCP later. Each command is stored as a message (a new conversation after 15 minutes without a command) and routed by the fast path: normalization (spaces, edge punctuation, English + Hinglish fillers at the start / end; entities keep their case), then ordered grammar rules where the first full match wins (stop, yes, no, help, modes, echo, demo, switch to / close / open an app); rules of unregistered skills are skipped and invalid params fall through. The result is a one-step task run in the background, a stop of every live task, an answer to the newest pending confirmation, or an honest "not yet" reply. The Supervisor decides in code: T0 run · T1 run + audit · T2 confirm (30 s, then cancelled; "ok" / "sure" never confirm) · T3 refuse · a skill outside the task's capability scope is refused. Skills implement §10.1 as the abstract generic class `Skill[P]` plus `describe(params)` (the exact action for task cards and confirmations); `demo.*` skills exist only in dev mode. Replies are a short spoken line + sidebar detail (D-04). IPC: `command.submit`, `task.list`, `task.cancel`, `confirm.respond`, `message.list`; events `task.created` / `task.updated` / `task.finished` (the whole task with its steps and pending confirmation), `confirm.requested`, `message.created`, `settings.changed` (key only). The conversation state follows the work (THINKING → ACTING / AWAITING_CONFIRM → ASLEEP) and leaves the voice states alone; on shutdown live tasks become `interrupted`; the emergency-stop hotkey cancels every live task (§15.1 item 10; S17 adds releasing held input). | Engineering | S07; one pipeline means voice, routines and MCP cannot skip tiers or confirmations (FR-IN-3, FR-SEC-1). |
 
 ---
 
@@ -421,8 +422,8 @@ Main transitions: ASLEEP —wake/hotkey→ LISTENING —speech end→ TRANSCRIBI
   "error": { "code": "E_AREA_NAME", "message": "human readable", "details": {} },
   "ts": "2026-11-06T10:00:00.000Z" }
 ```
-- **Initial methods:** `system.health`, `system.state.get`, `command.submit`, `task.list`, `task.cancel`, `confirm.respond`, `clarify.respond`, `settings.get`, `settings.set`, `log.tail` (dev only). Later stages add `memory.*`, `routines.*`, `providers.*`, `voice.*`, `devices.*`, `overlay.*`, `accounts.*`, `contacts.*`, `models.*`, `bridge.*`.
-- **Initial events:** `state.changed`, `transcript.partial`, `transcript.final`, `task.created`, `task.updated`, `task.step`, `task.verified`, `task.finished`, `confirm.requested`, `clarify.requested`, `notification.created`, `health.changed`, `audio.level`, plus `session.ready` (always a client's first frame after auth), `system.stopping`, `db.recovered`.
+- **Initial methods:** `system.health`, `system.state.get`, `command.submit`, `task.list`, `task.cancel`, `confirm.respond`, `clarify.respond`, `settings.get`, `settings.set`, `message.list` (S07), `log.tail` (dev only). Later stages add `memory.*`, `routines.*`, `providers.*`, `voice.*`, `devices.*`, `overlay.*`, `accounts.*`, `contacts.*`, `models.*`, `bridge.*`.
+- **Initial events:** `state.changed`, `transcript.partial`, `transcript.final`, `task.created`, `task.updated`, `task.step`, `task.verified`, `task.finished`, `confirm.requested`, `clarify.requested`, `notification.created`, `health.changed`, `audio.level`, plus `session.ready` (always a client's first frame after auth), `system.stopping`, `db.recovered`, `message.created` and `settings.changed` (S07; the key only, clients re-read the value). S07 sends `task.created` / `task.updated` / `task.finished` with the whole task (its steps and pending confirmation); `task.step` and `task.verified` arrive with the multi-step runtime (S17) and the council (S18).
 - **Schemas:** Pydantic v2 models in `core/src/ace_core/ipc/schemas.py` → JSON Schema (`ace_core.ipc.export_schema` → `apps/desktop/src/ipc/ipc.schema.json`) → generated TypeScript in `apps/desktop/src/ipc/generated.ts` (json-schema-to-typescript; run `pnpm gen:ipc`, D-51). CI fails if either file is stale.
 - **Limits & errors:** max message 1 MiB; per-connection rate limit; exact limits and close codes in D-50. Error codes: `E_IPC_BAD_MESSAGE`, `E_IPC_UNKNOWN_METHOD`, `E_IPC_BAD_PARAMS`, `E_IPC_RATE_LIMITED`, `E_IPC_DEV_ONLY`, `E_IPC_INTERNAL`. Error details carry field locations and messages only, never the rejected input.
 - **Native messaging:** the extension talks to the ACE native host (the core executable launched by Chrome in native-host mode, §11.2) over stdio (Chrome framing: 4-byte little-endian length + UTF-8 JSON; host → extension max 1 MB per message [VERIFY]). The native host connects to the core WebSocket using port + token read from `%LOCALAPPDATA%\ACE\runtime\ipc.json` (file ACL: current user only).
@@ -665,20 +666,21 @@ Simulated: wrong window focused, app never launched, DOM selector missing, stale
 
 ### 10.1 Skill contract (every skill MUST implement)
 ```python
-class Skill(Protocol):
+class Skill[P: SkillParams](ABC):    # ace_core.skills.base; SkillParams = Pydantic, extra fields rejected
     id: str                          # e.g. "apps.open"
     description: str                 # one line; becomes the LLM tool description
-    params_model: type[BaseModel]    # Pydantic → JSON Schema for tool calling
+    params_model: type[P]            # Pydantic → JSON Schema for tool calling
     background_capable: bool         # True if no synthetic mouse/keyboard input is needed
     timeout_s: float
-    examples: list[str]              # utterances (EN + Hinglish) for the golden set
+    examples: tuple[str, ...]        # utterances (EN + Hinglish) for help and the golden set
     def tier_for(self, params) -> Tier: ...                 # T0..T3, may depend on params
+    def describe(self, params) -> str: ...                  # the exact action in one line (§15.3)
     async def preconditions(self, ctx, params) -> list[str]: ...   # unmet → ask/explain
     async def execute(self, ctx, params) -> StepResult: ...
     async def verify(self, ctx, params, result) -> RuleCheckResult: ...  # deterministic postconditions
     async def undo(self, ctx, params, result) -> UndoResult | None: ...  # None = not undoable
 ```
-Every skill ships with unit tests using fakes and golden-set entries.
+Every skill ships with unit tests using fakes and golden-set entries. `execute` and `verify` are abstract; the base class defaults to no preconditions, `describe` = the description, not undoable. The registry checks ids (`pack.name`), duplicates and timeouts and exports every skill's params as JSON Schema (`python -m ace_core.skills.export_schema`, D-56).
 
 ### 10.2 Catalog
 
@@ -908,8 +910,8 @@ SQLite FTS5 first. Embeddings (a small local embedding model + `sqlite-vec`) onl
 | `conversations` | `id`, `started_at`, `ended_at`, `channel` (voice/text) | S07 |
 | `messages` | `id`, `conversation_id` FK, `ts`, `role` (user/ace/system), `text`, `source` (voice/text/notification), `stt_confidence`?, `meta_json` | S07 |
 | `tasks` | `id`, `conversation_id`?, `origin`, `utterance`, `intent`, `mode`, `status`, `allowed_caps_json`, `created_at`, `started_at`, `finished_at`, `result_summary`, `error_code`? | S07 |
-| `task_steps` | `id`, `task_id` FK, `idx`, `skill_id`, `params_json` (redacted), `tier`, `status`, `started_at`, `finished_at`, `observation_json`, `error_code`? | S07 |
-| `confirmations` | `id`, `task_id`, `step_id`, `prompt_text`, `response` (yes/no/timeout), `channel`, `responded_at` | S07 |
+| `task_steps` | `id`, `task_id` FK, `idx`, `skill_id`, `label` (the exact action), `params_json` (redacted), `tier`, `status`, `started_at`, `finished_at`, `observation_json` (redacted), `error_code`? | S07 |
+| `confirmations` | `id`, `task_id` FK, `step_id` FK, `prompt_text`, `requested_at`, `response` (yes/no/timeout; empty if the core stopped first), `channel`, `responded_at` | S07 |
 | `app_index` | `id`, `name`, `normalized_name`, `kind` (lnk/aumid/exe), `target`, `aumid`?, `icon_path`?, `last_seen_at`, `launch_count` | S08 |
 | `models` | `id`, `kind` (stt/tts/wake/vad/llm/embed), `name`, `version`, `path`, `sha256`, `size_bytes`, `license`, `installed_at`, `status` | S14 |
 | `providers` | `id`, `name`, `kind`, `base_url`, `enabled`, `priority`, `family`, `capabilities_json` (no keys) | S15 |
@@ -1116,12 +1118,14 @@ E:\A.C.E\                            (git repository root)
 ├─ core/                               Python 3.12 package (uv project)
 │  ├─ pyproject.toml, uv.lock
 │  ├─ src/ace_core/
-│  │  ├─ app/        main, lifecycle, config, paths, logging, events, container
+│  │  ├─ app/        main, lifecycle, config, paths, logging, events, container, modes
 │  │  ├─ ipc/        server, auth, schemas, methods
-│  │  ├─ db/         engine, models, repositories, migrations/
+│  │  ├─ db/         engine, models, repositories, stores, history, migrations/
 │  │  ├─ voice/      audio, vad, wake, stt, tts, dictation, earcons
-│  │  ├─ brain/      router, grammar, gateway, providers/, prompts/, agent, council, memory
-│  │  ├─ skills/     base, registry, apps, windows, system, media, spotify, alarms, files, screen,
+│  │  ├─ brain/      router, grammar, supervisor, pipeline, responses, records, gateway, providers/,
+│  │  │              prompts/, agent, council, memory
+│  │  ├─ skills/     base, registry, catalog, demo (dev only), apps, windows, system, media, spotify,
+│  │  │              alarms, files, screen,
 │  │  │              browser, ai_sites, youtube, gmail, whatsapp, instagram, dev, study, routines, notify, mcp
 │  │  ├─ bridge/     native_host, client
 │  │  ├─ models/     manager, downloader, lock
@@ -2323,6 +2327,37 @@ Template for every entry:
 - Tests: core 204 passed (+3 overlay settings) · UI: desktop 68 (+14 overlay), extension 1 · Rust 22 (incl. 5 geometry) · `pnpm lint`, `pnpm typecheck`, clippy → clean · `pre-commit run --all-files` → 15/15 passed · `python tools/dev/check_plan.py` → all checks passed.
 - Next step: Sharan runs the checklist and approves → `[S06]` commit → S07 (command pipeline).
 - Approval: Sharan approved S06 on 2026-11-07 ("Approve, continue"), including D-55 and the D-40 rewording → committed as `[S06] Overlay v1 (edge orb + sidebar)` on branch `stage/s06-overlay`; S07 continues on `stage/s07-command-pipeline`. The manual checklist above was not reported back yet.
+
+### PL-0009 — 2026-11-07 — S07 — Command pipeline, skill framework, confirmations
+- Done:
+  - Command pipeline (`brain/pipeline.py`, D-56): `submit(text, origin)` stores the command as a message (a new conversation after 15 minutes without a command), routes it, then starts a one-step task in the background, stops what runs, answers the newest pending confirmation, or replies "not yet". Every task change is stored and published; replies are a short spoken line + detail (`brain/responses.py`, persona D-04); the conversation state follows the work (THINKING → ACTING / AWAITING_CONFIRM → ASLEEP; MUTED and the other voice states are left alone); on shutdown live tasks become `interrupted`.
+  - Router stages 1–2 (`brain/grammar.py`, `brain/router.py`): normalization (spaces, edge punctuation, English + Hinglish fillers such as please / can you / zara / na / yaar at the start or end; entities keep their case) and ordered fast-path rules: stop (stop / cancel / ruko / bas …), yes (yes / haan / send it / confirm / do it …; "ok" and "sure" never confirm), no (no / nahi / mat karo …), help, verification-mode switches (stored only until S18), echo, the demo skills, and switch to / close / open an app (stubs until S08). Rules of unregistered skills are skipped; invalid params fall through.
+  - Skill framework (`skills/`): the §10.1 contract as `Skill[P]` plus `describe(params)`; registry checks (id pattern, duplicates, timeouts) and JSON Schema export (`python -m ace_core.skills.export_schema [--dev]`); skills `system.echo` (T0), `system.help` (T0, built from the registry), `system.set_mode` (T1), `apps.open` / `apps.close` (T1) and `apps.focus` (T0) as S08 stubs, `demo.dangerous` (T2) and `demo.forbidden` (T3) in dev mode only.
+  - Supervisor (`brain/supervisor.py`): the tier policy in code (T0 run, T1 run + audit, T2 confirm, T3 refuse), the basic capability scope (a task may only call the skill it was created for; `pack.*` is supported), confirmations stored with a 30 s timeout → cancelled, answered once, audited (`confirm.requested`, `confirm.answered`).
+  - Storage: migration 0002 — `conversations`, `messages`, `tasks`, `task_steps` (+ `label`), `confirmations` (+ `requested_at`) with the §13.3 indexes and foreign keys (a task's steps and confirmations go with it); `db/history.py` stores step params and observations redacted. Audit entries `task.created`, `step.executed` (T1 and up), `supervisor.refused`, `task.cancelled`.
+  - IPC: `command.submit`, `task.list` (newest first; search by utterance, intent or reply with an escaped LIKE), `task.cancel`, `confirm.respond`, `message.list`; events `task.created` / `task.updated` / `task.finished`, `confirm.requested`, `message.created`, `settings.changed`; generated types refreshed (`pnpm gen:ipc`). `ace-cli send <text>` follows a command to the end and prints ACE's reply (moved here from S03).
+  - Emergency stop (§15.1 item 10, mandatory since S01): `Ctrl+Alt+Esc` now cancels every live task and says "Stopped." — the same as typing "stop".
+  - UI: tasks and messages stores (a finished task is never replaced by an older `task.list` result); the sidebar's conversation (✓ / ✗ / ⚠ on each task's final reply), the current / last task card with a working Stop, confirmation cards with countdown and Yes / No, and the input sends commands; Control Center → History (live list, search through the core, steps, tiers, error codes; the stage label is gone); Dashboard recent tasks; Skills & Permissions now names S08.
+  - Golden set `core/tests/golden/commands.yaml`: 47 utterances (26 skill routes, 15 control words, 6 non-matches), English + Hinglish.
+- Not done / known issues:
+  - Nothing committed yet — the `[S07]` commit waits for Sharan's approval.
+  - A task that was running when the core crashed stays `running` in History until S17 adds the after-restart `interrupted` handling (a normal quit already marks it `interrupted`).
+  - App commands are understood but answer "arrives in stage S08" (✗).
+  - No retention job for messages and tasks yet (D-26; compaction comes with memory at S31).
+  - Found in the live run and fixed afterwards: a confirmation's countdown first showed ~62 s because its clock started when the sidebar mounted; a question message also got the task's ✓. Both fixes are unit-tested, not re-run live.
+- Changed from the stage text (needs Sharan's OK): the skill contract gains `describe(params)` (the exact action for confirmations, §15.3); the demo skills are dev-mode only; extra IPC `message.list`, `message.created`, `settings.changed`; `task.step` is folded into `task.updated` until S17; columns `task_steps.label` and `confirmations.requested_at`; the emergency-stop hotkey cancels tasks already (S17 still owns the full version).
+- [VERIFY] results (2026-11-07): S07 has no external [VERIFY] items. Library facts relied on: SQLAlchemy 2.1.8 `ColumnOperators.contains(..., autoescape=True)` escapes `%`, `_` and `/` (the installed package's docstring); PyYAML 6.0.3 `yaml.safe_load` builds only standard YAML types (https://pyyaml.org/wiki/PyYAMLDocumentation; released 2025-09-25, MIT); types-PyYAML 6.0.12.20261103 (Apache-2.0, https://pypi.org/project/types-PyYAML/).
+- Acceptance evidence (one live dev run; data in a throwaway folder `E:\.cache\ace-setup\s07-live`):
+  - [x] "echo hello" → reply "hello" in the sidebar with ✓ (conversation badge; task card "Last task · Done ✓"); `ace-cli send echo hello` → task succeeded, exit 0.
+  - [x] "demo dangerous" → a confirmation card with the exact action, countdown and Yes / No; "No" → "Okay, cancelled." (stored as `no`); "Yes" → it ran.
+  - [x] "demo forbidden" → refused with an explanation ("on the forbidden list"; the detail names T3), `E_SUPERVISOR_FORBIDDEN`, audit `supervisor.refused`; `ace-cli send` exits 1.
+  - [x] Control Center → History lists all six tasks, newest first, with Done / Refused / Cancelled, steps, tiers and error codes.
+  - Quit → gone after 0.5 s, nothing left running.
+- New dependencies: dev only — PyYAML 6.0.3 (MIT) for the golden set, types-PyYAML 6.0.12.20261103 (Apache-2.0).
+- Decisions added: D-56 (command pipeline); §5.5 methods and events, §10.1 contract, §13.3 columns and §17.1 layout updated; the verification-mode names moved to `app/modes.py` (no behaviour change).
+- Tests: core 325 passed (+121: router and golden set, Supervisor, pipeline, skills, history store, IPC event sequence, `ace-cli send`, emergency stop) · UI: desktop 83 (+15), extension 1 · `pnpm lint`, `pnpm typecheck`, `pnpm format:check`, mypy strict → clean · `pre-commit run --all-files` → 15/15 passed · `python tools/dev/check_plan.py` → all checks passed. Rust shell unchanged (22 tests from S06).
+- Next step: Sharan types a few commands in the sidebar (try "help", "echo hi", "demo dangerous" → yes / no, "demo forbidden", "paranoid mode", "open spotify") and approves → `[S07]` commit → S08 (apps & windows → M1).
+- Approval: Sharan approved S07 on 2026-11-07 ("Approve, continue"), including the changes from the stage text above (`describe(params)`, dev-only demo skills, the extra IPC messages, the emergency-stop hotkey cancelling tasks) → committed as `[S07] Command pipeline, skill framework, confirmations` on branch `stage/s07-command-pipeline`; S08 continues on `stage/s08-apps-windows`. Sharan did not report trying the sidebar commands.
 
 ---
 

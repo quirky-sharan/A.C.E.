@@ -23,9 +23,9 @@ from ace_core.db.ids import new_id
 from ace_core.db.models import AuditLogEntry
 from ace_core.db.repositories import AuditLogRepository, SettingsRepository
 from ace_core.security.redaction import redact_text, redact_value
+from ace_core.security.tiers import Tier
 
 Actor = Literal["user", "ace", "verifier", "system"]
-Tier = Literal["T0", "T1", "T2", "T3"]
 
 
 def _utcnow() -> datetime:
@@ -89,7 +89,7 @@ class AuditLog:
             event_type=entry.event_type,
             summary=redact_text(entry.summary),
             data_json=_dumps(redact_value(entry.data)),
-            tier=entry.tier,
+            tier=entry.tier.value if entry.tier is not None else None,
             task_id=entry.task_id,
             step_id=entry.step_id,
         )

@@ -1,0 +1,143 @@
+# Golden command set (ACE_MASTER_PLAN.md §16.2). It grows every stage.
+#
+# Each case: an utterance (English or Hinglish) and what the router must make of it:
+#   skill + params   a one-step task for that skill
+#   control          "stop", "yes" or "no"
+#   no_match: true   the fast path does not understand it (S14-S16 add models for these)
+# Every value is quoted: YAML would read a bare yes / no / on as true / false.
+
+# ---- echo (S07 test skill) ----
+- utterance: "echo hello"
+  skill: "system.echo"
+  params: {text: "hello"}
+- utterance: "Echo Hello World"
+  skill: "system.echo"
+  params: {text: "Hello World"}
+- utterance: "please echo testing 1 2 3"
+  skill: "system.echo"
+  params: {text: "testing 1 2 3"}
+- utterance: "hey ace, echo hi there"
+  skill: "system.echo"
+  params: {text: "hi there"}
+
+# ---- help ----
+- utterance: "help"
+  skill: "system.help"
+  params: {}
+- utterance: "what can you do?"
+  skill: "system.help"
+  params: {}
+- utterance: "kya kya kar sakte ho"
+  skill: "system.help"
+  params: {}
+
+# ---- verification mode (stored only until S18) ----
+- utterance: "paranoid mode"
+  skill: "system.set_mode"
+  params: {mode: "paranoid"}
+- utterance: "switch to fast mode"
+  skill: "system.set_mode"
+  params: {mode: "fast"}
+- utterance: "Switch to Paranoid"
+  skill: "system.set_mode"
+  params: {mode: "paranoid"}
+- utterance: "set mode to balanced"
+  skill: "system.set_mode"
+  params: {mode: "balanced"}
+- utterance: "balanced mode karo"
+  skill: "system.set_mode"
+  params: {mode: "balanced"}
+- utterance: "use fast mode please"
+  skill: "system.set_mode"
+  params: {mode: "fast"}
+
+# ---- apps (stubs until S08) ----
+- utterance: "open spotify"
+  skill: "apps.open"
+  params: {name: "spotify"}
+- utterance: "can you open the Spotify app please"
+  skill: "apps.open"
+  params: {name: "Spotify"}
+- utterance: "spotify khol do"
+  skill: "apps.open"
+  params: {name: "spotify"}
+- utterance: "zara vs code kholo na"
+  skill: "apps.open"
+  params: {name: "vs code"}
+- utterance: "launch whatsapp"
+  skill: "apps.open"
+  params: {name: "whatsapp"}
+- utterance: "close chrome"
+  skill: "apps.close"
+  params: {name: "chrome"}
+- utterance: "chrome band karo"
+  skill: "apps.close"
+  params: {name: "chrome"}
+- utterance: "quit the notepad app"
+  skill: "apps.close"
+  params: {name: "notepad"}
+- utterance: "switch to whatsapp"
+  skill: "apps.focus"
+  params: {name: "whatsapp"}
+- utterance: "whatsapp pe jao"
+  skill: "apps.focus"
+  params: {name: "whatsapp"}
+- utterance: "go to vs code window"
+  skill: "apps.focus"
+  params: {name: "vs code"}
+
+# ---- confirmation / refusal test skills (dev mode) ----
+- utterance: "demo dangerous"
+  skill: "demo.dangerous"
+  params: {}
+- utterance: "run the demo forbidden"
+  skill: "demo.forbidden"
+  params: {}
+
+# ---- stop ----
+- utterance: "stop"
+  control: "stop"
+- utterance: "Stop!"
+  control: "stop"
+- utterance: "cancel that"
+  control: "stop"
+- utterance: "ruko"
+  control: "stop"
+- utterance: "bas karo yaar"
+  control: "stop"
+- utterance: "band karo"
+  control: "stop"
+
+# ---- answers to a confirmation (§15.3) ----
+- utterance: "yes"
+  control: "yes"
+- utterance: "haan"
+  control: "yes"
+- utterance: "Yes, do it."
+  control: "yes"
+- utterance: "send it"
+  control: "yes"
+- utterance: "confirm"
+  control: "yes"
+- utterance: "no"
+  control: "no"
+- utterance: "nahi"
+  control: "no"
+- utterance: "don't"
+  control: "no"
+- utterance: "mat karo"
+  control: "no"
+
+# ---- not understood by the fast path (no casual "ok" confirms anything) ----
+- utterance: "ok"
+  no_match: true
+- utterance: "sure"
+  no_match: true
+- utterance: "what's the weather like"
+  no_match: true
+- utterance: "echo"
+  no_match: true
+- utterance: "open"
+  no_match: true
+- utterance: "please"
+  no_match: true

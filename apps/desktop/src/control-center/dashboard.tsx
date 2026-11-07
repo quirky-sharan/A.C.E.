@@ -1,7 +1,8 @@
-// Dashboard (§14.5, S05 task 6): live core state, health and connection; tasks and quotas are
-// placeholders until their stages.
+// Dashboard (§14.5, S05 task 6): live core state, health, connection and recent tasks (S07);
+// quotas and latency are placeholders until their stages.
 
 import { Chip, Panel, StatusDot, StepList } from "../hud";
+import { taskLook, toStepView } from "../state/task-views";
 import { ORB_LOOKS } from "../hud/orb";
 import { useConnectionStore, useCoreStore, useShellStore, useTasksStore } from "../state/stores";
 import { HOTKEY_LABELS } from "../shell/status";
@@ -120,12 +121,17 @@ export function Dashboard() {
 
       <Panel title="Recent tasks">
         {tasks.length === 0 ? (
-          <p className="text-text-dim">No tasks yet. Typed commands arrive in stage S07.</p>
+          <p className="text-text-dim">
+            No tasks yet. Type a command in the sidebar (Ctrl+Alt+Shift+Space).
+          </p>
         ) : (
           tasks.slice(0, 3).map((task) => (
             <div key={task.id} className="mb-3">
-              <p className="mb-1 font-medium">{task.title}</p>
-              <StepList steps={task.steps} />
+              <p className="mb-1 flex items-center gap-2 font-medium">
+                <span className="min-w-0 flex-1 truncate">{task.utterance}</span>
+                <Chip tone={taskLook(task).tone}>{taskLook(task).label}</Chip>
+              </p>
+              <StepList steps={toStepView(task)} />
             </div>
           ))
         )}

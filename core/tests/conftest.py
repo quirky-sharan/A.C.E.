@@ -12,6 +12,7 @@ import structlog
 
 from ace_core.db.backup import BackupStore
 from ace_core.db.database import Database
+from ace_core.db.history import HistoryStore
 from ace_core.db.stores import AuditLog, SettingsStore
 
 ACE_SETTING_ENV_VARS = (
@@ -74,3 +75,8 @@ def audit(db: Database) -> AuditLog:
 @pytest.fixture
 def settings_store(db: Database, audit: AuditLog) -> SettingsStore:
     return SettingsStore(db, audit)
+
+
+@pytest.fixture
+def history(db: Database) -> HistoryStore:
+    return HistoryStore(db)

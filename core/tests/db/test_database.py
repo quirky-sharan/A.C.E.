@@ -40,7 +40,7 @@ async def test_fresh_start_creates_a_wal_database_at_head(make_database: Databas
     try:
         assert report.created is True
         assert report.revision_before is None
-        assert report.revision_after == "0001"
+        assert report.revision_after == migrate.head_revision()
         assert report.journal_mode == "wal"
         assert report.premigration_backup is None
         assert report.corrupt_copy is None

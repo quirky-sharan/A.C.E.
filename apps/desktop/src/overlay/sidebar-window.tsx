@@ -1,7 +1,7 @@
-// The slide-out sidebar (§14.3, S06): header, transcript, current task, background jobs, the
-// confirmation / clarification area, the text input and footer toggles. Sections whose backends
-// arrive later show what will appear there and when. While closed, the shell hides the window
-// (once the panel has slid out); while open, everything outside the panel lets clicks through.
+// The slide-out sidebar (§14.3, S06; live since S07): header, conversation, current task,
+// background jobs, confirmation cards, the text input and footer toggles. Typed commands go to
+// the core's command pipeline (FR-IN-3). While closed, the shell hides the window (once the panel
+// has slid out); while open, everything outside the panel lets clicks through.
 
 import { listen } from "@tauri-apps/api/event";
 import { X } from "lucide-react";
@@ -12,6 +12,8 @@ import { modeLabel } from "../control-center/status-views";
 import {
   Button,
   Chip,
+  ConfirmCard,
+  cx,
   Heading,
   Orb,
   StatusDot,
@@ -21,7 +23,17 @@ import {
   type Tone,
 } from "../hud";
 import { ORB_LOOKS } from "../hud/orb";
-import { useConnectionStore, useCoreStore, useSettingsStore, useTasksStore } from "../state/stores";
+import type { IpcClient } from "../ipc/client";
+import type { ConfirmationInfo, MessageInfo, TaskInfo } from "../ipc/generated";
+import { answerConfirmation, cancelTask, submitCommand } from "../state/core-link";
+import {
+  useConnectionStore,
+  useCoreStore,
+  useMessagesStore,
+  useSettingsStore,
+  useTasksStore,
+} from "../state/stores";
+import { isActive, secondsLeft, taskLook, toStepView } from "../state/task-views";
 import {
   closeSidebar,
   focusSidebarInput,
@@ -38,6 +50,7 @@ import { useHitRects } from "./use-hit-rects";
 
 const SLIDE_PX = 420;
 const HIDE_MINUTES = 60;
+const SHOWN_MESSAGES = 60;
 
 function HealthDots() {
   const status = useConnectionStore((state) => state.status);
@@ -62,7 +75,143 @@ function HealthDots() {
   );
 }
 
-export function SidebarWindow({ initialOpen = false }: { initialOpen?: boolean }) {
+function MessageRow({ message, task }: { message: MessageInfo; task: TaskInfo | undefined }) {
+  const fromUser = message.role === "user";
+  const look = task && !isActive(task) ? taskLook(task) : null;
+  return (
+    <li className={cx("flex flex-col", fromUser ? "items-end" : "items-start")}>
+      <p
+        className={cx(
+          "max-w-[85%] rounded-sm px-2 py-1",
+          fromUser ? "bg-primary/10 text-text" : "border border-line bg-bg/60",
+        )}
+      >
+        {look && (
+          <span role="img" aria-label={look.label} className="mr-1.5 font-mono">
+            {look.glyph}
+          </span>
+        )}
+        {message.text}
+      </p>
+      {message.detail && (
+        <p className="mt-0.5 max-w-[85%] whitespace-pre-line text-xs text-text-dim">
+          {message.detail}
+        </p>
+      )}
+    </li>
+  );
+}
+
+function Conversation({ tasks }: { tasks: TaskInfo[] }) {
+  const messages = useMessagesStore((state) => state.messages);
+  const end = useRef<HTMLLIElement>(null);
+  const shown = messages.slice(-SHOWN_MESSAGES);
+  useEffect(() => {
+    end.current?.scrollIntoView?.({ block: "end" });
+  }, [shown.length]);
+  if (shown.length === 0) {
+    return <p className="text-text-dim">Nothing yet. Type a command below, or try "help".</p>;
+  }
+  const byId = new Map(tasks.map((task) => [task.id, task]));
+  // The task's outcome badge goes on its last reply only (not on a confirmation question).
+  const lastReply = new Map<string, string>();
+  for (const message of shown) {
+    if (message.role === "ace" && message.task_id) lastReply.set(message.task_id, message.id);
+  }
+  return (
+    <ol className="flex flex-col gap-2">
+      {shown.map((message) => (
+        <MessageRow
+          key={message.id}
+          message={message}
+          task={
+            message.task_id && lastReply.get(message.task_id) === message.id
+              ? byId.get(message.task_id)
+              : undefined
+          }
+        />
+      ))}
+      <li ref={end} aria-hidden="true" />
+    </ol>
+  );
+}
+
+function ConfirmCards({ client, tasks }: { client: IpcClient | null; tasks: TaskInfo[] }) {
+  const pending = tasks
+    .map((task) => task.confirmation)
+    .filter((confirmation): confirmation is ConfirmationInfo => confirmation !== null)
+    .reverse(); // oldest first
+  // Mounted afresh for every new set of confirmations (see `key` below), so this starts now.
+  const [now, setNow] = useState(() => Date.now());
+  const [busy, setBusy] = useState<string | null>(null);
+  useEffect(() => {
+    if (pending.length === 0) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [pending.length]);
+  if (pending.length === 0) return null;
+
+  const answer = (confirmation: ConfirmationInfo, choice: "yes" | "no") => {
+    if (client === null) return;
+    setBusy(confirmation.id);
+    void answerConfirmation(client, confirmation.id, choice)
+      .catch(() => {})
+      .finally(() => setBusy(null));
+  };
+
+  return (
+    <section aria-label="Confirmations" className="flex flex-col gap-2">
+      {pending.map((confirmation) => (
+        <ConfirmCard
+          key={confirmation.id}
+          action={confirmation.prompt}
+          secondsLeft={secondsLeft(confirmation.expires_at, now)}
+          busy={busy === confirmation.id || client === null}
+          onConfirm={() => answer(confirmation, "yes")}
+          onCancel={() => answer(confirmation, "no")}
+        />
+      ))}
+    </section>
+  );
+}
+
+function CurrentTask({ client, task }: { client: IpcClient | null; task: TaskInfo | null }) {
+  if (task === null) return <p className="text-text-dim">No task running.</p>;
+  const look = taskLook(task);
+  const active = isActive(task);
+  return (
+    <>
+      <div className="mb-1 flex items-center gap-2">
+        <p className="min-w-0 flex-1 truncate font-medium">{task.utterance}</p>
+        <Chip tone={look.tone}>{look.label}</Chip>
+      </div>
+      <StepList steps={toStepView(task)} />
+      <div className="mt-2 flex gap-2">
+        <Button size="sm" disabled title="Show me arrives with the agent runtime (S17)">
+          Show me
+        </Button>
+        <Button
+          size="sm"
+          variant="danger"
+          disabled={!active || client === null}
+          onClick={() => {
+            if (client !== null) void cancelTask(client, task.id).catch(() => {});
+          }}
+        >
+          Stop
+        </Button>
+      </div>
+    </>
+  );
+}
+
+export function SidebarWindow({
+  client = null,
+  initialOpen = false,
+}: {
+  client?: IpcClient | null;
+  initialOpen?: boolean;
+}) {
   const [open, setOpen] = useState(initialOpen);
   const [shown, setShown] = useState(initialOpen); // drawn: open, or still sliding out
   const [focusRequests, setFocusRequests] = useState(0);
@@ -73,9 +222,8 @@ export function SidebarWindow({ initialOpen = false }: { initialOpen?: boolean }
   const panel = useRef<HTMLElement>(null);
   const conversation = useCoreStore((state) => state.state?.conversation ?? null);
   const mode = useSettingsStore((state) => state.values["verification.mode"]);
-  const task = useTasksStore(
-    (state) => state.tasks.find((entry) => entry.status === "running") ?? null,
-  );
+  const tasks = useTasksStore((state) => state.tasks);
+  const current = tasks.find(isActive) ?? tasks[0] ?? null;
   const animate = useOrbAnimating(conversation);
   useHitRects([panel], open && shown);
 
@@ -125,6 +273,18 @@ export function SidebarWindow({ initialOpen = false }: { initialOpen?: boolean }
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  const send = (text: string) => {
+    setHistory((entries) => [...entries.slice(-49), text]);
+    if (client === null) {
+      setNote("Not connected to ACE's core yet; this command was not sent.");
+      return;
+    }
+    setNote(null);
+    submitCommand(client, text).catch((error: unknown) => {
+      setNote(`Couldn't send it: ${error instanceof Error ? error.message : String(error)}`);
+    });
+  };
+
   const offscreen = edge === "right" ? SLIDE_PX : -SLIDE_PX;
 
   return (
@@ -165,35 +325,26 @@ export function SidebarWindow({ initialOpen = false }: { initialOpen?: boolean }
 
           <section aria-label="Conversation" className="min-h-0 flex-1 overflow-y-auto">
             <Heading className="mb-1">Conversation</Heading>
-            <p className="text-text-dim">
-              Nothing yet. Typed commands arrive in stage S07, voice in S13.
-            </p>
+            <Conversation tasks={tasks} />
           </section>
 
           <section aria-label="Current task">
-            <Heading className="mb-1">Current task</Heading>
-            {task ? (
-              <>
-                <p className="mb-1 font-medium">{task.title}</p>
-                <StepList steps={task.steps} />
-                <div className="mt-2 flex gap-2">
-                  <Button size="sm" disabled>
-                    Show me
-                  </Button>
-                  <Button size="sm" variant="danger" disabled>
-                    Stop
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <p className="text-text-dim">No task running.</p>
-            )}
+            <Heading className="mb-1">
+              {current && !isActive(current) ? "Last task" : "Current task"}
+            </Heading>
+            <CurrentTask client={client} task={current} />
           </section>
 
           <section aria-label="Background jobs">
             <Heading className="mb-1">Background jobs</Heading>
             <p className="text-text-dim">None. Background tasks arrive in stage S17.</p>
           </section>
+
+          <ConfirmCards
+            key={tasks.map((task) => task.confirmation?.id ?? "").join("")}
+            client={client}
+            tasks={tasks}
+          />
 
           <div
             onPointerDownCapture={() => {
@@ -205,10 +356,7 @@ export function SidebarWindow({ initialOpen = false }: { initialOpen?: boolean }
               placeholder="Type a command — Enter sends, Esc closes"
               history={history}
               onEscape={requestClose}
-              onSubmit={(text) => {
-                setHistory((entries) => [...entries.slice(-49), text]);
-                setNote("Typed commands arrive in stage S07; this one was not sent.");
-              }}
+              onSubmit={send}
             />
             {note && <p className="mt-1 text-xs text-text-dim">{note}</p>}
           </div>

@@ -59,9 +59,10 @@ def create_app(
     app.on_startup("database", start_database)
     app.on_startup("maintenance", container.maintenance.start)
     app.on_startup("ipc", start_ipc)
-    # Shutdown hooks run in reverse: IPC closes first, then maintenance, then the database.
+    # Shutdown hooks run in reverse: IPC closes first, then the pipeline, maintenance, database.
     app.on_shutdown("database", container.db.close)
     app.on_shutdown("maintenance", container.maintenance.stop)
+    app.on_shutdown("pipeline", container.pipeline.close)  # running tasks -> interrupted
     app.on_shutdown("ipc", stop_ipc)
     if supervised:
         link = DesktopLink(container, app.request_shutdown)

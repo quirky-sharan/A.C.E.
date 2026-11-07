@@ -1,8 +1,9 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { IpcClient } from "../ipc/client";
-import { useConnectionStore, useCoreStore, useTasksStore } from "../state/stores";
+import { useConnectionStore, useCoreStore, useMessagesStore, useTasksStore } from "../state/stores";
+import { makeConfirmation, makeMessage, makeStep, makeTask, requestClient } from "../test/tasks";
 import { OrbWindow, DRAG_THRESHOLD } from "./orb-window";
 import { ORB_EVENT, SIDEBAR_EVENT, type SidebarEvent } from "./overlay-api";
 import { SidebarWindow } from "./sidebar-window";
@@ -53,6 +54,7 @@ beforeEach(() => {
   mocks.listeners.clear();
   useCoreStore.setState({ state: asleep, health: null });
   useTasksStore.setState({ tasks: [] });
+  useMessagesStore.setState({ messages: [] });
   useConnectionStore.setState(useConnectionStore.getInitialState());
 });
 
@@ -136,22 +138,80 @@ describe("SidebarWindow", () => {
     await vi.waitFor(() => expect(calls("overlay_hit_rects").at(-1)?.[1]).toEqual({ rects: [] }));
   });
 
-  it("shows the running task with its steps", async () => {
+  it("shows the running task with its steps, and Stop cancels it", async () => {
+    useTasksStore.setState({
+      tasks: [makeTask({ steps: [makeStep({ label: "Launch it", status: "succeeded" })] })],
+    });
+    const { client, requests } = requestClient({ "task.cancel": { cancelled: true } });
+    render(<SidebarWindow client={client} />);
+    await vi.waitFor(() => expect(mocks.listeners.has(SIDEBAR_EVENT)).toBe(true));
+    open();
+    expect(screen.getByRole("region", { name: "Current task" }).textContent).toContain(
+      "open spotify",
+    );
+    expect(screen.getByRole("img", { name: "done" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Stop" }));
+    expect(requests).toEqual([["task.cancel", { task_id: "t1" }]]);
+  });
+
+  it("shows the last finished task when nothing runs", async () => {
     useTasksStore.setState({
       tasks: [
-        {
-          id: "t1",
-          title: "Open Spotify",
-          status: "running",
-          steps: [{ id: "s1", label: "Launch it", status: "done" }],
-        },
+        makeTask({
+          status: "succeeded",
+          finished_at: "2026-11-07T12:00:01.000000Z",
+          steps: [makeStep({ status: "succeeded" })],
+        }),
+      ],
+    });
+    render(<SidebarWindow client={requestClient().client} />);
+    await vi.waitFor(() => expect(mocks.listeners.has(SIDEBAR_EVENT)).toBe(true));
+    open();
+    const card = screen.getByRole("region", { name: "Current task" });
+    expect(card.textContent).toContain("Last task");
+    expect(card.textContent).toContain("Done");
+    expect(screen.getByRole<HTMLButtonElement>("button", { name: "Stop" }).disabled).toBe(true);
+  });
+
+  it("shows the conversation with a ✓ on a finished task's reply", async () => {
+    useTasksStore.setState({
+      tasks: [makeTask({ id: "t9", status: "succeeded", finished_at: "2026-11-07T12:00:01Z" })],
+    });
+    useMessagesStore.setState({
+      messages: [
+        makeMessage({ id: "m1", text: "echo hello" }),
+        makeMessage({
+          id: "m2",
+          role: "ace",
+          text: "hello",
+          detail: 'Echo: "hello"',
+          task_id: "t9",
+          ts: "2026-11-07T12:00:01.000000Z",
+        }),
       ],
     });
     render(<SidebarWindow />);
     await vi.waitFor(() => expect(mocks.listeners.has(SIDEBAR_EVENT)).toBe(true));
     open();
-    expect(screen.getByText("Open Spotify")).toBeTruthy();
-    expect(screen.getByRole("img", { name: "done" })).toBeTruthy();
+    const chat = screen.getByRole("region", { name: "Conversation" });
+    expect(chat.textContent).toContain("echo hello");
+    expect(chat.textContent).toContain('Echo: "hello"');
+    expect(within(chat).getByRole("img", { name: "Done" }).textContent).toBe("✓");
+  });
+
+  it("shows confirmation cards with a countdown and answers through the core", async () => {
+    useTasksStore.setState({
+      tasks: [makeTask({ status: "waiting_user", confirmation: makeConfirmation() })],
+    });
+    const { client, requests } = requestClient({ "confirm.respond": { accepted: true } });
+    render(<SidebarWindow client={client} />);
+    await vi.waitFor(() => expect(mocks.listeners.has(SIDEBAR_EVENT)).toBe(true));
+    open();
+    const cards = screen.getByRole("region", { name: "Confirmations" });
+    expect(cards.textContent).toContain("Run the demo dangerous action");
+    expect(cards.textContent).toMatch(/Cancels by itself in (29|30) s/);
+    fireEvent.click(within(cards).getByRole("button", { name: "Yes" }));
+    expect(requests).toEqual([["confirm.respond", { confirmation_id: "k1", answer: "yes" }]]);
   });
 
   it("focuses the input when summoned and reports the time", async () => {
@@ -171,18 +231,87 @@ describe("SidebarWindow", () => {
     expect(calls("overlay_focus_input")).toHaveLength(1);
   });
 
-  it("explains that typed commands arrive in S07 and keeps history", async () => {
+  it("starts a confirmation's countdown when it appears, not when the sidebar opened", async () => {
+    render(<SidebarWindow client={requestClient().client} />);
+    await vi.waitFor(() => expect(mocks.listeners.has(SIDEBAR_EVENT)).toBe(true));
+    open();
+    const later = Date.now() + 40_000;
+    const clock = vi.spyOn(Date, "now").mockReturnValue(later);
+    try {
+      act(() => {
+        useTasksStore.setState({
+          tasks: [
+            makeTask({
+              status: "waiting_user",
+              confirmation: makeConfirmation({
+                expires_at: new Date(later + 30_000).toISOString(),
+              }),
+            }),
+          ],
+        });
+      });
+      const cards = screen.getByRole("region", { name: "Confirmations" });
+      expect(cards.textContent).toContain("Cancels by itself in 30 s");
+    } finally {
+      clock.mockRestore();
+    }
+  });
+
+  it("puts a task's badge on its final reply only", async () => {
+    useTasksStore.setState({
+      tasks: [makeTask({ id: "t5", status: "succeeded", finished_at: "2026-11-07T12:00:09Z" })],
+    });
+    useMessagesStore.setState({
+      messages: [
+        makeMessage({ id: "q", role: "ace", text: "Should I go ahead?", task_id: "t5" }),
+        makeMessage({
+          id: "r",
+          role: "ace",
+          text: "Done.",
+          task_id: "t5",
+          ts: "2026-11-07T12:00:09.000000Z",
+        }),
+      ],
+    });
     render(<SidebarWindow />);
+    await vi.waitFor(() => expect(mocks.listeners.has(SIDEBAR_EVENT)).toBe(true));
+    open();
+    const badges = within(screen.getByRole("region", { name: "Conversation" })).getAllByRole(
+      "img",
+      { name: "Done" },
+    );
+    expect(badges).toHaveLength(1);
+    expect(badges[0].parentElement?.textContent).toBe("✓Done.");
+  });
+
+  it("sends typed commands to the core and keeps history", async () => {
+    const { client, requests } = requestClient({
+      "command.submit": {
+        conversation_id: "c1",
+        message_id: "m1",
+        intent: "apps.open",
+        task_id: "t1",
+      },
+    });
+    render(<SidebarWindow client={client} />);
     await vi.waitFor(() => expect(mocks.listeners.has(SIDEBAR_EVENT)).toBe(true));
     open();
     const input = screen.getByRole<HTMLInputElement>("textbox", { name: "Command" });
     fireEvent.change(input, { target: { value: "open spotify" } });
     fireEvent.keyDown(input, { key: "Enter" });
-    expect(
-      screen.getByText("Typed commands arrive in stage S07; this one was not sent."),
-    ).toBeTruthy();
+    expect(requests).toEqual([["command.submit", { text: "open spotify" }]]);
     fireEvent.keyDown(input, { key: "ArrowUp" });
     expect(input.value).toBe("open spotify");
+  });
+
+  it("says so when a command cannot be sent", async () => {
+    render(<SidebarWindow />);
+    await vi.waitFor(() => expect(mocks.listeners.has(SIDEBAR_EVENT)).toBe(true));
+    open();
+    const input = screen.getByRole<HTMLInputElement>("textbox", { name: "Command" });
+    fireEvent.change(input, { target: { value: "help" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(screen.getByText(/Not connected to ACE's core yet/)).toBeTruthy();
   });
 
   it("footer buttons mute the mic and hide the overlay for an hour", async () => {

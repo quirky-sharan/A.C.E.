@@ -44,7 +44,7 @@ export const PAGES: readonly PageInfo[] = [
     id: "history",
     title: "History",
     summary: "Search conversations and tasks, with verification details.",
-    stage: "S07",
+    stage: null,
     icon: ClockArrowLeft,
   },
   {
@@ -65,7 +65,7 @@ export const PAGES: readonly PageInfo[] = [
     id: "skills",
     title: "Skills & Permissions",
     summary: "Enable or disable skills, see their tiers, manage pre-approvals.",
-    stage: "S07–S08",
+    stage: "S08",
     icon: ShieldCheck,
   },
   {

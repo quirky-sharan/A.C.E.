@@ -28,6 +28,7 @@ from pydantic import BaseModel, ConfigDict, Field, JsonValue, TypeAdapter, Valid
 from ace_core.app.container import Container
 from ace_core.app.events import AppStarted, Event
 from ace_core.app.health import HealthStatus
+from ace_core.app.modes import DEFAULT_MODE, MODE_SETTING, VerificationMode
 from ace_core.app.state import StateChanged
 from ace_core.db.events import SettingChanged
 from ace_core.ipc.methods import core_state_info
@@ -45,7 +46,6 @@ SHUTDOWN_REASON: Final = "the desktop shell closed the control channel"
 # Settings the shell applies (stored in the settings table; changed through IPC `settings.set`).
 HOTKEY_SETTING_PREFIX: Final = "hotkeys."  # + action, e.g. "hotkeys.summon"; null or "" = off
 AUTOSTART_SETTING: Final = "desktop.autostart"
-MODE_SETTING: Final = "verification.mode"
 OVERLAY_SETTING_PREFIX: Final = "overlay."  # overlay.edge, overlay.orb_y, overlay.monitor (S06)
 
 
@@ -59,14 +59,6 @@ class DesktopAction(StrEnum):
     MIC_MUTE = "mic_mute"
 
 
-class VerificationMode(StrEnum):
-    """D-09; the council (S18) acts on it."""
-
-    FAST = "fast"
-    BALANCED = "balanced"
-    PARANOID = "paranoid"
-
-
 # D-29. Ctrl+Alt+Space and Ctrl+Alt+M were taken on Sharan's PC, so those two have Shift (S04).
 DEFAULT_HOTKEYS: Final[Mapping[DesktopAction, str]] = {
     DesktopAction.SUMMON: "Ctrl+Alt+Shift+Space",
@@ -75,7 +67,6 @@ DEFAULT_HOTKEYS: Final[Mapping[DesktopAction, str]] = {
     DesktopAction.TOGGLE_OVERLAY: "Ctrl+Alt+H",
     DesktopAction.MIC_MUTE: "Ctrl+Alt+Shift+M",
 }
-DEFAULT_MODE: Final = VerificationMode.BALANCED
 
 
 class OverlayEdge(StrEnum):
@@ -359,6 +350,9 @@ class DesktopLink:
                 source=message.source,
                 phase=message.phase,
             )
+            if message.action is DesktopAction.EMERGENCY_STOP and message.phase == "pressed":
+                stopped = await self._container.pipeline.stop_all()  # §15.1 item 10
+                log.info("emergency stop", tasks_cancelled=stopped)
             await self._container.bus.publish(
                 DesktopInput(action=message.action, source=message.source, phase=message.phase)
             )
