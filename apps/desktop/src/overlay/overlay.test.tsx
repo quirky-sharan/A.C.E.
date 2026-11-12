@@ -3,7 +3,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { IpcClient } from "../ipc/client";
 import { useConnectionStore, useCoreStore, useMessagesStore, useTasksStore } from "../state/stores";
-import { makeConfirmation, makeMessage, makeStep, makeTask, requestClient } from "../test/tasks";
+import {
+  makeClarification,
+  makeConfirmation,
+  makeMessage,
+  makeStep,
+  makeTask,
+  requestClient,
+} from "../test/tasks";
 import { OrbWindow, DRAG_THRESHOLD } from "./orb-window";
 import { ORB_EVENT, SIDEBAR_EVENT, type SidebarEvent } from "./overlay-api";
 import { SidebarWindow } from "./sidebar-window";
@@ -211,7 +218,9 @@ describe("SidebarWindow", () => {
     expect(cards.textContent).toContain("Run the demo dangerous action");
     expect(cards.textContent).toMatch(/Cancels by itself in (29|30) s/);
     fireEvent.click(within(cards).getByRole("button", { name: "Yes" }));
-    expect(requests).toEqual([["confirm.respond", { confirmation_id: "k1", answer: "yes" }]]);
+    await vi.waitFor(() =>
+      expect(requests).toEqual([["confirm.respond", { confirmation_id: "k1", answer: "yes" }]]),
+    );
   });
 
   it("focuses the input when summoned and reports the time", async () => {
@@ -284,6 +293,25 @@ describe("SidebarWindow", () => {
     expect(badges[0].parentElement?.textContent).toBe("✓Done.");
   });
 
+  it("asks which one with a card, and a click answers through the core", async () => {
+    useTasksStore.setState({
+      tasks: [makeTask({ status: "waiting_user", clarification: makeClarification() })],
+    });
+    const { client, requests } = requestClient({ "clarify.respond": { accepted: true } });
+    render(<SidebarWindow client={client} />);
+    await vi.waitFor(() => expect(mocks.listeners.has(SIDEBAR_EVENT)).toBe(true));
+    open();
+    const cards = screen.getByRole("region", { name: "Questions" });
+    expect(cards.textContent).toContain("Which python did you mean?");
+    fireEvent.click(within(cards).getByRole("button", { name: "Python 3.12 (64-bit)" }));
+    await vi.waitFor(() =>
+      expect(requests).toEqual([
+        ["clarify.respond", { clarification_id: "q1", option_id: "py312" }],
+      ]),
+    );
+    expect(calls("overlay_allow_foreground")).toHaveLength(1); // the chosen app may come to the front
+  });
+
   it("sends typed commands to the core and keeps history", async () => {
     const { client, requests } = requestClient({
       "command.submit": {
@@ -299,7 +327,10 @@ describe("SidebarWindow", () => {
     const input = screen.getByRole<HTMLInputElement>("textbox", { name: "Command" });
     fireEvent.change(input, { target: { value: "open spotify" } });
     fireEvent.keyDown(input, { key: "Enter" });
-    expect(requests).toEqual([["command.submit", { text: "open spotify" }]]);
+    await vi.waitFor(() =>
+      expect(requests).toEqual([["command.submit", { text: "open spotify" }]]),
+    );
+    expect(calls("overlay_allow_foreground")).toHaveLength(1); // granted before the command
     fireEvent.keyDown(input, { key: "ArrowUp" });
     expect(input.value).toBe("open spotify");
   });

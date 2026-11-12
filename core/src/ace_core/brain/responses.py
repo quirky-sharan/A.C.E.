@@ -42,9 +42,14 @@ def confirm_prompt(label: str, timeout_s: float) -> Reply:
 def cancelled(answer: ConfirmationAnswer | None, timeout_s: float) -> Reply:
     if answer is ConfirmationAnswer.TIMEOUT:
         return Reply(
-            "No answer, so I cancelled it.", f"Nobody confirmed within {timeout_s:g} seconds."
+            "No answer, so I cancelled it.", f"No answer came within {timeout_s:g} seconds."
         )
     return Reply("Okay, cancelled.")
+
+
+def question(text: str, labels: list[str]) -> Reply:
+    options = "\n".join(f"{n}. {label}" for n, label in enumerate(labels, start=1))
+    return Reply(text, f"{options}\nPick one, or say its number or name.")
 
 
 def stopped(count: int) -> Reply:

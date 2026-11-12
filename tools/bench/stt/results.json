@@ -1,0 +1,7251 @@
+[
+ {
+  "summary": {
+   "label": "turbo · auto",
+   "model": "stt-turbo",
+   "language": null,
+   "device": "cuda",
+   "compute": "int8_float16",
+   "load_s": 4.8,
+   "vram_mb": 1179,
+   "english_wer": 0.0,
+   "english_lwer": 0.0,
+   "english_cer": 0.0,
+   "english_routable": 5,
+   "english_command": 100.0,
+   "hinglish_wer": 47.7,
+   "hinglish_lwer": 44.3,
+   "hinglish_cer": 21.7,
+   "hinglish_routable": 8,
+   "hinglish_command": 37.5,
+   "all_wer": 40.0,
+   "all_lwer": 37.1,
+   "all_cer": 18.2,
+   "all_routable": 13,
+   "all_command": 61.5,
+   "median_ms": 502,
+   "p95_ms": 542,
+   "p95_total_ms": 545,
+   "rtf": 0.212,
+   "unsure_pct": 20.0,
+   "empty_pct": 0.0
+  },
+  "utterances": [
+   {
+    "key": "en01",
+    "group": "english",
+    "reference": "open spotify",
+    "hypothesis": "Open Spotify.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 491,
+    "vad_ms": 4,
+    "audio_ms": 1960,
+    "confidence": 0.973,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en02",
+    "group": "english",
+    "reference": "open visual studio code",
+    "hypothesis": "Open Visual Studio Code.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     23
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 495,
+    "vad_ms": 4,
+    "audio_ms": 3028,
+    "confidence": 0.96,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en03",
+    "group": "english",
+    "reference": "switch to chrome",
+    "hypothesis": "Switch to Chrome",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     16
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 483,
+    "vad_ms": 2,
+    "audio_ms": 1684,
+    "confidence": 0.466,
+    "verdict": "unsure",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en04",
+    "group": "english",
+    "reference": "close notepad",
+    "hypothesis": "Close Notepad.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     13
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 491,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.851,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en05",
+    "group": "english",
+    "reference": "snap vs code to the left",
+    "hypothesis": "Snap VS Code to the left.",
+    "wer": [
+     0,
+     6
+    ],
+    "cer": [
+     0,
+     24
+    ],
+    "lwer": [
+     0,
+     6
+    ],
+    "ms": 504,
+    "vad_ms": 4,
+    "audio_ms": 3092,
+    "confidence": 0.965,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi01",
+    "group": "hinglish",
+    "reference": "spotify kholo",
+    "hypothesis": "Y fue kholo.",
+    "wer": [
+     2,
+     2
+    ],
+    "cer": [
+     7,
+     13
+    ],
+    "lwer": [
+     2,
+     2
+    ],
+    "ms": 495,
+    "vad_ms": 2,
+    "audio_ms": 1760,
+    "confidence": 0.495,
+    "verdict": "unsure",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi02",
+    "group": "hinglish",
+    "reference": "zara chrome band karo",
+    "hypothesis": "Zara Chrome band karo.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     21
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 501,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.77,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi03",
+    "group": "hinglish",
+    "reference": "whatsapp pe jao",
+    "hypothesis": "WhatsApp be jao.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     1,
+     15
+    ],
+    "lwer": [
+     1,
+     3
+    ],
+    "ms": 494,
+    "vad_ms": 3,
+    "audio_ms": 1876,
+    "confidence": 0.539,
+    "verdict": "unsure",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi04",
+    "group": "hinglish",
+    "reference": "vs code ko left karo",
+    "hypothesis": "VS Code ko left karo.",
+    "wer": [
+     0,
+     5
+    ],
+    "cer": [
+     0,
+     20
+    ],
+    "lwer": [
+     0,
+     5
+    ],
+    "ms": 511,
+    "vad_ms": 3,
+    "audio_ms": 2404,
+    "confidence": 0.979,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi05",
+    "group": "hinglish",
+    "reference": "awaaz kam karo",
+    "hypothesis": "Awaaz kam karo.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     14
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 498,
+    "vad_ms": 3,
+    "audio_ms": 1992,
+    "confidence": 0.644,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi06",
+    "group": "hinglish",
+    "reference": "awaaz thodi badha do",
+    "hypothesis": "Awaaz थोडी बढ़ा दो.",
+    "wer": [
+     4,
+     4
+    ],
+    "cer": [
+     12,
+     20
+    ],
+    "lwer": [
+     4,
+     4
+    ],
+    "ms": 542,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.696,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi07",
+    "group": "hinglish",
+    "reference": "gaana chalao",
+    "hypothesis": "Gana chalao.",
+    "wer": [
+     1,
+     2
+    ],
+    "cer": [
+     1,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 496,
+    "vad_ms": 3,
+    "audio_ms": 1800,
+    "confidence": 0.85,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi08",
+    "group": "hinglish",
+    "reference": "agla gaana lagao",
+    "hypothesis": "Agla gaana lagao.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     16
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 504,
+    "vad_ms": 3,
+    "audio_ms": 2004,
+    "confidence": 0.619,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi09",
+    "group": "hinglish",
+    "reference": "das minute ka timer lagao",
+    "hypothesis": "10 minute ka timer lagao.",
+    "wer": [
+     1,
+     5
+    ],
+    "cer": [
+     3,
+     25
+    ],
+    "lwer": [
+     1,
+     5
+    ],
+    "ms": 499,
+    "vad_ms": 4,
+    "audio_ms": 2408,
+    "confidence": 0.7,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi10",
+    "group": "hinglish",
+    "reference": "subah chhe baje utha dena",
+    "hypothesis": "सुभा 6 बजे उठा देना.",
+    "wer": [
+     7,
+     5
+    ],
+    "cer": [
+     21,
+     25
+    ],
+    "lwer": [
+     7,
+     5
+    ],
+    "ms": 560,
+    "vad_ms": 3,
+    "audio_ms": 2480,
+    "confidence": 0.719,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi11",
+    "group": "hinglish",
+    "reference": "mummy ko message bhejo ki main aa raha hoon",
+    "hypothesis": "Mommy ko message bhejoo ki main a raha hoon.",
+    "wer": [
+     3,
+     9
+    ],
+    "cer": [
+     3,
+     43
+    ],
+    "lwer": [
+     2,
+     9
+    ],
+    "ms": 528,
+    "vad_ms": 5,
+    "audio_ms": 3304,
+    "confidence": 0.512,
+    "verdict": "unsure",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi12",
+    "group": "hinglish",
+    "reference": "kya khula hai abhi",
+    "hypothesis": "Akula ya bi.",
+    "wer": [
+     4,
+     4
+    ],
+    "cer": [
+     8,
+     18
+    ],
+    "lwer": [
+     4,
+     4
+    ],
+    "ms": 491,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.474,
+    "verdict": "unsure",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi13",
+    "group": "hinglish",
+    "reference": "youtube pe arijit singh ke gaane chalao",
+    "hypothesis": "YouTube pe Rijit Singh ke gana chalao.",
+    "wer": [
+     2,
+     7
+    ],
+    "cer": [
+     3,
+     39
+    ],
+    "lwer": [
+     2,
+     7
+    ],
+    "ms": 525,
+    "vad_ms": 5,
+    "audio_ms": 4292,
+    "confidence": 0.586,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi14",
+    "group": "hinglish",
+    "reference": "gemini se poocho photosynthesis kya hota hai",
+    "hypothesis": "Gemini से पूछो photosynthesis क्या होता?",
+    "wer": [
+     7,
+     7
+    ],
+    "cer": [
+     18,
+     44
+    ],
+    "lwer": [
+     7,
+     7
+    ],
+    "ms": 556,
+    "vad_ms": 5,
+    "audio_ms": 3496,
+    "confidence": 0.885,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi15",
+    "group": "hinglish",
+    "reference": "mere naye emails padh ke sunao",
+    "hypothesis": "My new emails, read and read.",
+    "wer": [
+     5,
+     6
+    ],
+    "cer": [
+     16,
+     30
+    ],
+    "lwer": [
+     5,
+     6
+    ],
+    "ms": 514,
+    "vad_ms": 5,
+    "audio_ms": 3176,
+    "confidence": 0.552,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi16",
+    "group": "hinglish",
+    "reference": "notepad kholo na",
+    "hypothesis": "Note pad kholo na.",
+    "wer": [
+     2,
+     3
+    ],
+    "cer": [
+     1,
+     16
+    ],
+    "lwer": [
+     2,
+     3
+    ],
+    "ms": 503,
+    "vad_ms": 4,
+    "audio_ms": 1928,
+    "confidence": 0.774,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi17",
+    "group": "hinglish",
+    "reference": "chrome ko bada karo",
+    "hypothesis": "Chrome ko band karo.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     2,
+     19
+    ],
+    "lwer": [
+     1,
+     4
+    ],
+    "ms": 502,
+    "vad_ms": 3,
+    "audio_ms": 2100,
+    "confidence": 0.913,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi18",
+    "group": "hinglish",
+    "reference": "spotify ko chhota karo",
+    "hypothesis": "Spotify ko chota karo.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     1,
+     22
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 501,
+    "vad_ms": 3,
+    "audio_ms": 2408,
+    "confidence": 0.801,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi19",
+    "group": "hinglish",
+    "reference": "downloads folder kholo",
+    "hypothesis": "Downloads folder kholo.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     22
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 503,
+    "vad_ms": 3,
+    "audio_ms": 2344,
+    "confidence": 0.96,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi20",
+    "group": "hinglish",
+    "reference": "screen pe kya hai batao",
+    "hypothesis": "Screen pay, kya hai, batao.",
+    "wer": [
+     1,
+     5
+    ],
+    "cer": [
+     2,
+     23
+    ],
+    "lwer": [
+     1,
+     5
+    ],
+    "ms": 504,
+    "vad_ms": 3,
+    "audio_ms": 2420,
+    "confidence": 0.666,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   }
+  ]
+ },
+ {
+  "summary": {
+   "label": "turbo · en",
+   "model": "stt-turbo",
+   "language": "en",
+   "device": "cuda",
+   "compute": "int8_float16",
+   "load_s": 4.7,
+   "vram_mb": 1096,
+   "english_wer": 0.0,
+   "english_lwer": 0.0,
+   "english_cer": 0.0,
+   "english_routable": 5,
+   "english_command": 100.0,
+   "hinglish_wer": 35.2,
+   "hinglish_lwer": 29.5,
+   "hinglish_cer": 14.0,
+   "hinglish_routable": 8,
+   "hinglish_command": 37.5,
+   "all_wer": 29.5,
+   "all_lwer": 24.8,
+   "all_cer": 11.7,
+   "all_routable": 13,
+   "all_command": 61.5,
+   "median_ms": 268,
+   "p95_ms": 291,
+   "p95_total_ms": 295,
+   "rtf": 0.112,
+   "unsure_pct": 24.0,
+   "empty_pct": 0.0
+  },
+  "utterances": [
+   {
+    "key": "en01",
+    "group": "english",
+    "reference": "open spotify",
+    "hypothesis": "Open Spotify.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 250,
+    "vad_ms": 4,
+    "audio_ms": 1960,
+    "confidence": 0.973,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en02",
+    "group": "english",
+    "reference": "open visual studio code",
+    "hypothesis": "Open Visual Studio Code.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     23
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 248,
+    "vad_ms": 4,
+    "audio_ms": 3028,
+    "confidence": 0.96,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en03",
+    "group": "english",
+    "reference": "switch to chrome",
+    "hypothesis": "Switch to Chrome",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     16
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 242,
+    "vad_ms": 2,
+    "audio_ms": 1684,
+    "confidence": 0.466,
+    "verdict": "unsure",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en04",
+    "group": "english",
+    "reference": "close notepad",
+    "hypothesis": "Close Notepad.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     13
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 247,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.851,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en05",
+    "group": "english",
+    "reference": "snap vs code to the left",
+    "hypothesis": "Snap VS Code to the left.",
+    "wer": [
+     0,
+     6
+    ],
+    "cer": [
+     0,
+     24
+    ],
+    "lwer": [
+     0,
+     6
+    ],
+    "ms": 264,
+    "vad_ms": 4,
+    "audio_ms": 3092,
+    "confidence": 0.965,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi01",
+    "group": "hinglish",
+    "reference": "spotify kholo",
+    "hypothesis": "E foi kholo.",
+    "wer": [
+     2,
+     2
+    ],
+    "cer": [
+     6,
+     13
+    ],
+    "lwer": [
+     2,
+     2
+    ],
+    "ms": 249,
+    "vad_ms": 2,
+    "audio_ms": 1760,
+    "confidence": 0.479,
+    "verdict": "unsure",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi02",
+    "group": "hinglish",
+    "reference": "zara chrome band karo",
+    "hypothesis": "Zara Chrome band karo.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     21
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 265,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.731,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi03",
+    "group": "hinglish",
+    "reference": "whatsapp pe jao",
+    "hypothesis": "WhatsApp be jao.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     1,
+     15
+    ],
+    "lwer": [
+     1,
+     3
+    ],
+    "ms": 278,
+    "vad_ms": 3,
+    "audio_ms": 1876,
+    "confidence": 0.539,
+    "verdict": "unsure",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi04",
+    "group": "hinglish",
+    "reference": "vs code ko left karo",
+    "hypothesis": "VS Code ko left karo.",
+    "wer": [
+     0,
+     5
+    ],
+    "cer": [
+     0,
+     20
+    ],
+    "lwer": [
+     0,
+     5
+    ],
+    "ms": 277,
+    "vad_ms": 3,
+    "audio_ms": 2404,
+    "confidence": 0.974,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi05",
+    "group": "hinglish",
+    "reference": "awaaz kam karo",
+    "hypothesis": "Awaz kam karo.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     1,
+     14
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 269,
+    "vad_ms": 3,
+    "audio_ms": 1992,
+    "confidence": 0.655,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi06",
+    "group": "hinglish",
+    "reference": "awaaz thodi badha do",
+    "hypothesis": "Awaaz thori bada do.",
+    "wer": [
+     2,
+     4
+    ],
+    "cer": [
+     2,
+     20
+    ],
+    "lwer": [
+     1,
+     4
+    ],
+    "ms": 281,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.577,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi07",
+    "group": "hinglish",
+    "reference": "gaana chalao",
+    "hypothesis": "Gana chalao.",
+    "wer": [
+     1,
+     2
+    ],
+    "cer": [
+     1,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 268,
+    "vad_ms": 3,
+    "audio_ms": 1800,
+    "confidence": 0.832,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi08",
+    "group": "hinglish",
+    "reference": "agla gaana lagao",
+    "hypothesis": "Agla gaana lagao.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     16
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 263,
+    "vad_ms": 3,
+    "audio_ms": 2004,
+    "confidence": 0.617,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi09",
+    "group": "hinglish",
+    "reference": "das minute ka timer lagao",
+    "hypothesis": "10 minute ka timer lagao.",
+    "wer": [
+     1,
+     5
+    ],
+    "cer": [
+     3,
+     25
+    ],
+    "lwer": [
+     1,
+     5
+    ],
+    "ms": 252,
+    "vad_ms": 4,
+    "audio_ms": 2408,
+    "confidence": 0.612,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi10",
+    "group": "hinglish",
+    "reference": "subah chhe baje utha dena",
+    "hypothesis": "Subha 6.00 o'clock.",
+    "wer": [
+     5,
+     5
+    ],
+    "cer": [
+     19,
+     25
+    ],
+    "lwer": [
+     5,
+     5
+    ],
+    "ms": 262,
+    "vad_ms": 3,
+    "audio_ms": 2480,
+    "confidence": 0.389,
+    "verdict": "unsure",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi11",
+    "group": "hinglish",
+    "reference": "mummy ko message bhejo ki main aa raha hoon",
+    "hypothesis": "Mommy ko message bhejoo ki main a raha hoon.",
+    "wer": [
+     3,
+     9
+    ],
+    "cer": [
+     3,
+     43
+    ],
+    "lwer": [
+     2,
+     9
+    ],
+    "ms": 270,
+    "vad_ms": 5,
+    "audio_ms": 3304,
+    "confidence": 0.541,
+    "verdict": "unsure",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi12",
+    "group": "hinglish",
+    "reference": "kya khula hai abhi",
+    "hypothesis": "Ako larabi.",
+    "wer": [
+     4,
+     4
+    ],
+    "cer": [
+     11,
+     18
+    ],
+    "lwer": [
+     4,
+     4
+    ],
+    "ms": 246,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.428,
+    "verdict": "unsure",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi13",
+    "group": "hinglish",
+    "reference": "youtube pe arijit singh ke gaane chalao",
+    "hypothesis": "YouTube pe Rijit Singh ke gana chalao.",
+    "wer": [
+     2,
+     7
+    ],
+    "cer": [
+     3,
+     39
+    ],
+    "lwer": [
+     2,
+     7
+    ],
+    "ms": 273,
+    "vad_ms": 5,
+    "audio_ms": 4292,
+    "confidence": 0.58,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi14",
+    "group": "hinglish",
+    "reference": "gemini se poocho photosynthesis kya hota hai",
+    "hypothesis": "Gemini se poochou photosynthesis kya hota?",
+    "wer": [
+     2,
+     7
+    ],
+    "cer": [
+     5,
+     44
+    ],
+    "lwer": [
+     2,
+     7
+    ],
+    "ms": 313,
+    "vad_ms": 5,
+    "audio_ms": 3496,
+    "confidence": 0.792,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi15",
+    "group": "hinglish",
+    "reference": "mere naye emails padh ke sunao",
+    "hypothesis": "Mere naye emails pardke sunao.",
+    "wer": [
+     2,
+     6
+    ],
+    "cer": [
+     3,
+     30
+    ],
+    "lwer": [
+     2,
+     6
+    ],
+    "ms": 291,
+    "vad_ms": 5,
+    "audio_ms": 3176,
+    "confidence": 0.57,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi16",
+    "group": "hinglish",
+    "reference": "notepad kholo na",
+    "hypothesis": "Note pad kholo na.",
+    "wer": [
+     2,
+     3
+    ],
+    "cer": [
+     1,
+     16
+    ],
+    "lwer": [
+     2,
+     3
+    ],
+    "ms": 274,
+    "vad_ms": 4,
+    "audio_ms": 1928,
+    "confidence": 0.779,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi17",
+    "group": "hinglish",
+    "reference": "chrome ko bada karo",
+    "hypothesis": "Chrome ko band karo.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     2,
+     19
+    ],
+    "lwer": [
+     1,
+     4
+    ],
+    "ms": 268,
+    "vad_ms": 3,
+    "audio_ms": 2100,
+    "confidence": 0.909,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi18",
+    "group": "hinglish",
+    "reference": "spotify ko chhota karo",
+    "hypothesis": "Spotify ko chota karo.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     1,
+     22
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 270,
+    "vad_ms": 3,
+    "audio_ms": 2408,
+    "confidence": 0.809,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi19",
+    "group": "hinglish",
+    "reference": "downloads folder kholo",
+    "hypothesis": "Downloads folder kholo.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     22
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 273,
+    "vad_ms": 3,
+    "audio_ms": 2344,
+    "confidence": 0.955,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi20",
+    "group": "hinglish",
+    "reference": "screen pe kya hai batao",
+    "hypothesis": "Screen pay, kya hai, batao.",
+    "wer": [
+     1,
+     5
+    ],
+    "cer": [
+     2,
+     23
+    ],
+    "lwer": [
+     1,
+     5
+    ],
+    "ms": 292,
+    "vad_ms": 3,
+    "audio_ms": 2420,
+    "confidence": 0.706,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   }
+  ]
+ },
+ {
+  "summary": {
+   "label": "hinglish-swift · auto",
+   "model": "stt-hinglish-swift",
+   "language": null,
+   "device": "cuda",
+   "compute": "int8_float16",
+   "load_s": 0.4,
+   "vram_mb": 136,
+   "english_wer": 29.4,
+   "english_lwer": 29.4,
+   "english_cer": 13.6,
+   "english_routable": 5,
+   "english_command": 60.0,
+   "hinglish_wer": 28.4,
+   "hinglish_lwer": 25.0,
+   "hinglish_cer": 11.4,
+   "hinglish_routable": 8,
+   "hinglish_command": 50.0,
+   "all_wer": 28.6,
+   "all_lwer": 25.7,
+   "all_cer": 11.7,
+   "all_routable": 13,
+   "all_command": 53.8,
+   "median_ms": 98,
+   "p95_ms": 136,
+   "p95_total_ms": 141,
+   "rtf": 0.043,
+   "unsure_pct": 4.0,
+   "empty_pct": 0.0
+  },
+  "utterances": [
+   {
+    "key": "en01",
+    "group": "english",
+    "reference": "open spotify",
+    "hypothesis": "Open Spotify.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 81,
+    "vad_ms": 4,
+    "audio_ms": 1960,
+    "confidence": 0.979,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en02",
+    "group": "english",
+    "reference": "open visual studio code",
+    "hypothesis": "Open visual studio code.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     23
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 85,
+    "vad_ms": 4,
+    "audio_ms": 3028,
+    "confidence": 0.986,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en03",
+    "group": "english",
+    "reference": "switch to chrome",
+    "hypothesis": "Stick room.",
+    "wer": [
+     3,
+     3
+    ],
+    "cer": [
+     9,
+     16
+    ],
+    "lwer": [
+     3,
+     3
+    ],
+    "ms": 85,
+    "vad_ms": 2,
+    "audio_ms": 1684,
+    "confidence": 0.529,
+    "verdict": "unsure",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "en04",
+    "group": "english",
+    "reference": "close notepad",
+    "hypothesis": "Close notepad.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     13
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 87,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.922,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en05",
+    "group": "english",
+    "reference": "snap vs code to the left",
+    "hypothesis": "nap yes code to the left.",
+    "wer": [
+     2,
+     6
+    ],
+    "cer": [
+     3,
+     24
+    ],
+    "lwer": [
+     2,
+     6
+    ],
+    "ms": 103,
+    "vad_ms": 4,
+    "audio_ms": 3092,
+    "confidence": 0.554,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi01",
+    "group": "hinglish",
+    "reference": "spotify kholo",
+    "hypothesis": "Spotify kholo.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     13
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 84,
+    "vad_ms": 2,
+    "audio_ms": 1760,
+    "confidence": 0.663,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi02",
+    "group": "hinglish",
+    "reference": "zara chrome band karo",
+    "hypothesis": "Zara Chrome band karo.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     21
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 97,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.968,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi03",
+    "group": "hinglish",
+    "reference": "whatsapp pe jao",
+    "hypothesis": "WhatsApp pe jao.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     15
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 96,
+    "vad_ms": 3,
+    "audio_ms": 1876,
+    "confidence": 0.907,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi04",
+    "group": "hinglish",
+    "reference": "vs code ko left karo",
+    "hypothesis": "BS code ko left karo.",
+    "wer": [
+     1,
+     5
+    ],
+    "cer": [
+     1,
+     20
+    ],
+    "lwer": [
+     1,
+     5
+    ],
+    "ms": 102,
+    "vad_ms": 3,
+    "audio_ms": 2404,
+    "confidence": 0.953,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi05",
+    "group": "hinglish",
+    "reference": "awaaz kam karo",
+    "hypothesis": "Aavaaz kam karo.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     2,
+     14
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 92,
+    "vad_ms": 3,
+    "audio_ms": 1992,
+    "confidence": 0.944,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi06",
+    "group": "hinglish",
+    "reference": "awaaz thodi badha do",
+    "hypothesis": "Aavaaz thodi badha do.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     2,
+     20
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 103,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.974,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi07",
+    "group": "hinglish",
+    "reference": "gaana chalao",
+    "hypothesis": "Gaana chalao.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 98,
+    "vad_ms": 3,
+    "audio_ms": 1800,
+    "confidence": 0.94,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi08",
+    "group": "hinglish",
+    "reference": "agla gaana lagao",
+    "hypothesis": "Agla gaana lagao.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     16
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 102,
+    "vad_ms": 3,
+    "audio_ms": 2004,
+    "confidence": 0.901,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi09",
+    "group": "hinglish",
+    "reference": "das minute ka timer lagao",
+    "hypothesis": "Das minute ka timer lagao.",
+    "wer": [
+     0,
+     5
+    ],
+    "cer": [
+     0,
+     25
+    ],
+    "lwer": [
+     0,
+     5
+    ],
+    "ms": 100,
+    "vad_ms": 4,
+    "audio_ms": 2408,
+    "confidence": 0.904,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi10",
+    "group": "hinglish",
+    "reference": "subah chhe baje utha dena",
+    "hypothesis": "Subah chhah baje utha dena.",
+    "wer": [
+     1,
+     5
+    ],
+    "cer": [
+     2,
+     25
+    ],
+    "lwer": [
+     1,
+     5
+    ],
+    "ms": 124,
+    "vad_ms": 3,
+    "audio_ms": 2480,
+    "confidence": 0.885,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi11",
+    "group": "hinglish",
+    "reference": "mummy ko message bhejo ki main aa raha hoon",
+    "hypothesis": "Mummy ko message bhejoon ki main aa raha hoon.",
+    "wer": [
+     1,
+     9
+    ],
+    "cer": [
+     2,
+     43
+    ],
+    "lwer": [
+     1,
+     9
+    ],
+    "ms": 139,
+    "vad_ms": 5,
+    "audio_ms": 3304,
+    "confidence": 0.872,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi12",
+    "group": "hinglish",
+    "reference": "kya khula hai abhi",
+    "hypothesis": "Open abhi.",
+    "wer": [
+     3,
+     4
+    ],
+    "cer": [
+     13,
+     18
+    ],
+    "lwer": [
+     3,
+     4
+    ],
+    "ms": 94,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.689,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": false
+   },
+   {
+    "key": "hi13",
+    "group": "hinglish",
+    "reference": "youtube pe arijit singh ke gaane chalao",
+    "hypothesis": "YouTube pe arjit ji, arjit sinh ke gaana chalao.",
+    "wer": [
+     5,
+     7
+    ],
+    "cer": [
+     10,
+     39
+    ],
+    "lwer": [
+     5,
+     7
+    ],
+    "ms": 157,
+    "vad_ms": 5,
+    "audio_ms": 4292,
+    "confidence": 0.85,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi14",
+    "group": "hinglish",
+    "reference": "gemini se poocho photosynthesis kya hota hai",
+    "hypothesis": "Germany se poochho photo synthesis kya hota?",
+    "wer": [
+     5,
+     7
+    ],
+    "cer": [
+     9,
+     44
+    ],
+    "lwer": [
+     4,
+     7
+    ],
+    "ms": 136,
+    "vad_ms": 5,
+    "audio_ms": 3496,
+    "confidence": 0.735,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi15",
+    "group": "hinglish",
+    "reference": "mere naye emails padh ke sunao",
+    "hypothesis": "Mere nae emails padh ke sunao.",
+    "wer": [
+     1,
+     6
+    ],
+    "cer": [
+     1,
+     30
+    ],
+    "lwer": [
+     1,
+     6
+    ],
+    "ms": 117,
+    "vad_ms": 5,
+    "audio_ms": 3176,
+    "confidence": 0.806,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi16",
+    "group": "hinglish",
+    "reference": "notepad kholo na",
+    "hypothesis": "Notepad khul hona.",
+    "wer": [
+     2,
+     3
+    ],
+    "cer": [
+     4,
+     16
+    ],
+    "lwer": [
+     2,
+     3
+    ],
+    "ms": 103,
+    "vad_ms": 4,
+    "audio_ms": 1928,
+    "confidence": 0.838,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi17",
+    "group": "hinglish",
+    "reference": "chrome ko bada karo",
+    "hypothesis": "Chrome ko band karo.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     2,
+     19
+    ],
+    "lwer": [
+     1,
+     4
+    ],
+    "ms": 94,
+    "vad_ms": 3,
+    "audio_ms": 2100,
+    "confidence": 0.807,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi18",
+    "group": "hinglish",
+    "reference": "spotify ko chhota karo",
+    "hypothesis": "Spotify ko chhota karo.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     22
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 98,
+    "vad_ms": 3,
+    "audio_ms": 2408,
+    "confidence": 0.907,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi19",
+    "group": "hinglish",
+    "reference": "downloads folder kholo",
+    "hypothesis": "Download folder kholo.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     1,
+     22
+    ],
+    "lwer": [
+     1,
+     3
+    ],
+    "ms": 94,
+    "vad_ms": 3,
+    "audio_ms": 2344,
+    "confidence": 0.961,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi20",
+    "group": "hinglish",
+    "reference": "screen pe kya hai batao",
+    "hypothesis": "Creen par kya hai batao?",
+    "wer": [
+     2,
+     5
+    ],
+    "cer": [
+     3,
+     23
+    ],
+    "lwer": [
+     2,
+     5
+    ],
+    "ms": 111,
+    "vad_ms": 3,
+    "audio_ms": 2420,
+    "confidence": 0.881,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   }
+  ]
+ },
+ {
+  "summary": {
+   "label": "hinglish-swift · en",
+   "model": "stt-hinglish-swift",
+   "language": "en",
+   "device": "cuda",
+   "compute": "int8_float16",
+   "load_s": 0.3,
+   "vram_mb": 136,
+   "english_wer": 29.4,
+   "english_lwer": 29.4,
+   "english_cer": 13.6,
+   "english_routable": 5,
+   "english_command": 60.0,
+   "hinglish_wer": 28.4,
+   "hinglish_lwer": 25.0,
+   "hinglish_cer": 11.4,
+   "hinglish_routable": 8,
+   "hinglish_command": 50.0,
+   "all_wer": 28.6,
+   "all_lwer": 25.7,
+   "all_cer": 11.7,
+   "all_routable": 13,
+   "all_command": 53.8,
+   "median_ms": 75,
+   "p95_ms": 107,
+   "p95_total_ms": 112,
+   "rtf": 0.033,
+   "unsure_pct": 4.0,
+   "empty_pct": 0.0
+  },
+  "utterances": [
+   {
+    "key": "en01",
+    "group": "english",
+    "reference": "open spotify",
+    "hypothesis": "Open Spotify.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 56,
+    "vad_ms": 4,
+    "audio_ms": 1960,
+    "confidence": 0.979,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en02",
+    "group": "english",
+    "reference": "open visual studio code",
+    "hypothesis": "Open visual studio code.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     23
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 64,
+    "vad_ms": 4,
+    "audio_ms": 3028,
+    "confidence": 0.986,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en03",
+    "group": "english",
+    "reference": "switch to chrome",
+    "hypothesis": "Stick room.",
+    "wer": [
+     3,
+     3
+    ],
+    "cer": [
+     9,
+     16
+    ],
+    "lwer": [
+     3,
+     3
+    ],
+    "ms": 58,
+    "vad_ms": 2,
+    "audio_ms": 1684,
+    "confidence": 0.529,
+    "verdict": "unsure",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "en04",
+    "group": "english",
+    "reference": "close notepad",
+    "hypothesis": "Close notepad.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     13
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 66,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.922,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en05",
+    "group": "english",
+    "reference": "snap vs code to the left",
+    "hypothesis": "nap yes code to the left.",
+    "wer": [
+     2,
+     6
+    ],
+    "cer": [
+     3,
+     24
+    ],
+    "lwer": [
+     2,
+     6
+    ],
+    "ms": 84,
+    "vad_ms": 4,
+    "audio_ms": 3092,
+    "confidence": 0.554,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi01",
+    "group": "hinglish",
+    "reference": "spotify kholo",
+    "hypothesis": "Spotify kholo.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     13
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 60,
+    "vad_ms": 2,
+    "audio_ms": 1760,
+    "confidence": 0.663,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi02",
+    "group": "hinglish",
+    "reference": "zara chrome band karo",
+    "hypothesis": "Zara Chrome band karo.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     21
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 78,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.968,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi03",
+    "group": "hinglish",
+    "reference": "whatsapp pe jao",
+    "hypothesis": "WhatsApp pe jao.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     15
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 57,
+    "vad_ms": 3,
+    "audio_ms": 1876,
+    "confidence": 0.907,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi04",
+    "group": "hinglish",
+    "reference": "vs code ko left karo",
+    "hypothesis": "BS code ko left karo.",
+    "wer": [
+     1,
+     5
+    ],
+    "cer": [
+     1,
+     20
+    ],
+    "lwer": [
+     1,
+     5
+    ],
+    "ms": 89,
+    "vad_ms": 3,
+    "audio_ms": 2404,
+    "confidence": 0.953,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi05",
+    "group": "hinglish",
+    "reference": "awaaz kam karo",
+    "hypothesis": "Aavaaz kam karo.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     2,
+     14
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 69,
+    "vad_ms": 3,
+    "audio_ms": 1992,
+    "confidence": 0.944,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi06",
+    "group": "hinglish",
+    "reference": "awaaz thodi badha do",
+    "hypothesis": "Aavaaz thodi badha do.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     2,
+     20
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 86,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.974,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi07",
+    "group": "hinglish",
+    "reference": "gaana chalao",
+    "hypothesis": "Gaana chalao.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 75,
+    "vad_ms": 3,
+    "audio_ms": 1800,
+    "confidence": 0.94,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi08",
+    "group": "hinglish",
+    "reference": "agla gaana lagao",
+    "hypothesis": "Agla gaana lagao.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     16
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 80,
+    "vad_ms": 3,
+    "audio_ms": 2004,
+    "confidence": 0.901,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi09",
+    "group": "hinglish",
+    "reference": "das minute ka timer lagao",
+    "hypothesis": "Das minute ka timer lagao.",
+    "wer": [
+     0,
+     5
+    ],
+    "cer": [
+     0,
+     25
+    ],
+    "lwer": [
+     0,
+     5
+    ],
+    "ms": 77,
+    "vad_ms": 4,
+    "audio_ms": 2408,
+    "confidence": 0.904,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi10",
+    "group": "hinglish",
+    "reference": "subah chhe baje utha dena",
+    "hypothesis": "Subah chhah baje utha dena.",
+    "wer": [
+     1,
+     5
+    ],
+    "cer": [
+     2,
+     25
+    ],
+    "lwer": [
+     1,
+     5
+    ],
+    "ms": 97,
+    "vad_ms": 3,
+    "audio_ms": 2480,
+    "confidence": 0.885,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi11",
+    "group": "hinglish",
+    "reference": "mummy ko message bhejo ki main aa raha hoon",
+    "hypothesis": "Mummy ko message bhejoon ki main aa raha hoon.",
+    "wer": [
+     1,
+     9
+    ],
+    "cer": [
+     2,
+     43
+    ],
+    "lwer": [
+     1,
+     9
+    ],
+    "ms": 107,
+    "vad_ms": 5,
+    "audio_ms": 3304,
+    "confidence": 0.872,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi12",
+    "group": "hinglish",
+    "reference": "kya khula hai abhi",
+    "hypothesis": "Open abhi.",
+    "wer": [
+     3,
+     4
+    ],
+    "cer": [
+     13,
+     18
+    ],
+    "lwer": [
+     3,
+     4
+    ],
+    "ms": 71,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.689,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": false
+   },
+   {
+    "key": "hi13",
+    "group": "hinglish",
+    "reference": "youtube pe arijit singh ke gaane chalao",
+    "hypothesis": "YouTube pe arjit ji, arjit sinh ke gaana chalao.",
+    "wer": [
+     5,
+     7
+    ],
+    "cer": [
+     10,
+     39
+    ],
+    "lwer": [
+     5,
+     7
+    ],
+    "ms": 132,
+    "vad_ms": 5,
+    "audio_ms": 4292,
+    "confidence": 0.85,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi14",
+    "group": "hinglish",
+    "reference": "gemini se poocho photosynthesis kya hota hai",
+    "hypothesis": "Germany se poochho photo synthesis kya hota?",
+    "wer": [
+     5,
+     7
+    ],
+    "cer": [
+     9,
+     44
+    ],
+    "lwer": [
+     4,
+     7
+    ],
+    "ms": 113,
+    "vad_ms": 5,
+    "audio_ms": 3496,
+    "confidence": 0.735,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi15",
+    "group": "hinglish",
+    "reference": "mere naye emails padh ke sunao",
+    "hypothesis": "Mere nae emails padh ke sunao.",
+    "wer": [
+     1,
+     6
+    ],
+    "cer": [
+     1,
+     30
+    ],
+    "lwer": [
+     1,
+     6
+    ],
+    "ms": 101,
+    "vad_ms": 5,
+    "audio_ms": 3176,
+    "confidence": 0.806,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi16",
+    "group": "hinglish",
+    "reference": "notepad kholo na",
+    "hypothesis": "Notepad khul hona.",
+    "wer": [
+     2,
+     3
+    ],
+    "cer": [
+     4,
+     16
+    ],
+    "lwer": [
+     2,
+     3
+    ],
+    "ms": 70,
+    "vad_ms": 4,
+    "audio_ms": 1928,
+    "confidence": 0.838,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi17",
+    "group": "hinglish",
+    "reference": "chrome ko bada karo",
+    "hypothesis": "Chrome ko band karo.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     2,
+     19
+    ],
+    "lwer": [
+     1,
+     4
+    ],
+    "ms": 74,
+    "vad_ms": 3,
+    "audio_ms": 2100,
+    "confidence": 0.807,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi18",
+    "group": "hinglish",
+    "reference": "spotify ko chhota karo",
+    "hypothesis": "Spotify ko chhota karo.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     22
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 72,
+    "vad_ms": 3,
+    "audio_ms": 2408,
+    "confidence": 0.907,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi19",
+    "group": "hinglish",
+    "reference": "downloads folder kholo",
+    "hypothesis": "Download folder kholo.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     1,
+     22
+    ],
+    "lwer": [
+     1,
+     3
+    ],
+    "ms": 71,
+    "vad_ms": 3,
+    "audio_ms": 2344,
+    "confidence": 0.961,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi20",
+    "group": "hinglish",
+    "reference": "screen pe kya hai batao",
+    "hypothesis": "Creen par kya hai batao?",
+    "wer": [
+     2,
+     5
+    ],
+    "cer": [
+     3,
+     23
+    ],
+    "lwer": [
+     2,
+     5
+    ],
+    "ms": 84,
+    "vad_ms": 3,
+    "audio_ms": 2420,
+    "confidence": 0.881,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   }
+  ]
+ },
+ {
+  "summary": {
+   "label": "hinglish-prime · auto",
+   "model": "stt-hinglish-prime",
+   "language": null,
+   "device": "cuda",
+   "compute": "int8_float16",
+   "load_s": 3.9,
+   "vram_mb": 1992,
+   "english_wer": 23.5,
+   "english_lwer": 23.5,
+   "english_cer": 12.5,
+   "english_routable": 5,
+   "english_command": 60.0,
+   "hinglish_wer": 19.3,
+   "hinglish_lwer": 15.9,
+   "hinglish_cer": 6.3,
+   "hinglish_routable": 8,
+   "hinglish_command": 62.5,
+   "all_wer": 20.0,
+   "all_lwer": 17.1,
+   "all_cer": 7.3,
+   "all_routable": 13,
+   "all_command": 61.5,
+   "median_ms": 732,
+   "p95_ms": 903,
+   "p95_total_ms": 908,
+   "rtf": 0.315,
+   "unsure_pct": 0.0,
+   "empty_pct": 0.0
+  },
+  "utterances": [
+   {
+    "key": "en01",
+    "group": "english",
+    "reference": "open spotify",
+    "hypothesis": "Open Spotify.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 664,
+    "vad_ms": 4,
+    "audio_ms": 1960,
+    "confidence": 0.995,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en02",
+    "group": "english",
+    "reference": "open visual studio code",
+    "hypothesis": "Open visual studio code.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     23
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 667,
+    "vad_ms": 4,
+    "audio_ms": 3028,
+    "confidence": 0.994,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en03",
+    "group": "english",
+    "reference": "switch to chrome",
+    "hypothesis": "Stock room.",
+    "wer": [
+     3,
+     3
+    ],
+    "cer": [
+     10,
+     16
+    ],
+    "lwer": [
+     3,
+     3
+    ],
+    "ms": 659,
+    "vad_ms": 2,
+    "audio_ms": 1684,
+    "confidence": 0.681,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "en04",
+    "group": "english",
+    "reference": "close notepad",
+    "hypothesis": "Close notepad.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     13
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 690,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.925,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en05",
+    "group": "english",
+    "reference": "snap vs code to the left",
+    "hypothesis": "Nap VS Code to the left.",
+    "wer": [
+     1,
+     6
+    ],
+    "cer": [
+     1,
+     24
+    ],
+    "lwer": [
+     1,
+     6
+    ],
+    "ms": 762,
+    "vad_ms": 4,
+    "audio_ms": 3092,
+    "confidence": 0.817,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi01",
+    "group": "hinglish",
+    "reference": "spotify kholo",
+    "hypothesis": "FY kholo.",
+    "wer": [
+     1,
+     2
+    ],
+    "cer": [
+     5,
+     13
+    ],
+    "lwer": [
+     1,
+     2
+    ],
+    "ms": 685,
+    "vad_ms": 2,
+    "audio_ms": 1760,
+    "confidence": 0.718,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi02",
+    "group": "hinglish",
+    "reference": "zara chrome band karo",
+    "hypothesis": "Zara Chrome band karo.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     21
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 716,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.982,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi03",
+    "group": "hinglish",
+    "reference": "whatsapp pe jao",
+    "hypothesis": "WhatsApp par jao.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     2,
+     15
+    ],
+    "lwer": [
+     1,
+     3
+    ],
+    "ms": 712,
+    "vad_ms": 3,
+    "audio_ms": 1876,
+    "confidence": 0.998,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi04",
+    "group": "hinglish",
+    "reference": "vs code ko left karo",
+    "hypothesis": "VS Code ko left karo.",
+    "wer": [
+     0,
+     5
+    ],
+    "cer": [
+     0,
+     20
+    ],
+    "lwer": [
+     0,
+     5
+    ],
+    "ms": 731,
+    "vad_ms": 3,
+    "audio_ms": 2404,
+    "confidence": 0.978,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi05",
+    "group": "hinglish",
+    "reference": "awaaz kam karo",
+    "hypothesis": "Aavaaz kam karo.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     2,
+     14
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 714,
+    "vad_ms": 3,
+    "audio_ms": 1992,
+    "confidence": 0.999,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi06",
+    "group": "hinglish",
+    "reference": "awaaz thodi badha do",
+    "hypothesis": "Aavaaz thodi badha do.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     2,
+     20
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 761,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.999,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi07",
+    "group": "hinglish",
+    "reference": "gaana chalao",
+    "hypothesis": "Gaana chalao.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 709,
+    "vad_ms": 3,
+    "audio_ms": 1800,
+    "confidence": 1.0,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi08",
+    "group": "hinglish",
+    "reference": "agla gaana lagao",
+    "hypothesis": "Agla gaana lagao.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     16
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 742,
+    "vad_ms": 3,
+    "audio_ms": 2004,
+    "confidence": 0.987,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi09",
+    "group": "hinglish",
+    "reference": "das minute ka timer lagao",
+    "hypothesis": "Das minute ka timer lagao.",
+    "wer": [
+     0,
+     5
+    ],
+    "cer": [
+     0,
+     25
+    ],
+    "lwer": [
+     0,
+     5
+    ],
+    "ms": 737,
+    "vad_ms": 4,
+    "audio_ms": 2408,
+    "confidence": 0.998,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi10",
+    "group": "hinglish",
+    "reference": "subah chhe baje utha dena",
+    "hypothesis": "Subah chhah baje utha dena.",
+    "wer": [
+     1,
+     5
+    ],
+    "cer": [
+     2,
+     25
+    ],
+    "lwer": [
+     1,
+     5
+    ],
+    "ms": 832,
+    "vad_ms": 3,
+    "audio_ms": 2480,
+    "confidence": 0.999,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi11",
+    "group": "hinglish",
+    "reference": "mummy ko message bhejo ki main aa raha hoon",
+    "hypothesis": "Mommy ko message bhejoon ki main aa raha hoon.",
+    "wer": [
+     2,
+     9
+    ],
+    "cer": [
+     3,
+     43
+    ],
+    "lwer": [
+     2,
+     9
+    ],
+    "ms": 924,
+    "vad_ms": 5,
+    "audio_ms": 3304,
+    "confidence": 0.961,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi12",
+    "group": "hinglish",
+    "reference": "kya khula hai abhi",
+    "hypothesis": "Kya khula hai abhi?",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     18
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 732,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.912,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi13",
+    "group": "hinglish",
+    "reference": "youtube pe arijit singh ke gaane chalao",
+    "hypothesis": "YouTube par arijit sinh ke gaane chalao.",
+    "wer": [
+     2,
+     7
+    ],
+    "cer": [
+     3,
+     39
+    ],
+    "lwer": [
+     2,
+     7
+    ],
+    "ms": 925,
+    "vad_ms": 5,
+    "audio_ms": 4292,
+    "confidence": 0.904,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi14",
+    "group": "hinglish",
+    "reference": "gemini se poocho photosynthesis kya hota hai",
+    "hypothesis": "Gemini se poochho photosynthesis kya hota hai?",
+    "wer": [
+     1,
+     7
+    ],
+    "cer": [
+     1,
+     44
+    ],
+    "lwer": [
+     0,
+     7
+    ],
+    "ms": 903,
+    "vad_ms": 5,
+    "audio_ms": 3496,
+    "confidence": 0.907,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi15",
+    "group": "hinglish",
+    "reference": "mere naye emails padh ke sunao",
+    "hypothesis": "Mere nae emails padhakar sunao.",
+    "wer": [
+     3,
+     6
+    ],
+    "cer": [
+     4,
+     30
+    ],
+    "lwer": [
+     3,
+     6
+    ],
+    "ms": 849,
+    "vad_ms": 5,
+    "audio_ms": 3176,
+    "confidence": 0.963,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi16",
+    "group": "hinglish",
+    "reference": "notepad kholo na",
+    "hypothesis": "Note pad kholo na.",
+    "wer": [
+     2,
+     3
+    ],
+    "cer": [
+     1,
+     16
+    ],
+    "lwer": [
+     2,
+     3
+    ],
+    "ms": 731,
+    "vad_ms": 4,
+    "audio_ms": 1928,
+    "confidence": 0.927,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi17",
+    "group": "hinglish",
+    "reference": "chrome ko bada karo",
+    "hypothesis": "Chrome ko band karo.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     2,
+     19
+    ],
+    "lwer": [
+     1,
+     4
+    ],
+    "ms": 712,
+    "vad_ms": 3,
+    "audio_ms": 2100,
+    "confidence": 0.973,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi18",
+    "group": "hinglish",
+    "reference": "spotify ko chhota karo",
+    "hypothesis": "Spotify ko chhota karo.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     22
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 775,
+    "vad_ms": 3,
+    "audio_ms": 2408,
+    "confidence": 0.999,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi19",
+    "group": "hinglish",
+    "reference": "downloads folder kholo",
+    "hypothesis": "Downloads folder kholo.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     22
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 732,
+    "vad_ms": 3,
+    "audio_ms": 2344,
+    "confidence": 0.982,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi20",
+    "group": "hinglish",
+    "reference": "screen pe kya hai batao",
+    "hypothesis": "Screen par kya hai batao?",
+    "wer": [
+     1,
+     5
+    ],
+    "cer": [
+     2,
+     23
+    ],
+    "lwer": [
+     1,
+     5
+    ],
+    "ms": 795,
+    "vad_ms": 3,
+    "audio_ms": 2420,
+    "confidence": 0.997,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   }
+  ]
+ },
+ {
+  "summary": {
+   "label": "hinglish-prime · en",
+   "model": "stt-hinglish-prime",
+   "language": "en",
+   "device": "cuda",
+   "compute": "int8_float16",
+   "load_s": 3.4,
+   "vram_mb": 1992,
+   "english_wer": 23.5,
+   "english_lwer": 23.5,
+   "english_cer": 12.5,
+   "english_routable": 5,
+   "english_command": 60.0,
+   "hinglish_wer": 19.3,
+   "hinglish_lwer": 15.9,
+   "hinglish_cer": 6.3,
+   "hinglish_routable": 8,
+   "hinglish_command": 62.5,
+   "all_wer": 20.0,
+   "all_lwer": 17.1,
+   "all_cer": 7.3,
+   "all_routable": 13,
+   "all_command": 61.5,
+   "median_ms": 489,
+   "p95_ms": 643,
+   "p95_total_ms": 648,
+   "rtf": 0.211,
+   "unsure_pct": 0.0,
+   "empty_pct": 0.0
+  },
+  "utterances": [
+   {
+    "key": "en01",
+    "group": "english",
+    "reference": "open spotify",
+    "hypothesis": "Open Spotify.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 415,
+    "vad_ms": 4,
+    "audio_ms": 1960,
+    "confidence": 0.995,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en02",
+    "group": "english",
+    "reference": "open visual studio code",
+    "hypothesis": "Open visual studio code.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     23
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 411,
+    "vad_ms": 4,
+    "audio_ms": 3028,
+    "confidence": 0.994,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en03",
+    "group": "english",
+    "reference": "switch to chrome",
+    "hypothesis": "Stock room.",
+    "wer": [
+     3,
+     3
+    ],
+    "cer": [
+     10,
+     16
+    ],
+    "lwer": [
+     3,
+     3
+    ],
+    "ms": 413,
+    "vad_ms": 2,
+    "audio_ms": 1684,
+    "confidence": 0.681,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "en04",
+    "group": "english",
+    "reference": "close notepad",
+    "hypothesis": "Close notepad.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     13
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 430,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.925,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en05",
+    "group": "english",
+    "reference": "snap vs code to the left",
+    "hypothesis": "Nap VS Code to the left.",
+    "wer": [
+     1,
+     6
+    ],
+    "cer": [
+     1,
+     24
+    ],
+    "lwer": [
+     1,
+     6
+    ],
+    "ms": 521,
+    "vad_ms": 4,
+    "audio_ms": 3092,
+    "confidence": 0.817,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi01",
+    "group": "hinglish",
+    "reference": "spotify kholo",
+    "hypothesis": "FY kholo.",
+    "wer": [
+     1,
+     2
+    ],
+    "cer": [
+     5,
+     13
+    ],
+    "lwer": [
+     1,
+     2
+    ],
+    "ms": 434,
+    "vad_ms": 2,
+    "audio_ms": 1760,
+    "confidence": 0.718,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi02",
+    "group": "hinglish",
+    "reference": "zara chrome band karo",
+    "hypothesis": "Zara Chrome band karo.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     21
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 453,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.982,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi03",
+    "group": "hinglish",
+    "reference": "whatsapp pe jao",
+    "hypothesis": "WhatsApp par jao.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     2,
+     15
+    ],
+    "lwer": [
+     1,
+     3
+    ],
+    "ms": 454,
+    "vad_ms": 3,
+    "audio_ms": 1876,
+    "confidence": 0.998,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi04",
+    "group": "hinglish",
+    "reference": "vs code ko left karo",
+    "hypothesis": "VS Code ko left karo.",
+    "wer": [
+     0,
+     5
+    ],
+    "cer": [
+     0,
+     20
+    ],
+    "lwer": [
+     0,
+     5
+    ],
+    "ms": 496,
+    "vad_ms": 3,
+    "audio_ms": 2404,
+    "confidence": 0.978,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi05",
+    "group": "hinglish",
+    "reference": "awaaz kam karo",
+    "hypothesis": "Aavaaz kam karo.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     2,
+     14
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 453,
+    "vad_ms": 3,
+    "audio_ms": 1992,
+    "confidence": 0.999,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi06",
+    "group": "hinglish",
+    "reference": "awaaz thodi badha do",
+    "hypothesis": "Aavaaz thodi badha do.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     2,
+     20
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 510,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.999,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi07",
+    "group": "hinglish",
+    "reference": "gaana chalao",
+    "hypothesis": "Gaana chalao.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 466,
+    "vad_ms": 3,
+    "audio_ms": 1800,
+    "confidence": 1.0,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi08",
+    "group": "hinglish",
+    "reference": "agla gaana lagao",
+    "hypothesis": "Agla gaana lagao.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     16
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 482,
+    "vad_ms": 3,
+    "audio_ms": 2004,
+    "confidence": 0.987,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi09",
+    "group": "hinglish",
+    "reference": "das minute ka timer lagao",
+    "hypothesis": "Das minute ka timer lagao.",
+    "wer": [
+     0,
+     5
+    ],
+    "cer": [
+     0,
+     25
+    ],
+    "lwer": [
+     0,
+     5
+    ],
+    "ms": 493,
+    "vad_ms": 4,
+    "audio_ms": 2408,
+    "confidence": 0.998,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi10",
+    "group": "hinglish",
+    "reference": "subah chhe baje utha dena",
+    "hypothesis": "Subah chhah baje utha dena.",
+    "wer": [
+     1,
+     5
+    ],
+    "cer": [
+     2,
+     25
+    ],
+    "lwer": [
+     1,
+     5
+    ],
+    "ms": 580,
+    "vad_ms": 3,
+    "audio_ms": 2480,
+    "confidence": 0.999,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi11",
+    "group": "hinglish",
+    "reference": "mummy ko message bhejo ki main aa raha hoon",
+    "hypothesis": "Mommy ko message bhejoon ki main aa raha hoon.",
+    "wer": [
+     2,
+     9
+    ],
+    "cer": [
+     3,
+     43
+    ],
+    "lwer": [
+     2,
+     9
+    ],
+    "ms": 686,
+    "vad_ms": 5,
+    "audio_ms": 3304,
+    "confidence": 0.961,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi12",
+    "group": "hinglish",
+    "reference": "kya khula hai abhi",
+    "hypothesis": "Kya khula hai abhi?",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     18
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 478,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.912,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi13",
+    "group": "hinglish",
+    "reference": "youtube pe arijit singh ke gaane chalao",
+    "hypothesis": "YouTube par arijit sinh ke gaane chalao.",
+    "wer": [
+     2,
+     7
+    ],
+    "cer": [
+     3,
+     39
+    ],
+    "lwer": [
+     2,
+     7
+    ],
+    "ms": 669,
+    "vad_ms": 5,
+    "audio_ms": 4292,
+    "confidence": 0.904,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi14",
+    "group": "hinglish",
+    "reference": "gemini se poocho photosynthesis kya hota hai",
+    "hypothesis": "Gemini se poochho photosynthesis kya hota hai?",
+    "wer": [
+     1,
+     7
+    ],
+    "cer": [
+     1,
+     44
+    ],
+    "lwer": [
+     0,
+     7
+    ],
+    "ms": 643,
+    "vad_ms": 5,
+    "audio_ms": 3496,
+    "confidence": 0.907,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi15",
+    "group": "hinglish",
+    "reference": "mere naye emails padh ke sunao",
+    "hypothesis": "Mere nae emails padhakar sunao.",
+    "wer": [
+     3,
+     6
+    ],
+    "cer": [
+     4,
+     30
+    ],
+    "lwer": [
+     3,
+     6
+    ],
+    "ms": 607,
+    "vad_ms": 5,
+    "audio_ms": 3176,
+    "confidence": 0.963,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi16",
+    "group": "hinglish",
+    "reference": "notepad kholo na",
+    "hypothesis": "Note pad kholo na.",
+    "wer": [
+     2,
+     3
+    ],
+    "cer": [
+     1,
+     16
+    ],
+    "lwer": [
+     2,
+     3
+    ],
+    "ms": 489,
+    "vad_ms": 4,
+    "audio_ms": 1928,
+    "confidence": 0.927,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi17",
+    "group": "hinglish",
+    "reference": "chrome ko bada karo",
+    "hypothesis": "Chrome ko band karo.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     2,
+     19
+    ],
+    "lwer": [
+     1,
+     4
+    ],
+    "ms": 470,
+    "vad_ms": 3,
+    "audio_ms": 2100,
+    "confidence": 0.973,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi18",
+    "group": "hinglish",
+    "reference": "spotify ko chhota karo",
+    "hypothesis": "Spotify ko chhota karo.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     22
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 536,
+    "vad_ms": 3,
+    "audio_ms": 2408,
+    "confidence": 0.999,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi19",
+    "group": "hinglish",
+    "reference": "downloads folder kholo",
+    "hypothesis": "Downloads folder kholo.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     22
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 491,
+    "vad_ms": 3,
+    "audio_ms": 2344,
+    "confidence": 0.982,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi20",
+    "group": "hinglish",
+    "reference": "screen pe kya hai batao",
+    "hypothesis": "Screen par kya hai batao?",
+    "wer": [
+     1,
+     5
+    ],
+    "cer": [
+     2,
+     23
+    ],
+    "lwer": [
+     1,
+     5
+    ],
+    "ms": 554,
+    "vad_ms": 3,
+    "audio_ms": 2420,
+    "confidence": 0.997,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   }
+  ]
+ },
+ {
+  "summary": {
+   "label": "hinglish-trelis · auto",
+   "model": "stt-hinglish-trelis",
+   "language": null,
+   "device": "cuda",
+   "compute": "int8_float16",
+   "load_s": 4.4,
+   "vram_mb": 1992,
+   "english_wer": 0.0,
+   "english_lwer": 0.0,
+   "english_cer": 0.0,
+   "english_routable": 5,
+   "english_command": 100.0,
+   "hinglish_wer": 125.0,
+   "hinglish_lwer": 125.0,
+   "hinglish_cer": 62.6,
+   "hinglish_routable": 8,
+   "hinglish_command": 0.0,
+   "all_wer": 104.8,
+   "all_lwer": 104.8,
+   "all_cer": 52.5,
+   "all_routable": 13,
+   "all_command": 38.5,
+   "median_ms": 879,
+   "p95_ms": 1248,
+   "p95_total_ms": 1253,
+   "rtf": 0.393,
+   "unsure_pct": 4.0,
+   "empty_pct": 0.0
+  },
+  "utterances": [
+   {
+    "key": "en01",
+    "group": "english",
+    "reference": "open spotify",
+    "hypothesis": "Open Spotify.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 622,
+    "vad_ms": 4,
+    "audio_ms": 1960,
+    "confidence": 0.841,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en02",
+    "group": "english",
+    "reference": "open visual studio code",
+    "hypothesis": "Open Visual Studio Code.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     23
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 665,
+    "vad_ms": 4,
+    "audio_ms": 3028,
+    "confidence": 0.907,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en03",
+    "group": "english",
+    "reference": "switch to chrome",
+    "hypothesis": "Switch to Chrome.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     16
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 647,
+    "vad_ms": 2,
+    "audio_ms": 1684,
+    "confidence": 0.531,
+    "verdict": "unsure",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en04",
+    "group": "english",
+    "reference": "close notepad",
+    "hypothesis": "Close Notepad.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     13
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 686,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.897,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en05",
+    "group": "english",
+    "reference": "snap vs code to the left",
+    "hypothesis": "Snap VS Code to the left.",
+    "wer": [
+     0,
+     6
+    ],
+    "cer": [
+     0,
+     24
+    ],
+    "lwer": [
+     0,
+     6
+    ],
+    "ms": 741,
+    "vad_ms": 4,
+    "audio_ms": 3092,
+    "confidence": 0.888,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi01",
+    "group": "hinglish",
+    "reference": "spotify kholo",
+    "hypothesis": "Spotify खोलो।",
+    "wer": [
+     2,
+     2
+    ],
+    "cer": [
+     5,
+     13
+    ],
+    "lwer": [
+     2,
+     2
+    ],
+    "ms": 789,
+    "vad_ms": 2,
+    "audio_ms": 1760,
+    "confidence": 0.755,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi02",
+    "group": "hinglish",
+    "reference": "zara chrome band karo",
+    "hypothesis": "जरा Chrome बंद करो।",
+    "wer": [
+     4,
+     4
+    ],
+    "cer": [
+     12,
+     21
+    ],
+    "lwer": [
+     4,
+     4
+    ],
+    "ms": 898,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.945,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi03",
+    "group": "hinglish",
+    "reference": "whatsapp pe jao",
+    "hypothesis": "WhatsApp पे जाओ।",
+    "wer": [
+     3,
+     3
+    ],
+    "cer": [
+     5,
+     15
+    ],
+    "lwer": [
+     3,
+     3
+    ],
+    "ms": 862,
+    "vad_ms": 3,
+    "audio_ms": 1876,
+    "confidence": 0.937,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi04",
+    "group": "hinglish",
+    "reference": "vs code ko left karo",
+    "hypothesis": "VS Code को left करो।",
+    "wer": [
+     2,
+     5
+    ],
+    "cer": [
+     6,
+     20
+    ],
+    "lwer": [
+     2,
+     5
+    ],
+    "ms": 850,
+    "vad_ms": 3,
+    "audio_ms": 2404,
+    "confidence": 0.975,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi05",
+    "group": "hinglish",
+    "reference": "awaaz kam karo",
+    "hypothesis": "आवाज़ कम करो",
+    "wer": [
+     4,
+     3
+    ],
+    "cer": [
+     12,
+     14
+    ],
+    "lwer": [
+     4,
+     3
+    ],
+    "ms": 876,
+    "vad_ms": 3,
+    "audio_ms": 1992,
+    "confidence": 0.853,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi06",
+    "group": "hinglish",
+    "reference": "awaaz thodi badha do",
+    "hypothesis": "आवाज़ थोड़ी बढ़ा दो",
+    "wer": [
+     6,
+     4
+    ],
+    "cer": [
+     17,
+     20
+    ],
+    "lwer": [
+     6,
+     4
+    ],
+    "ms": 1226,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.934,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi07",
+    "group": "hinglish",
+    "reference": "gaana chalao",
+    "hypothesis": "गाना चलाओ",
+    "wer": [
+     4,
+     2
+    ],
+    "cer": [
+     11,
+     12
+    ],
+    "lwer": [
+     4,
+     2
+    ],
+    "ms": 829,
+    "vad_ms": 3,
+    "audio_ms": 1800,
+    "confidence": 0.948,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi08",
+    "group": "hinglish",
+    "reference": "agla gaana lagao",
+    "hypothesis": "अगला गाना लगाओ।",
+    "wer": [
+     5,
+     3
+    ],
+    "cer": [
+     14,
+     16
+    ],
+    "lwer": [
+     5,
+     3
+    ],
+    "ms": 1027,
+    "vad_ms": 3,
+    "audio_ms": 2004,
+    "confidence": 0.972,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi09",
+    "group": "hinglish",
+    "reference": "das minute ka timer lagao",
+    "hypothesis": "दस minute का timer लगाओ।",
+    "wer": [
+     4,
+     5
+    ],
+    "cer": [
+     10,
+     25
+    ],
+    "lwer": [
+     4,
+     5
+    ],
+    "ms": 923,
+    "vad_ms": 4,
+    "audio_ms": 2408,
+    "confidence": 0.95,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi10",
+    "group": "hinglish",
+    "reference": "subah chhe baje utha dena",
+    "hypothesis": "सुबह छे बजे उठा देना।",
+    "wer": [
+     7,
+     5
+    ],
+    "cer": [
+     21,
+     25
+    ],
+    "lwer": [
+     7,
+     5
+    ],
+    "ms": 1157,
+    "vad_ms": 3,
+    "audio_ms": 2480,
+    "confidence": 0.96,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi11",
+    "group": "hinglish",
+    "reference": "mummy ko message bhejo ki main aa raha hoon",
+    "hypothesis": "मम्मी को message भेजो कि मैं आ रहा हूँ।",
+    "wer": [
+     10,
+     9
+    ],
+    "cer": [
+     28,
+     43
+    ],
+    "lwer": [
+     10,
+     9
+    ],
+    "ms": 1349,
+    "vad_ms": 5,
+    "audio_ms": 3304,
+    "confidence": 0.924,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi12",
+    "group": "hinglish",
+    "reference": "kya khula hai abhi",
+    "hypothesis": "का खुला है अभी?",
+    "wer": [
+     5,
+     4
+    ],
+    "cer": [
+     15,
+     18
+    ],
+    "lwer": [
+     5,
+     4
+    ],
+    "ms": 918,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.936,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi13",
+    "group": "hinglish",
+    "reference": "youtube pe arijit singh ke gaane chalao",
+    "hypothesis": "YouTube पे अरिजीत सिंह के गाने चलाओ",
+    "wer": [
+     11,
+     7
+    ],
+    "cer": [
+     26,
+     39
+    ],
+    "lwer": [
+     11,
+     7
+    ],
+    "ms": 1248,
+    "vad_ms": 5,
+    "audio_ms": 4292,
+    "confidence": 0.952,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi14",
+    "group": "hinglish",
+    "reference": "gemini se poocho photosynthesis kya hota hai",
+    "hypothesis": "जेमिनाई से पूछो फोटोसिंथिस क्या होता",
+    "wer": [
+     16,
+     7
+    ],
+    "cer": [
+     38,
+     44
+    ],
+    "lwer": [
+     16,
+     7
+    ],
+    "ms": 1512,
+    "vad_ms": 5,
+    "audio_ms": 3496,
+    "confidence": 0.968,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi15",
+    "group": "hinglish",
+    "reference": "mere naye emails padh ke sunao",
+    "hypothesis": "मेरे नए emails पढ़ के सुनाओ",
+    "wer": [
+     8,
+     6
+    ],
+    "cer": [
+     19,
+     30
+    ],
+    "lwer": [
+     8,
+     6
+    ],
+    "ms": 1192,
+    "vad_ms": 5,
+    "audio_ms": 3176,
+    "confidence": 0.903,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi16",
+    "group": "hinglish",
+    "reference": "notepad kholo na",
+    "hypothesis": "Notepad खोलो ना!",
+    "wer": [
+     3,
+     3
+    ],
+    "cer": [
+     7,
+     16
+    ],
+    "lwer": [
+     3,
+     3
+    ],
+    "ms": 843,
+    "vad_ms": 4,
+    "audio_ms": 1928,
+    "confidence": 0.881,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi17",
+    "group": "hinglish",
+    "reference": "chrome ko bada karo",
+    "hypothesis": "Chrome को बंद करो।",
+    "wer": [
+     4,
+     4
+    ],
+    "cer": [
+     10,
+     19
+    ],
+    "lwer": [
+     4,
+     4
+    ],
+    "ms": 879,
+    "vad_ms": 3,
+    "audio_ms": 2100,
+    "confidence": 0.994,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi18",
+    "group": "hinglish",
+    "reference": "spotify ko chhota karo",
+    "hypothesis": "Spotify को छोटा करो।",
+    "wer": [
+     4,
+     4
+    ],
+    "cer": [
+     12,
+     22
+    ],
+    "lwer": [
+     4,
+     4
+    ],
+    "ms": 935,
+    "vad_ms": 3,
+    "audio_ms": 2408,
+    "confidence": 0.974,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi19",
+    "group": "hinglish",
+    "reference": "downloads folder kholo",
+    "hypothesis": "Downloads folder खोलो।",
+    "wer": [
+     2,
+     3
+    ],
+    "cer": [
+     5,
+     22
+    ],
+    "lwer": [
+     2,
+     3
+    ],
+    "ms": 855,
+    "vad_ms": 3,
+    "audio_ms": 2344,
+    "confidence": 0.892,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi20",
+    "group": "hinglish",
+    "reference": "screen pe kya hai batao",
+    "hypothesis": "Screen पे क्या है बताओ?",
+    "wer": [
+     6,
+     5
+    ],
+    "cer": [
+     13,
+     23
+    ],
+    "lwer": [
+     6,
+     5
+    ],
+    "ms": 983,
+    "vad_ms": 3,
+    "audio_ms": 2420,
+    "confidence": 0.946,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   }
+  ]
+ },
+ {
+  "summary": {
+   "label": "hinglish-trelis · en",
+   "model": "stt-hinglish-trelis",
+   "language": "en",
+   "device": "cuda",
+   "compute": "int8_float16",
+   "load_s": 3.8,
+   "vram_mb": 1992,
+   "english_wer": 0.0,
+   "english_lwer": 0.0,
+   "english_cer": 0.0,
+   "english_routable": 5,
+   "english_command": 100.0,
+   "hinglish_wer": 119.3,
+   "hinglish_lwer": 119.3,
+   "hinglish_cer": 61.1,
+   "hinglish_routable": 8,
+   "hinglish_command": 0.0,
+   "all_wer": 100.0,
+   "all_lwer": 100.0,
+   "all_cer": 51.2,
+   "all_routable": 13,
+   "all_command": 38.5,
+   "median_ms": 619,
+   "p95_ms": 1104,
+   "p95_total_ms": 1109,
+   "rtf": 0.283,
+   "unsure_pct": 4.0,
+   "empty_pct": 0.0
+  },
+  "utterances": [
+   {
+    "key": "en01",
+    "group": "english",
+    "reference": "open spotify",
+    "hypothesis": "Open Spotify.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 358,
+    "vad_ms": 4,
+    "audio_ms": 1960,
+    "confidence": 0.841,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en02",
+    "group": "english",
+    "reference": "open visual studio code",
+    "hypothesis": "Open Visual Studio Code.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     23
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 408,
+    "vad_ms": 4,
+    "audio_ms": 3028,
+    "confidence": 0.907,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en03",
+    "group": "english",
+    "reference": "switch to chrome",
+    "hypothesis": "Switch to Chrome.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     16
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 384,
+    "vad_ms": 2,
+    "audio_ms": 1684,
+    "confidence": 0.531,
+    "verdict": "unsure",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en04",
+    "group": "english",
+    "reference": "close notepad",
+    "hypothesis": "Close Notepad.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     13
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 436,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.897,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en05",
+    "group": "english",
+    "reference": "snap vs code to the left",
+    "hypothesis": "Snap VS Code to the left.",
+    "wer": [
+     0,
+     6
+    ],
+    "cer": [
+     0,
+     24
+    ],
+    "lwer": [
+     0,
+     6
+    ],
+    "ms": 479,
+    "vad_ms": 4,
+    "audio_ms": 3092,
+    "confidence": 0.888,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi01",
+    "group": "hinglish",
+    "reference": "spotify kholo",
+    "hypothesis": "Spotify खोलो।",
+    "wer": [
+     2,
+     2
+    ],
+    "cer": [
+     5,
+     13
+    ],
+    "lwer": [
+     2,
+     2
+    ],
+    "ms": 552,
+    "vad_ms": 2,
+    "audio_ms": 1760,
+    "confidence": 0.728,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi02",
+    "group": "hinglish",
+    "reference": "zara chrome band karo",
+    "hypothesis": "जरा Chrome बंद करो।",
+    "wer": [
+     4,
+     4
+    ],
+    "cer": [
+     12,
+     21
+    ],
+    "lwer": [
+     4,
+     4
+    ],
+    "ms": 671,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.961,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi03",
+    "group": "hinglish",
+    "reference": "whatsapp pe jao",
+    "hypothesis": "WhatsApp पे जाओ",
+    "wer": [
+     3,
+     3
+    ],
+    "cer": [
+     5,
+     15
+    ],
+    "lwer": [
+     3,
+     3
+    ],
+    "ms": 540,
+    "vad_ms": 3,
+    "audio_ms": 1876,
+    "confidence": 0.869,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi04",
+    "group": "hinglish",
+    "reference": "vs code ko left karo",
+    "hypothesis": "VS Code को left करो।",
+    "wer": [
+     2,
+     5
+    ],
+    "cer": [
+     6,
+     20
+    ],
+    "lwer": [
+     2,
+     5
+    ],
+    "ms": 559,
+    "vad_ms": 3,
+    "audio_ms": 2404,
+    "confidence": 0.98,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi05",
+    "group": "hinglish",
+    "reference": "awaaz kam karo",
+    "hypothesis": "आवाज कम करो।",
+    "wer": [
+     4,
+     3
+    ],
+    "cer": [
+     12,
+     14
+    ],
+    "lwer": [
+     4,
+     3
+    ],
+    "ms": 635,
+    "vad_ms": 3,
+    "audio_ms": 1992,
+    "confidence": 0.889,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi06",
+    "group": "hinglish",
+    "reference": "awaaz thodi badha do",
+    "hypothesis": "आवाज़ थोड़ी बढ़ा दो",
+    "wer": [
+     6,
+     4
+    ],
+    "cer": [
+     17,
+     20
+    ],
+    "lwer": [
+     6,
+     4
+    ],
+    "ms": 944,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.943,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi07",
+    "group": "hinglish",
+    "reference": "gaana chalao",
+    "hypothesis": "�ाना चलाओ",
+    "wer": [
+     3,
+     2
+    ],
+    "cer": [
+     11,
+     12
+    ],
+    "lwer": [
+     3,
+     2
+    ],
+    "ms": 519,
+    "vad_ms": 3,
+    "audio_ms": 1800,
+    "confidence": 0.711,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi08",
+    "group": "hinglish",
+    "reference": "agla gaana lagao",
+    "hypothesis": "अगला गाना लगाओ",
+    "wer": [
+     5,
+     3
+    ],
+    "cer": [
+     14,
+     16
+    ],
+    "lwer": [
+     5,
+     3
+    ],
+    "ms": 719,
+    "vad_ms": 3,
+    "audio_ms": 2004,
+    "confidence": 0.949,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi09",
+    "group": "hinglish",
+    "reference": "das minute ka timer lagao",
+    "hypothesis": "Dस minute का timer लगाओ",
+    "wer": [
+     4,
+     5
+    ],
+    "cer": [
+     9,
+     25
+    ],
+    "lwer": [
+     4,
+     5
+    ],
+    "ms": 619,
+    "vad_ms": 4,
+    "audio_ms": 2408,
+    "confidence": 0.88,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi10",
+    "group": "hinglish",
+    "reference": "subah chhe baje utha dena",
+    "hypothesis": "सुबह छे बजे उठा देना।",
+    "wer": [
+     7,
+     5
+    ],
+    "cer": [
+     21,
+     25
+    ],
+    "lwer": [
+     7,
+     5
+    ],
+    "ms": 906,
+    "vad_ms": 3,
+    "audio_ms": 2480,
+    "confidence": 0.942,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi11",
+    "group": "hinglish",
+    "reference": "mummy ko message bhejo ki main aa raha hoon",
+    "hypothesis": "मम्मी को message भेजो कि मैं आ रहा हूं।",
+    "wer": [
+     10,
+     9
+    ],
+    "cer": [
+     28,
+     43
+    ],
+    "lwer": [
+     10,
+     9
+    ],
+    "ms": 1104,
+    "vad_ms": 5,
+    "audio_ms": 3304,
+    "confidence": 0.953,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi12",
+    "group": "hinglish",
+    "reference": "kya khula hai abhi",
+    "hypothesis": "का खुला है अभी?",
+    "wer": [
+     5,
+     4
+    ],
+    "cer": [
+     15,
+     18
+    ],
+    "lwer": [
+     5,
+     4
+    ],
+    "ms": 692,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.914,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi13",
+    "group": "hinglish",
+    "reference": "youtube pe arijit singh ke gaane chalao",
+    "hypothesis": "YouTube पे अरिजीत सिंह के गाने चलाओ",
+    "wer": [
+     11,
+     7
+    ],
+    "cer": [
+     26,
+     39
+    ],
+    "lwer": [
+     11,
+     7
+    ],
+    "ms": 1175,
+    "vad_ms": 5,
+    "audio_ms": 4292,
+    "confidence": 0.924,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi14",
+    "group": "hinglish",
+    "reference": "gemini se poocho photosynthesis kya hota hai",
+    "hypothesis": "Gemini से पूछो फोटोसिंथिस क्या होता?",
+    "wer": [
+     12,
+     7
+    ],
+    "cer": [
+     32,
+     44
+    ],
+    "lwer": [
+     12,
+     7
+    ],
+    "ms": 1124,
+    "vad_ms": 5,
+    "audio_ms": 3496,
+    "confidence": 0.943,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi15",
+    "group": "hinglish",
+    "reference": "mere naye emails padh ke sunao",
+    "hypothesis": "मेरे नए emails पढ़ के सुनाओ।",
+    "wer": [
+     8,
+     6
+    ],
+    "cer": [
+     19,
+     30
+    ],
+    "lwer": [
+     8,
+     6
+    ],
+    "ms": 920,
+    "vad_ms": 5,
+    "audio_ms": 3176,
+    "confidence": 0.947,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi16",
+    "group": "hinglish",
+    "reference": "notepad kholo na",
+    "hypothesis": "Notepad खोलो ना।",
+    "wer": [
+     3,
+     3
+    ],
+    "cer": [
+     7,
+     16
+    ],
+    "lwer": [
+     3,
+     3
+    ],
+    "ms": 593,
+    "vad_ms": 4,
+    "audio_ms": 1928,
+    "confidence": 0.878,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi17",
+    "group": "hinglish",
+    "reference": "chrome ko bada karo",
+    "hypothesis": "Chrome को बंद करो",
+    "wer": [
+     4,
+     4
+    ],
+    "cer": [
+     10,
+     19
+    ],
+    "lwer": [
+     4,
+     4
+    ],
+    "ms": 610,
+    "vad_ms": 3,
+    "audio_ms": 2100,
+    "confidence": 0.791,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi18",
+    "group": "hinglish",
+    "reference": "spotify ko chhota karo",
+    "hypothesis": "Spotify को छोटा करो।",
+    "wer": [
+     4,
+     4
+    ],
+    "cer": [
+     12,
+     22
+    ],
+    "lwer": [
+     4,
+     4
+    ],
+    "ms": 668,
+    "vad_ms": 3,
+    "audio_ms": 2408,
+    "confidence": 0.988,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi19",
+    "group": "hinglish",
+    "reference": "downloads folder kholo",
+    "hypothesis": "Downloads folder खोलो।",
+    "wer": [
+     2,
+     3
+    ],
+    "cer": [
+     5,
+     22
+    ],
+    "lwer": [
+     2,
+     3
+    ],
+    "ms": 545,
+    "vad_ms": 3,
+    "audio_ms": 2344,
+    "confidence": 0.936,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi20",
+    "group": "hinglish",
+    "reference": "screen pe kya hai batao",
+    "hypothesis": "Screen पे क्या है बताओ?",
+    "wer": [
+     6,
+     5
+    ],
+    "cer": [
+     13,
+     23
+    ],
+    "lwer": [
+     6,
+     5
+    ],
+    "ms": 728,
+    "vad_ms": 3,
+    "audio_ms": 2420,
+    "confidence": 0.961,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   }
+  ]
+ },
+ {
+  "summary": {
+   "label": "small · en · CPU",
+   "model": "stt-small",
+   "language": "en",
+   "device": "cpu",
+   "compute": "int8",
+   "load_s": 3.6,
+   "vram_mb": 0,
+   "english_wer": 0.0,
+   "english_lwer": 0.0,
+   "english_cer": 0.0,
+   "english_routable": 5,
+   "english_command": 100.0,
+   "hinglish_wer": 43.2,
+   "hinglish_lwer": 38.6,
+   "hinglish_cer": 14.9,
+   "hinglish_routable": 8,
+   "hinglish_command": 50.0,
+   "all_wer": 36.2,
+   "all_lwer": 32.4,
+   "all_cer": 12.5,
+   "all_routable": 13,
+   "all_command": 69.2,
+   "median_ms": 2400,
+   "p95_ms": 2480,
+   "p95_total_ms": 2485,
+   "rtf": 1.007,
+   "unsure_pct": 12.0,
+   "empty_pct": 0.0
+  },
+  "utterances": [
+   {
+    "key": "en01",
+    "group": "english",
+    "reference": "open spotify",
+    "hypothesis": "Open Spotify.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 2330,
+    "vad_ms": 4,
+    "audio_ms": 1960,
+    "confidence": 0.93,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en02",
+    "group": "english",
+    "reference": "open visual studio code",
+    "hypothesis": "Open Visual Studio Code.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     23
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 2403,
+    "vad_ms": 4,
+    "audio_ms": 3028,
+    "confidence": 0.893,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en03",
+    "group": "english",
+    "reference": "switch to chrome",
+    "hypothesis": "Switch to Chrome.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     16
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 2342,
+    "vad_ms": 2,
+    "audio_ms": 1684,
+    "confidence": 0.618,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en04",
+    "group": "english",
+    "reference": "close notepad",
+    "hypothesis": "Close Notepad.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     13
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 2365,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.887,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en05",
+    "group": "english",
+    "reference": "snap vs code to the left",
+    "hypothesis": "Snap VS Code to the left.",
+    "wer": [
+     0,
+     6
+    ],
+    "cer": [
+     0,
+     24
+    ],
+    "lwer": [
+     0,
+     6
+    ],
+    "ms": 2440,
+    "vad_ms": 4,
+    "audio_ms": 3092,
+    "confidence": 0.908,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi01",
+    "group": "hinglish",
+    "reference": "spotify kholo",
+    "hypothesis": "If I call you.",
+    "wer": [
+     4,
+     2
+    ],
+    "cer": [
+     12,
+     13
+    ],
+    "lwer": [
+     4,
+     2
+    ],
+    "ms": 2386,
+    "vad_ms": 2,
+    "audio_ms": 1760,
+    "confidence": 0.712,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi02",
+    "group": "hinglish",
+    "reference": "zara chrome band karo",
+    "hypothesis": "Zara Chrome band karo.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     21
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 2393,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.833,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi03",
+    "group": "hinglish",
+    "reference": "whatsapp pe jao",
+    "hypothesis": "WhatsApp pe jao.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     15
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 2375,
+    "vad_ms": 3,
+    "audio_ms": 1876,
+    "confidence": 0.859,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi04",
+    "group": "hinglish",
+    "reference": "vs code ko left karo",
+    "hypothesis": "VS Code ko left karo.",
+    "wer": [
+     0,
+     5
+    ],
+    "cer": [
+     0,
+     20
+    ],
+    "lwer": [
+     0,
+     5
+    ],
+    "ms": 2428,
+    "vad_ms": 3,
+    "audio_ms": 2404,
+    "confidence": 0.916,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi05",
+    "group": "hinglish",
+    "reference": "awaaz kam karo",
+    "hypothesis": "Avaas kam karo.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     2,
+     14
+    ],
+    "lwer": [
+     1,
+     3
+    ],
+    "ms": 2432,
+    "vad_ms": 3,
+    "audio_ms": 1992,
+    "confidence": 0.666,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi06",
+    "group": "hinglish",
+    "reference": "awaaz thodi badha do",
+    "hypothesis": "Avaas thodi badhaa do.",
+    "wer": [
+     2,
+     4
+    ],
+    "cer": [
+     3,
+     20
+    ],
+    "lwer": [
+     1,
+     4
+    ],
+    "ms": 2442,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.463,
+    "verdict": "unsure",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi07",
+    "group": "hinglish",
+    "reference": "gaana chalao",
+    "hypothesis": "Gana chalao.",
+    "wer": [
+     1,
+     2
+    ],
+    "cer": [
+     1,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 2383,
+    "vad_ms": 3,
+    "audio_ms": 1800,
+    "confidence": 0.793,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi08",
+    "group": "hinglish",
+    "reference": "agla gaana lagao",
+    "hypothesis": "Agnagana lagao.",
+    "wer": [
+     2,
+     3
+    ],
+    "cer": [
+     3,
+     16
+    ],
+    "lwer": [
+     2,
+     3
+    ],
+    "ms": 2400,
+    "vad_ms": 3,
+    "audio_ms": 2004,
+    "confidence": 0.591,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi09",
+    "group": "hinglish",
+    "reference": "das minute ka timer lagao",
+    "hypothesis": "Das wet ka timer lagao.",
+    "wer": [
+     1,
+     5
+    ],
+    "cer": [
+     5,
+     25
+    ],
+    "lwer": [
+     1,
+     5
+    ],
+    "ms": 2366,
+    "vad_ms": 4,
+    "audio_ms": 2408,
+    "confidence": 0.668,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi10",
+    "group": "hinglish",
+    "reference": "subah chhe baje utha dena",
+    "hypothesis": "Tuba chhe baje uthaarina.",
+    "wer": [
+     3,
+     5
+    ],
+    "cer": [
+     5,
+     25
+    ],
+    "lwer": [
+     3,
+     5
+    ],
+    "ms": 2420,
+    "vad_ms": 3,
+    "audio_ms": 2480,
+    "confidence": 0.553,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi11",
+    "group": "hinglish",
+    "reference": "mummy ko message bhejo ki main aa raha hoon",
+    "hypothesis": "Mami ko message bejo ki mai aar aahoon.",
+    "wer": [
+     6,
+     9
+    ],
+    "cer": [
+     9,
+     43
+    ],
+    "lwer": [
+     5,
+     9
+    ],
+    "ms": 2480,
+    "vad_ms": 5,
+    "audio_ms": 3304,
+    "confidence": 0.49,
+    "verdict": "unsure",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi12",
+    "group": "hinglish",
+    "reference": "kya khula hai abhi",
+    "hypothesis": "A khola abhi.",
+    "wer": [
+     3,
+     4
+    ],
+    "cer": [
+     7,
+     18
+    ],
+    "lwer": [
+     3,
+     4
+    ],
+    "ms": 2412,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.47,
+    "verdict": "unsure",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi13",
+    "group": "hinglish",
+    "reference": "youtube pe arijit singh ke gaane chalao",
+    "hypothesis": "YouTube pe Arjit Singh ke gana chalao.",
+    "wer": [
+     2,
+     7
+    ],
+    "cer": [
+     3,
+     39
+    ],
+    "lwer": [
+     2,
+     7
+    ],
+    "ms": 2503,
+    "vad_ms": 5,
+    "audio_ms": 4292,
+    "confidence": 0.745,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi14",
+    "group": "hinglish",
+    "reference": "gemini se poocho photosynthesis kya hota hai",
+    "hypothesis": "Gemini se pooch ho, photo synthesis kya hota?",
+    "wer": [
+     5,
+     7
+    ],
+    "cer": [
+     7,
+     44
+    ],
+    "lwer": [
+     5,
+     7
+    ],
+    "ms": 2510,
+    "vad_ms": 5,
+    "audio_ms": 3496,
+    "confidence": 0.59,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi15",
+    "group": "hinglish",
+    "reference": "mere naye emails padh ke sunao",
+    "hypothesis": "Meri naaya emails padke sunao.",
+    "wer": [
+     4,
+     6
+    ],
+    "cer": [
+     5,
+     30
+    ],
+    "lwer": [
+     4,
+     6
+    ],
+    "ms": 2451,
+    "vad_ms": 5,
+    "audio_ms": 3176,
+    "confidence": 0.596,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi16",
+    "group": "hinglish",
+    "reference": "notepad kholo na",
+    "hypothesis": "Notepad kholo na.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     16
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 2375,
+    "vad_ms": 4,
+    "audio_ms": 1928,
+    "confidence": 0.867,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi17",
+    "group": "hinglish",
+    "reference": "chrome ko bada karo",
+    "hypothesis": "Chrome ko band karo.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     2,
+     19
+    ],
+    "lwer": [
+     1,
+     4
+    ],
+    "ms": 2389,
+    "vad_ms": 3,
+    "audio_ms": 2100,
+    "confidence": 0.863,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi18",
+    "group": "hinglish",
+    "reference": "spotify ko chhota karo",
+    "hypothesis": "Spotify ko chhoda karo.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     1,
+     22
+    ],
+    "lwer": [
+     1,
+     4
+    ],
+    "ms": 2364,
+    "vad_ms": 3,
+    "audio_ms": 2408,
+    "confidence": 0.889,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi19",
+    "group": "hinglish",
+    "reference": "downloads folder kholo",
+    "hypothesis": "Downloads folder kolo.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     1,
+     22
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 2393,
+    "vad_ms": 3,
+    "audio_ms": 2344,
+    "confidence": 0.842,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi20",
+    "group": "hinglish",
+    "reference": "screen pe kya hai batao",
+    "hypothesis": "Kreen pe kya hai batao?",
+    "wer": [
+     1,
+     5
+    ],
+    "cer": [
+     2,
+     23
+    ],
+    "lwer": [
+     1,
+     5
+    ],
+    "ms": 2415,
+    "vad_ms": 3,
+    "audio_ms": 2420,
+    "confidence": 0.753,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   }
+  ]
+ },
+ {
+  "summary": {
+   "label": "swift · en · CPU",
+   "model": "stt-hinglish-swift",
+   "language": "en",
+   "device": "cpu",
+   "compute": "int8",
+   "load_s": 1.0,
+   "vram_mb": 0,
+   "english_wer": 29.4,
+   "english_lwer": 29.4,
+   "english_cer": 13.6,
+   "english_routable": 5,
+   "english_command": 60.0,
+   "hinglish_wer": 35.2,
+   "hinglish_lwer": 31.8,
+   "hinglish_cer": 14.4,
+   "hinglish_routable": 8,
+   "hinglish_command": 25.0,
+   "all_wer": 34.3,
+   "all_lwer": 31.4,
+   "all_cer": 14.3,
+   "all_routable": 13,
+   "all_command": 38.5,
+   "median_ms": 747,
+   "p95_ms": 787,
+   "p95_total_ms": 792,
+   "rtf": 0.314,
+   "unsure_pct": 4.0,
+   "empty_pct": 0.0
+  },
+  "utterances": [
+   {
+    "key": "en01",
+    "group": "english",
+    "reference": "open spotify",
+    "hypothesis": "Open Spotify.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 724,
+    "vad_ms": 4,
+    "audio_ms": 1960,
+    "confidence": 0.975,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en02",
+    "group": "english",
+    "reference": "open visual studio code",
+    "hypothesis": "Open visual studio code.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     23
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 740,
+    "vad_ms": 4,
+    "audio_ms": 3028,
+    "confidence": 0.989,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en03",
+    "group": "english",
+    "reference": "switch to chrome",
+    "hypothesis": "Stick room.",
+    "wer": [
+     3,
+     3
+    ],
+    "cer": [
+     9,
+     16
+    ],
+    "lwer": [
+     3,
+     3
+    ],
+    "ms": 724,
+    "vad_ms": 2,
+    "audio_ms": 1684,
+    "confidence": 0.52,
+    "verdict": "unsure",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "en04",
+    "group": "english",
+    "reference": "close notepad",
+    "hypothesis": "Close notepad.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     13
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 733,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.902,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en05",
+    "group": "english",
+    "reference": "snap vs code to the left",
+    "hypothesis": "nap yes code to the left.",
+    "wer": [
+     2,
+     6
+    ],
+    "cer": [
+     3,
+     24
+    ],
+    "lwer": [
+     2,
+     6
+    ],
+    "ms": 752,
+    "vad_ms": 4,
+    "audio_ms": 3092,
+    "confidence": 0.551,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi01",
+    "group": "hinglish",
+    "reference": "spotify kholo",
+    "hypothesis": "If I callo.",
+    "wer": [
+     3,
+     2
+    ],
+    "cer": [
+     9,
+     13
+    ],
+    "lwer": [
+     3,
+     2
+    ],
+    "ms": 733,
+    "vad_ms": 2,
+    "audio_ms": 1760,
+    "confidence": 0.551,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi02",
+    "group": "hinglish",
+    "reference": "zara chrome band karo",
+    "hypothesis": "Zara Chrome band karo.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     21
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 741,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.97,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi03",
+    "group": "hinglish",
+    "reference": "whatsapp pe jao",
+    "hypothesis": "WhatsApp pe jao.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     15
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 735,
+    "vad_ms": 3,
+    "audio_ms": 1876,
+    "confidence": 0.943,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi04",
+    "group": "hinglish",
+    "reference": "vs code ko left karo",
+    "hypothesis": "BS code ko left karo.",
+    "wer": [
+     1,
+     5
+    ],
+    "cer": [
+     1,
+     20
+    ],
+    "lwer": [
+     1,
+     5
+    ],
+    "ms": 747,
+    "vad_ms": 3,
+    "audio_ms": 2404,
+    "confidence": 0.936,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi05",
+    "group": "hinglish",
+    "reference": "awaaz kam karo",
+    "hypothesis": "Aavaaz kam karo.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     2,
+     14
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 741,
+    "vad_ms": 3,
+    "audio_ms": 1992,
+    "confidence": 0.937,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi06",
+    "group": "hinglish",
+    "reference": "awaaz thodi badha do",
+    "hypothesis": "Aavaaz thodi badha do.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     2,
+     20
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 756,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.975,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi07",
+    "group": "hinglish",
+    "reference": "gaana chalao",
+    "hypothesis": "Gaana chalao.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 747,
+    "vad_ms": 3,
+    "audio_ms": 1800,
+    "confidence": 0.94,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi08",
+    "group": "hinglish",
+    "reference": "agla gaana lagao",
+    "hypothesis": "Agla gaana lagao.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     16
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 752,
+    "vad_ms": 3,
+    "audio_ms": 2004,
+    "confidence": 0.906,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi09",
+    "group": "hinglish",
+    "reference": "das minute ka timer lagao",
+    "hypothesis": "Das minute ka timer lagao.",
+    "wer": [
+     0,
+     5
+    ],
+    "cer": [
+     0,
+     25
+    ],
+    "lwer": [
+     0,
+     5
+    ],
+    "ms": 741,
+    "vad_ms": 4,
+    "audio_ms": 2408,
+    "confidence": 0.923,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi10",
+    "group": "hinglish",
+    "reference": "subah chhe baje utha dena",
+    "hypothesis": "Subah chhah baje utha dena.",
+    "wer": [
+     1,
+     5
+    ],
+    "cer": [
+     2,
+     25
+    ],
+    "lwer": [
+     1,
+     5
+    ],
+    "ms": 770,
+    "vad_ms": 3,
+    "audio_ms": 2480,
+    "confidence": 0.889,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi11",
+    "group": "hinglish",
+    "reference": "mummy ko message bhejo ki main aa raha hoon",
+    "hypothesis": "Mummy ko message bhejoon ki main aa raha hoon.",
+    "wer": [
+     1,
+     9
+    ],
+    "cer": [
+     2,
+     43
+    ],
+    "lwer": [
+     1,
+     9
+    ],
+    "ms": 787,
+    "vad_ms": 5,
+    "audio_ms": 3304,
+    "confidence": 0.873,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi12",
+    "group": "hinglish",
+    "reference": "kya khula hai abhi",
+    "hypothesis": "Akula abhi.",
+    "wer": [
+     3,
+     4
+    ],
+    "cer": [
+     8,
+     18
+    ],
+    "lwer": [
+     3,
+     4
+    ],
+    "ms": 747,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.686,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi13",
+    "group": "hinglish",
+    "reference": "youtube pe arijit singh ke gaane chalao",
+    "hypothesis": "YouTube pe arrezi ki arrezi sinh ke gaana chalao.",
+    "wer": [
+     5,
+     7
+    ],
+    "cer": [
+     14,
+     39
+    ],
+    "lwer": [
+     5,
+     7
+    ],
+    "ms": 795,
+    "vad_ms": 5,
+    "audio_ms": 4292,
+    "confidence": 0.798,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi14",
+    "group": "hinglish",
+    "reference": "gemini se poocho photosynthesis kya hota hai",
+    "hypothesis": "Zimni se poochho photo synthesis kya hota?",
+    "wer": [
+     5,
+     7
+    ],
+    "cer": [
+     9,
+     44
+    ],
+    "lwer": [
+     4,
+     7
+    ],
+    "ms": 791,
+    "vad_ms": 5,
+    "audio_ms": 3496,
+    "confidence": 0.719,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi15",
+    "group": "hinglish",
+    "reference": "mere naye emails padh ke sunao",
+    "hypothesis": "Mere nae emails padh ke sunao.",
+    "wer": [
+     1,
+     6
+    ],
+    "cer": [
+     1,
+     30
+    ],
+    "lwer": [
+     1,
+     6
+    ],
+    "ms": 763,
+    "vad_ms": 5,
+    "audio_ms": 3176,
+    "confidence": 0.807,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi16",
+    "group": "hinglish",
+    "reference": "notepad kholo na",
+    "hypothesis": "Notepad khul hona.",
+    "wer": [
+     2,
+     3
+    ],
+    "cer": [
+     4,
+     16
+    ],
+    "lwer": [
+     2,
+     3
+    ],
+    "ms": 754,
+    "vad_ms": 4,
+    "audio_ms": 1928,
+    "confidence": 0.832,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi17",
+    "group": "hinglish",
+    "reference": "chrome ko bada karo",
+    "hypothesis": "Cram ko band karo.",
+    "wer": [
+     2,
+     4
+    ],
+    "cer": [
+     5,
+     19
+    ],
+    "lwer": [
+     2,
+     4
+    ],
+    "ms": 729,
+    "vad_ms": 3,
+    "audio_ms": 2100,
+    "confidence": 0.692,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi18",
+    "group": "hinglish",
+    "reference": "spotify ko chhota karo",
+    "hypothesis": "Spotify coach hota karo.",
+    "wer": [
+     2,
+     4
+    ],
+    "cer": [
+     3,
+     22
+    ],
+    "lwer": [
+     2,
+     4
+    ],
+    "ms": 749,
+    "vad_ms": 3,
+    "audio_ms": 2408,
+    "confidence": 0.873,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi19",
+    "group": "hinglish",
+    "reference": "downloads folder kholo",
+    "hypothesis": "Download folder kholo.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     1,
+     22
+    ],
+    "lwer": [
+     1,
+     3
+    ],
+    "ms": 731,
+    "vad_ms": 3,
+    "audio_ms": 2344,
+    "confidence": 0.966,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi20",
+    "group": "hinglish",
+    "reference": "screen pe kya hai batao",
+    "hypothesis": "Creen par kya hai batao?",
+    "wer": [
+     2,
+     5
+    ],
+    "cer": [
+     3,
+     23
+    ],
+    "lwer": [
+     2,
+     5
+    ],
+    "ms": 781,
+    "vad_ms": 3,
+    "audio_ms": 2420,
+    "confidence": 0.87,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   }
+  ]
+ },
+ {
+  "summary": {
+   "label": "turbo · en · CPU",
+   "model": "stt-turbo",
+   "language": "en",
+   "device": "cpu",
+   "compute": "int8",
+   "load_s": 15.2,
+   "vram_mb": 0,
+   "english_wer": 0.0,
+   "english_lwer": 0.0,
+   "english_cer": 0.0,
+   "english_routable": 5,
+   "english_command": 100.0,
+   "hinglish_wer": 48.9,
+   "hinglish_lwer": 40.9,
+   "hinglish_cer": 21.7,
+   "hinglish_routable": 8,
+   "hinglish_command": 25.0,
+   "all_wer": 41.0,
+   "all_lwer": 34.3,
+   "all_cer": 18.2,
+   "all_routable": 13,
+   "all_command": 53.8,
+   "median_ms": 10027,
+   "p95_ms": 10275,
+   "p95_total_ms": 10279,
+   "rtf": 4.207,
+   "unsure_pct": 32.0,
+   "empty_pct": 0.0
+  },
+  "utterances": [
+   {
+    "key": "en01",
+    "group": "english",
+    "reference": "open spotify",
+    "hypothesis": "Open Spotify.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 10647,
+    "vad_ms": 4,
+    "audio_ms": 1960,
+    "confidence": 0.968,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en02",
+    "group": "english",
+    "reference": "open visual studio code",
+    "hypothesis": "Open Visual Studio Code.",
+    "wer": [
+     0,
+     4
+    ],
+    "cer": [
+     0,
+     23
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 10651,
+    "vad_ms": 4,
+    "audio_ms": 3028,
+    "confidence": 0.965,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en03",
+    "group": "english",
+    "reference": "switch to chrome",
+    "hypothesis": "Switch to Chrome.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     16
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 10169,
+    "vad_ms": 2,
+    "audio_ms": 1684,
+    "confidence": 0.84,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en04",
+    "group": "english",
+    "reference": "close notepad",
+    "hypothesis": "Close Notepad.",
+    "wer": [
+     0,
+     2
+    ],
+    "cer": [
+     0,
+     13
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 10124,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.859,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "en05",
+    "group": "english",
+    "reference": "snap vs code to the left",
+    "hypothesis": "Snap VS Code to the left.",
+    "wer": [
+     0,
+     6
+    ],
+    "cer": [
+     0,
+     24
+    ],
+    "lwer": [
+     0,
+     6
+    ],
+    "ms": 10275,
+    "vad_ms": 4,
+    "audio_ms": 3092,
+    "confidence": 0.966,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi01",
+    "group": "hinglish",
+    "reference": "spotify kholo",
+    "hypothesis": "If I call it.",
+    "wer": [
+     4,
+     2
+    ],
+    "cer": [
+     12,
+     13
+    ],
+    "lwer": [
+     4,
+     2
+    ],
+    "ms": 9942,
+    "vad_ms": 2,
+    "audio_ms": 1760,
+    "confidence": 0.428,
+    "verdict": "unsure",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi02",
+    "group": "hinglish",
+    "reference": "zara chrome band karo",
+    "hypothesis": "Zara Chrome bant karo.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     1,
+     21
+    ],
+    "lwer": [
+     1,
+     4
+    ],
+    "ms": 10124,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.597,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi03",
+    "group": "hinglish",
+    "reference": "whatsapp pe jao",
+    "hypothesis": "WhatsApp be jao.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     1,
+     15
+    ],
+    "lwer": [
+     1,
+     3
+    ],
+    "ms": 9995,
+    "vad_ms": 3,
+    "audio_ms": 1876,
+    "confidence": 0.469,
+    "verdict": "unsure",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi04",
+    "group": "hinglish",
+    "reference": "vs code ko left karo",
+    "hypothesis": "VS Code ko left karo.",
+    "wer": [
+     0,
+     5
+    ],
+    "cer": [
+     0,
+     20
+    ],
+    "lwer": [
+     0,
+     5
+    ],
+    "ms": 10048,
+    "vad_ms": 3,
+    "audio_ms": 2404,
+    "confidence": 0.974,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi05",
+    "group": "hinglish",
+    "reference": "awaaz kam karo",
+    "hypothesis": "Awaz kam karo.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     1,
+     14
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 10094,
+    "vad_ms": 3,
+    "audio_ms": 1992,
+    "confidence": 0.689,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi06",
+    "group": "hinglish",
+    "reference": "awaaz thodi badha do",
+    "hypothesis": "Awaaz thori bada do.",
+    "wer": [
+     2,
+     4
+    ],
+    "cer": [
+     2,
+     20
+    ],
+    "lwer": [
+     1,
+     4
+    ],
+    "ms": 10123,
+    "vad_ms": 3,
+    "audio_ms": 2196,
+    "confidence": 0.574,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi07",
+    "group": "hinglish",
+    "reference": "gaana chalao",
+    "hypothesis": "Gana chalao.",
+    "wer": [
+     1,
+     2
+    ],
+    "cer": [
+     1,
+     12
+    ],
+    "lwer": [
+     0,
+     2
+    ],
+    "ms": 10099,
+    "vad_ms": 3,
+    "audio_ms": 1800,
+    "confidence": 0.817,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi08",
+    "group": "hinglish",
+    "reference": "agla gaana lagao",
+    "hypothesis": "Aagla gaana lagao.",
+    "wer": [
+     1,
+     3
+    ],
+    "cer": [
+     1,
+     16
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 10026,
+    "vad_ms": 3,
+    "audio_ms": 2004,
+    "confidence": 0.516,
+    "verdict": "unsure",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi09",
+    "group": "hinglish",
+    "reference": "das minute ka timer lagao",
+    "hypothesis": "10 minutes time.",
+    "wer": [
+     5,
+     5
+    ],
+    "cer": [
+     13,
+     25
+    ],
+    "lwer": [
+     5,
+     5
+    ],
+    "ms": 10027,
+    "vad_ms": 4,
+    "audio_ms": 2408,
+    "confidence": 0.336,
+    "verdict": "unsure",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi10",
+    "group": "hinglish",
+    "reference": "subah chhe baje utha dena",
+    "hypothesis": "So, let's get up at 6 o'clock.",
+    "wer": [
+     7,
+     5
+    ],
+    "cer": [
+     26,
+     25
+    ],
+    "lwer": [
+     7,
+     5
+    ],
+    "ms": 9942,
+    "vad_ms": 3,
+    "audio_ms": 2480,
+    "confidence": 0.406,
+    "verdict": "unsure",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi11",
+    "group": "hinglish",
+    "reference": "mummy ko message bhejo ki main aa raha hoon",
+    "hypothesis": "Mommy ko message bhejo ki main a raha hoon.",
+    "wer": [
+     2,
+     9
+    ],
+    "cer": [
+     2,
+     43
+    ],
+    "lwer": [
+     1,
+     9
+    ],
+    "ms": 9622,
+    "vad_ms": 5,
+    "audio_ms": 3304,
+    "confidence": 0.504,
+    "verdict": "unsure",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi12",
+    "group": "hinglish",
+    "reference": "kya khula hai abhi",
+    "hypothesis": "Akula abi.",
+    "wer": [
+     4,
+     4
+    ],
+    "cer": [
+     9,
+     18
+    ],
+    "lwer": [
+     3,
+     4
+    ],
+    "ms": 9837,
+    "vad_ms": 2,
+    "audio_ms": 1716,
+    "confidence": 0.332,
+    "verdict": "unsure",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi13",
+    "group": "hinglish",
+    "reference": "youtube pe arijit singh ke gaane chalao",
+    "hypothesis": "YouTube pe Rijit Singh ke gana chalao.",
+    "wer": [
+     2,
+     7
+    ],
+    "cer": [
+     3,
+     39
+    ],
+    "lwer": [
+     2,
+     7
+    ],
+    "ms": 10099,
+    "vad_ms": 5,
+    "audio_ms": 4292,
+    "confidence": 0.562,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi14",
+    "group": "hinglish",
+    "reference": "gemini se poocho photosynthesis kya hota hai",
+    "hypothesis": "Gemini se poochou photosynthesis kya hota?",
+    "wer": [
+     2,
+     7
+    ],
+    "cer": [
+     5,
+     44
+    ],
+    "lwer": [
+     2,
+     7
+    ],
+    "ms": 9943,
+    "vad_ms": 5,
+    "audio_ms": 3496,
+    "confidence": 0.78,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi15",
+    "group": "hinglish",
+    "reference": "mere naye emails padh ke sunao",
+    "hypothesis": "My new emails, read and read.",
+    "wer": [
+     5,
+     6
+    ],
+    "cer": [
+     16,
+     30
+    ],
+    "lwer": [
+     5,
+     6
+    ],
+    "ms": 9927,
+    "vad_ms": 5,
+    "audio_ms": 3176,
+    "confidence": 0.535,
+    "verdict": "unsure",
+    "routable": false,
+    "same_command": true
+   },
+   {
+    "key": "hi16",
+    "group": "hinglish",
+    "reference": "notepad kholo na",
+    "hypothesis": "Note pad kholo na.",
+    "wer": [
+     2,
+     3
+    ],
+    "cer": [
+     1,
+     16
+    ],
+    "lwer": [
+     2,
+     3
+    ],
+    "ms": 10043,
+    "vad_ms": 4,
+    "audio_ms": 1928,
+    "confidence": 0.771,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi17",
+    "group": "hinglish",
+    "reference": "chrome ko bada karo",
+    "hypothesis": "Chrome ko band karo.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     2,
+     19
+    ],
+    "lwer": [
+     1,
+     4
+    ],
+    "ms": 9984,
+    "vad_ms": 3,
+    "audio_ms": 2100,
+    "confidence": 0.926,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi18",
+    "group": "hinglish",
+    "reference": "spotify ko chhota karo",
+    "hypothesis": "Spotify ko chota karo.",
+    "wer": [
+     1,
+     4
+    ],
+    "cer": [
+     1,
+     22
+    ],
+    "lwer": [
+     0,
+     4
+    ],
+    "ms": 9927,
+    "vad_ms": 3,
+    "audio_ms": 2408,
+    "confidence": 0.833,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": false
+   },
+   {
+    "key": "hi19",
+    "group": "hinglish",
+    "reference": "downloads folder kholo",
+    "hypothesis": "Downloads folder kholo.",
+    "wer": [
+     0,
+     3
+    ],
+    "cer": [
+     0,
+     22
+    ],
+    "lwer": [
+     0,
+     3
+    ],
+    "ms": 9994,
+    "vad_ms": 3,
+    "audio_ms": 2344,
+    "confidence": 0.952,
+    "verdict": "ok",
+    "routable": true,
+    "same_command": true
+   },
+   {
+    "key": "hi20",
+    "group": "hinglish",
+    "reference": "screen pe kya hai batao",
+    "hypothesis": "Screen pay, kya hai, batao.",
+    "wer": [
+     1,
+     5
+    ],
+    "cer": [
+     2,
+     23
+    ],
+    "lwer": [
+     1,
+     5
+    ],
+    "ms": 9818,
+    "vad_ms": 3,
+    "audio_ms": 2420,
+    "confidence": 0.724,
+    "verdict": "ok",
+    "routable": false,
+    "same_command": true
+   }
+  ]
+ }
+]

@@ -18,6 +18,7 @@ APP_TABLES = {
     "tasks",
     "task_steps",
     "confirmations",
+    "app_index",
 }
 
 
@@ -26,7 +27,7 @@ def app_tables(engine: Engine) -> set[str]:
 
 
 def test_head_is_the_latest_revision() -> None:
-    assert migrate.head_revision() == "0002"  # S07: conversations, messages, tasks
+    assert migrate.head_revision() == "0003"  # S08: app_index
 
 
 def test_upgrade_downgrade_upgrade_round_trip(tmp_path: Path) -> None:

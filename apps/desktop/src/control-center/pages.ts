@@ -65,7 +65,7 @@ export const PAGES: readonly PageInfo[] = [
     id: "skills",
     title: "Skills & Permissions",
     summary: "Enable or disable skills, see their tiers, manage pre-approvals.",
-    stage: "S08",
+    stage: null,
     icon: ShieldCheck,
   },
   {
@@ -93,7 +93,7 @@ export const PAGES: readonly PageInfo[] = [
     id: "devices",
     title: "Devices",
     summary: "Choose and test the microphone and speakers.",
-    stage: "S09",
+    stage: null,
     icon: Mic,
   },
   {

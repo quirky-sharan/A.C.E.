@@ -46,3 +46,13 @@ def test_missing_localappdata_falls_back_to_home(
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     paths = resolve_paths(exe_dir=tmp_path / "bin")
     assert paths.root == tmp_path / "AppData" / "Local" / "ACE"
+
+
+def test_ace_home_moves_the_normal_mode_folder(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("ACE_HOME", str(tmp_path / "dev-ace"))
+    paths = resolve_paths(exe_dir=tmp_path / "bin")
+    assert paths.root == tmp_path / "dev-ace"
+    assert not paths.portable
+    assert resolve_paths(exe_dir=tmp_path / "bin", local_app_data=tmp_path).root == tmp_path / "ACE"

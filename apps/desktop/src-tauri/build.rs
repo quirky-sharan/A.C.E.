@@ -12,6 +12,7 @@ fn main() {
             "overlay_close_sidebar",
             "overlay_focus_input",
             "overlay_sidebar_hidden",
+            "overlay_allow_foreground",
             "overlay_hide_for",
             "overlay_report_focus",
             "overlay_input",

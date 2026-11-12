@@ -1,5 +1,5 @@
 // The slide-out sidebar (§14.3, S06; live since S07): header, conversation, current task,
-// background jobs, confirmation cards, the text input and footer toggles. Typed commands go to
+// background jobs, question and confirmation cards, the text input and footer toggles. Typed commands go to
 // the core's command pipeline (FR-IN-3). While closed, the shell hides the window (once the panel
 // has slid out); while open, everything outside the panel lets clicks through.
 
@@ -12,6 +12,7 @@ import { modeLabel } from "../control-center/status-views";
 import {
   Button,
   Chip,
+  ClarifyCard,
   ConfirmCard,
   cx,
   Heading,
@@ -24,8 +25,13 @@ import {
 } from "../hud";
 import { ORB_LOOKS } from "../hud/orb";
 import type { IpcClient } from "../ipc/client";
-import type { ConfirmationInfo, MessageInfo, TaskInfo } from "../ipc/generated";
-import { answerConfirmation, cancelTask, submitCommand } from "../state/core-link";
+import type { ClarificationInfo, ConfirmationInfo, MessageInfo, TaskInfo } from "../ipc/generated";
+import {
+  answerClarification,
+  answerConfirmation,
+  cancelTask,
+  submitCommand,
+} from "../state/core-link";
 import {
   useConnectionStore,
   useCoreStore,
@@ -35,6 +41,7 @@ import {
 } from "../state/stores";
 import { isActive, secondsLeft, taskLook, toStepView } from "../state/task-views";
 import {
+  allowForeground,
   closeSidebar,
   focusSidebarInput,
   getOverlayState,
@@ -51,6 +58,9 @@ import { useHitRects } from "./use-hit-rects";
 const SLIDE_PX = 420;
 const HIDE_MINUTES = 60;
 const SHOWN_MESSAGES = 60;
+
+/** Never let a failed grant block the command itself. */
+const grantForeground = () => allowForeground().catch(() => {});
 
 function HealthDots() {
   const status = useConnectionStore((state) => state.status);
@@ -154,7 +164,8 @@ function ConfirmCards({ client, tasks }: { client: IpcClient | null; tasks: Task
   const answer = (confirmation: ConfirmationInfo, choice: "yes" | "no") => {
     if (client === null) return;
     setBusy(confirmation.id);
-    void answerConfirmation(client, confirmation.id, choice)
+    void grantForeground()
+      .then(() => answerConfirmation(client, confirmation.id, choice))
       .catch(() => {})
       .finally(() => setBusy(null));
   };
@@ -169,6 +180,40 @@ function ConfirmCards({ client, tasks }: { client: IpcClient | null; tasks: Task
           busy={busy === confirmation.id || client === null}
           onConfirm={() => answer(confirmation, "yes")}
           onCancel={() => answer(confirmation, "no")}
+        />
+      ))}
+    </section>
+  );
+}
+
+/** "Which one?" questions (S08): a click picks an option; typing a number or name works too. */
+function ClarifyCards({ client, tasks }: { client: IpcClient | null; tasks: TaskInfo[] }) {
+  const [busy, setBusy] = useState<string | null>(null);
+  const pending = tasks
+    .map((task) => task.clarification)
+    .filter((question): question is ClarificationInfo => question !== null)
+    .reverse(); // oldest first
+  if (pending.length === 0) return null;
+
+  const choose = (question: ClarificationInfo, optionId: string) => {
+    if (client === null) return;
+    setBusy(question.id);
+    void grantForeground()
+      .then(() => answerClarification(client, question.id, optionId))
+      .catch(() => {})
+      .finally(() => setBusy(null));
+  };
+
+  return (
+    <section aria-label="Questions" className="flex flex-col gap-2">
+      {pending.map((question) => (
+        <ClarifyCard
+          key={question.id}
+          question={question.question}
+          options={question.options}
+          onChoose={(optionId) => {
+            if (busy !== question.id) choose(question, optionId);
+          }}
         />
       ))}
     </section>
@@ -280,9 +325,12 @@ export function SidebarWindow({
       return;
     }
     setNote(null);
-    submitCommand(client, text).catch((error: unknown) => {
-      setNote(`Couldn't send it: ${error instanceof Error ? error.message : String(error)}`);
-    });
+    // Let the app this command opens or switches to come to the front (D-57).
+    void grantForeground()
+      .then(() => submitCommand(client, text))
+      .catch((error: unknown) => {
+        setNote(`Couldn't send it: ${error instanceof Error ? error.message : String(error)}`);
+      });
   };
 
   const offscreen = edge === "right" ? SLIDE_PX : -SLIDE_PX;
@@ -339,6 +387,8 @@ export function SidebarWindow({
             <Heading className="mb-1">Background jobs</Heading>
             <p className="text-text-dim">None. Background tasks arrive in stage S17.</p>
           </section>
+
+          <ClarifyCards client={client} tasks={tasks} />
 
           <ConfirmCards
             key={tasks.map((task) => task.confirmation?.id ?? "").join("")}

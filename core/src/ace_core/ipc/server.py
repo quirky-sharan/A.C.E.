@@ -14,7 +14,7 @@ import asyncio
 import contextlib
 import socket
 from collections.abc import Callable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Final
 
 import structlog
@@ -65,6 +65,7 @@ class IpcLimits:
     outbox_size: int = 256
     rate_per_s: float = 30.0
     rate_burst: int = 60
+    max_in_flight: int = 16  # requests of one client being answered at the same time
 
 
 class _ServerWithoutSignals(uvicorn.Server):
@@ -80,6 +81,7 @@ class _Client:
     websocket: WebSocket
     outbox: asyncio.Queue[str]
     dropped: int = 0
+    in_flight: set[asyncio.Task[None]] = field(default_factory=set)
 
     async def send(self, text: str) -> None:
         """Queue a frame that must arrive (responses). Raises TimeoutError for a stuck client."""
@@ -248,6 +250,8 @@ class IpcServer:
             log.warning("ipc client stopped reading; disconnecting")
         finally:
             self._clients.discard(client)
+            for task in list(client.in_flight):  # answers nobody will read
+                task.cancel()
             writer.cancel()
             with contextlib.suppress(asyncio.CancelledError, Exception):
                 await writer
@@ -302,7 +306,26 @@ class IpcServer:
             if isinstance(incoming, AuthMessage):
                 await client.send(protocol.error(ErrorCode.BAD_MESSAGE, "already authenticated"))
                 continue
-            await client.send(await self._dispatch(incoming))
+            if len(client.in_flight) >= self._limits.max_in_flight:
+                await client.send(
+                    protocol.error(
+                        ErrorCode.RATE_LIMITED,
+                        "too many requests in flight",
+                        request_id=incoming.id,
+                        method=incoming.method,
+                    )
+                )
+                continue
+            # Each request is answered on its own, so a slow one (a 5 s test recording) never
+            # holds up the next (mute); responses carry the request id (§5.5).
+            task = asyncio.get_running_loop().create_task(self._answer(client, incoming))
+            client.in_flight.add(task)
+            task.add_done_callback(client.in_flight.discard)
+
+    async def _answer(self, client: _Client, request: RequestMessage) -> None:
+        response = await self._dispatch(request)
+        with contextlib.suppress(TimeoutError):  # a stuck client is disconnected by the reader
+            await client.send(response)
 
     async def _dispatch(self, request: RequestMessage) -> str:
         spec = METHODS.get(request.method)

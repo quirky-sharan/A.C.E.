@@ -74,9 +74,49 @@ export interface AceIpc {
       params: ConfirmRespondParams;
       result: ConfirmRespondResult;
     };
+    "clarify.respond": {
+      params: ClarifyRespondParams;
+      result: ClarifyRespondResult;
+    };
     "message.list": {
       params: MessageListParams;
       result: MessageListResult;
+    };
+    "apps.list": {
+      params: AppsListParams;
+      result: AppsListResult;
+    };
+    "apps.refresh": {
+      params: EmptyParams;
+      result: AppsRefreshResult;
+    };
+    "devices.list": {
+      params: EmptyParams;
+      result: DevicesResult;
+    };
+    "devices.select": {
+      params: DevicesSelectParams;
+      result: DevicesSelectResult;
+    };
+    "devices.record_test": {
+      params: DevicesRecordParams;
+      result: DevicesRecordResult;
+    };
+    "devices.play_test": {
+      params: EmptyParams;
+      result: DevicesPlayResult;
+    };
+    "devices.stop": {
+      params: EmptyParams;
+      result: DevicesPlayResult;
+    };
+    "devices.earcon": {
+      params: DevicesEarconParams;
+      result: DevicesPlayResult;
+    };
+    "devices.mute": {
+      params: DevicesMuteParams;
+      result: DevicesMuteResult;
     };
     "log.tail": {
       params: LogTailParams;
@@ -93,7 +133,10 @@ export interface AceIpc {
     "task.updated": TaskEventPayload;
     "task.finished": TaskEventPayload;
     "confirm.requested": ConfirmRequestedPayload;
+    "clarify.requested": ClarifyRequestedPayload;
     "message.created": MessageCreatedPayload;
+    "audio.level": AudioLevelPayload;
+    "transcript.final": TranscriptFinalPayload;
     "settings.changed": SettingsChangedPayload;
   };
 }
@@ -211,6 +254,7 @@ export interface TaskInfo {
   error_code: string | null;
   steps: StepInfo[];
   confirmation: ConfirmationInfo | null;
+  clarification: ClarificationInfo | null;
 }
 export interface StepInfo {
   id: string;
@@ -231,6 +275,19 @@ export interface ConfirmationInfo {
   requested_at: string;
   expires_at: string;
 }
+export interface ClarificationInfo {
+  id: string;
+  task_id: string;
+  step_id: string;
+  question: string;
+  options: ClarifyOptionInfo[];
+  requested_at: string;
+  expires_at: string;
+}
+export interface ClarifyOptionInfo {
+  id: string;
+  label: string;
+}
 export interface TaskCancelParams {
   task_id: string;
 }
@@ -242,6 +299,13 @@ export interface ConfirmRespondParams {
   answer: "yes" | "no";
 }
 export interface ConfirmRespondResult {
+  accepted: boolean;
+}
+export interface ClarifyRespondParams {
+  clarification_id: string;
+  option_id: string;
+}
+export interface ClarifyRespondResult {
   accepted: boolean;
 }
 export interface MessageListParams {
@@ -260,6 +324,67 @@ export interface MessageInfo {
   detail: string | null;
   task_id: string | null;
   reply_to: string | null;
+}
+export interface AppsListParams {
+  query?: string | null;
+  limit?: number;
+}
+export interface AppsListResult {
+  available: boolean;
+  apps: AppInfo[];
+}
+export interface AppInfo {
+  name: string;
+  kind: string;
+  target: string;
+  launch_count: number;
+}
+export interface AppsRefreshResult {
+  count: number;
+}
+export interface DevicesResult {
+  available: boolean;
+  muted: boolean;
+  capturing: boolean;
+  input: string | null;
+  output: string | null;
+  inputs: AudioDeviceInfo[];
+  outputs: AudioDeviceInfo[];
+}
+export interface AudioDeviceInfo {
+  name: string;
+  is_default: boolean;
+}
+export interface DevicesSelectParams {
+  kind: "input" | "output";
+  name?: string | null;
+}
+export interface DevicesSelectResult {
+  saved: boolean;
+}
+export interface DevicesRecordParams {
+  seconds?: number;
+}
+export interface DevicesRecordResult {
+  ok: boolean;
+  error: string | null;
+  seconds: number;
+  peak: number;
+  level: number;
+}
+export interface DevicesPlayResult {
+  ok: boolean;
+  error: string | null;
+  seconds: number;
+}
+export interface DevicesEarconParams {
+  name?: "wake" | "done" | "error" | "mute" | "unmute" | "test";
+}
+export interface DevicesMuteParams {
+  muted: boolean;
+}
+export interface DevicesMuteResult {
+  muted: boolean;
 }
 export interface LogTailParams {
   lines?: number;
@@ -296,8 +421,21 @@ export interface TaskEventPayload {
 export interface ConfirmRequestedPayload {
   confirmation: ConfirmationInfo;
 }
+export interface ClarifyRequestedPayload {
+  clarification: ClarificationInfo;
+}
 export interface MessageCreatedPayload {
   message: MessageInfo;
+}
+export interface AudioLevelPayload {
+  level: number;
+}
+export interface TranscriptFinalPayload {
+  text: string;
+  confidence: number;
+  language: string | null;
+  verdict: "ok" | "unsure" | "empty";
+  elapsed_ms: number;
 }
 export interface SettingsChangedPayload {
   key: string;

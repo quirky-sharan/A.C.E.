@@ -45,3 +45,6 @@ core/tests/fixtures/audio/local/
 core/.dev-db/
 logs/
 *.log
+
+# S10: Sharan's benchmark recordings stay on this PC (local only)
+tools/bench/stt/data/

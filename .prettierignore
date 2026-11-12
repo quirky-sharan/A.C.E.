@@ -9,3 +9,5 @@ apps/desktop/src-tauri/gen/
 apps/desktop/src/ipc/ipc.schema.json
 apps/desktop/src/ipc/generated.ts
 core/
+# Written by tools/bench/stt/run.py (S10 speech benchmark).
+tools/bench/stt/results.json

@@ -95,6 +95,19 @@ class PendingConfirmation:
     expires_at: datetime
 
 
+@dataclass(frozen=True, slots=True, kw_only=True)
+class PendingClarification:
+    """A question with options (e.g. which of two apps); answered by a click, a number or a name."""
+
+    id: str
+    task_id: str
+    step_id: str
+    question: str
+    options: tuple[tuple[str, str], ...]  # (option id, label)
+    requested_at: datetime
+    expires_at: datetime
+
+
 @dataclass(slots=True, kw_only=True)
 class Task:
     id: str
@@ -112,6 +125,7 @@ class Task:
     error_code: str | None = None
     steps: list[Step] = field(default_factory=list)
     confirmation: PendingConfirmation | None = None  # only while waiting for Sharan's answer
+    clarification: PendingClarification | None = None  # only while waiting for a choice
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -145,6 +159,11 @@ class TaskChanged(Event):
 @dataclass(frozen=True, slots=True, kw_only=True)
 class ConfirmationRequested(Event):
     confirmation: PendingConfirmation
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class ClarificationRequested(Event):
+    clarification: PendingClarification
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)

@@ -55,7 +55,7 @@ def test_golden_command(router: Router, case: dict[str, Any]) -> None:
         assert route.kind is RouteKind.SKILL
         assert route.skill_id == case["skill"] == route.intent
         assert route.params is not None
-        assert route.params.model_dump(mode="json") == case["params"]
+        assert route.params.model_dump(mode="json", exclude_defaults=True) == case["params"]
 
 
 def test_every_skill_example_routes_to_its_skill(router: Router) -> None:
@@ -89,7 +89,7 @@ def test_normalize(raw: str, text: str) -> None:
 def test_entities_keep_their_case(router: Router) -> None:
     route = router.route("echo Hello WORLD")
     assert route.params is not None
-    assert route.params.model_dump() == {"text": "Hello WORLD"}
+    assert route.params.model_dump(exclude_defaults=True) == {"text": "Hello WORLD"}
 
 
 def test_demo_skills_exist_only_in_dev_mode() -> None:

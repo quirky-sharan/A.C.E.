@@ -12,6 +12,7 @@ ACE is a Windows desktop assistant that operates Sharan's PC by voice or text (a
 - Skills (in `core/`): registry `ace_core/skills/catalog.py` · fast-path phrases `ace_core/brain/grammar.py` + golden set `tests/golden/commands.yaml` · schema export `uv run python -m ace_core.skills.export_schema [--dev]`
 - IPC schema change (`core/src/ace_core/ipc/schemas.py`, `methods.py`, `events.py`): run `pnpm gen:ipc` at the repo root and commit both generated files
 - Desktop app (Tauri): `pnpm --filter ace-desktop tauri dev` — starts its own core (`uv run ace-core --dev --supervised`, D-52); quit from the tray or with `apps\desktop\src-tauri\target\debug\ace-desktop.exe --quit`
+- Live dev runs from Claude's shell: keep ACE's files on E: with `ACE_HOME` and WebView2's with `WEBVIEW2_USER_DATA_FOLDER`; never override `LOCALAPPDATA` (Windows then hides desktop apps from the Start-menu list, plan §17.4)
 - Browser extension: `pnpm --filter ace-bridge-extension build`
 - All JS/TS (repo root): `pnpm lint` · `pnpm format:check` · `pnpm typecheck` · `pnpm test`
 - Hooks: `pre-commit run --all-files`
