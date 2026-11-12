@@ -404,6 +404,14 @@ class ClarifyRequestedPayload(_Model):
     clarification: ClarificationInfo
 
 
+class TranscriptFinalPayload(_Model):
+    text: str  # empty when nothing usable was heard
+    confidence: float  # 0..1
+    language: str | None
+    verdict: Literal["ok", "unsure", "empty"]
+    elapsed_ms: int  # time spent transcribing
+
+
 class AudioLevelPayload(_Model):
     level: float  # 0..1, about 20 times a second while the microphone is open
 

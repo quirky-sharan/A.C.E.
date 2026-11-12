@@ -414,6 +414,9 @@
         "audio.level": {
           "$ref": "#/$defs/AudioLevelPayload"
         },
+        "transcript.final": {
+          "$ref": "#/$defs/TranscriptFinalPayload"
+        },
         "settings.changed": {
           "$ref": "#/$defs/SettingsChangedPayload"
         }
@@ -431,6 +434,7 @@
         "clarify.requested",
         "message.created",
         "audio.level",
+        "transcript.final",
         "settings.changed"
       ],
       "additionalProperties": false
@@ -2043,6 +2047,47 @@
       ],
       "title": "Tier",
       "type": "string"
+    },
+    "TranscriptFinalPayload": {
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number"
+        },
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verdict": {
+          "enum": [
+            "ok",
+            "unsure",
+            "empty"
+          ],
+          "type": "string"
+        },
+        "elapsed_ms": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "text",
+        "confidence",
+        "language",
+        "verdict",
+        "elapsed_ms"
+      ],
+      "title": "TranscriptFinalPayload",
+      "type": "object"
     }
   }
 }

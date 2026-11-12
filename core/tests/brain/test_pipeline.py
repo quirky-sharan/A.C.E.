@@ -32,6 +32,7 @@ from ace_core.brain.records import (
     Message,
     MessageCreated,
     MessageRole,
+    Origin,
     StepStatus,
     Task,
     TaskChange,
@@ -438,3 +439,30 @@ async def test_states_owned_by_other_stages_are_left_alone(make_env: EnvFactory)
     result = await env.pipeline.submit("echo hi")
     await finished(env, result.task_id)
     assert env.state.current.conversation is ConversationState.MUTED
+
+
+async def test_an_unsure_voice_command_asks_did_you_say(make_env: EnvFactory) -> None:
+    env = make_env()
+    first = await env.pipeline.submit("echo hello", origin=Origin.VOICE, unsure=True)
+    asked = await env.events.wait_for(ClarificationRequested)
+    assert asked.clarification.question == 'Did you say "echo hello"?'
+    await env.pipeline.submit("haan")  # a Hinglish yes answers it
+    task = await finished(env, first.task_id)
+    assert task.status is TaskStatus.SUCCEEDED
+
+    second = await env.pipeline.submit("echo bye", origin=Origin.VOICE, unsure=True)
+    await env.events.wait_for(
+        ClarificationRequested, lambda e: e.clarification.task_id == second.task_id
+    )
+    await env.pipeline.submit("nahi")
+    task = await finished(env, second.task_id)
+    assert (task.status, task.result_summary) == (TaskStatus.CANCELLED, "Okay, cancelled.")
+    sure = await env.pipeline.submit("echo sure", origin=Origin.VOICE)
+    assert (await finished(env, sure.task_id)).status is TaskStatus.SUCCEEDED  # no question
+
+
+async def test_notices_go_to_the_conversation(make_env: EnvFactory) -> None:
+    env = make_env()
+    await env.pipeline.notice("I didn't catch that.", "Hold Ctrl+Alt+A.", origin=Origin.VOICE)
+    reply = await ace_reply(env, lambda m: m.text == "I didn't catch that.")
+    assert reply.detail == "Hold Ctrl+Alt+A."

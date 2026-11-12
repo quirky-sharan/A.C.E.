@@ -353,6 +353,12 @@ class DesktopLink:
             if message.action is DesktopAction.EMERGENCY_STOP and message.phase == "pressed":
                 stopped = await self._container.pipeline.stop_all()  # §15.1 item 10
                 log.info("emergency stop", tasks_cancelled=stopped)
+            voice = self._container.voice
+            if message.action is DesktopAction.PUSH_TO_TALK and voice is not None:
+                if message.phase == "pressed":
+                    await voice.ptt_pressed()
+                else:
+                    asyncio.get_running_loop().create_task(voice.ptt_released())
             audio = self._container.audio
             if message.action is DesktopAction.MIC_MUTE and message.phase == "pressed" and audio:
                 muted = await audio.toggle_mute()  # S09: closes or allows the microphone

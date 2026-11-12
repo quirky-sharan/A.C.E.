@@ -136,6 +136,7 @@ export interface AceIpc {
     "clarify.requested": ClarifyRequestedPayload;
     "message.created": MessageCreatedPayload;
     "audio.level": AudioLevelPayload;
+    "transcript.final": TranscriptFinalPayload;
     "settings.changed": SettingsChangedPayload;
   };
 }
@@ -428,6 +429,13 @@ export interface MessageCreatedPayload {
 }
 export interface AudioLevelPayload {
   level: number;
+}
+export interface TranscriptFinalPayload {
+  text: string;
+  confidence: number;
+  language: string | null;
+  verdict: "ok" | "unsure" | "empty";
+  elapsed_ms: number;
 }
 export interface SettingsChangedPayload {
   key: string;

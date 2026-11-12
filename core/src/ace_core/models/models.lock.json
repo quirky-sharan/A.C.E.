@@ -1,0 +1,180 @@
+{
+  "comment": "Pinned models (ACE_MASTER_PLAN.md \u00a77.8). Regenerate: tools/dev/lock_models.py",
+  "models": [
+    {
+      "name": "stt-turbo",
+      "kind": "stt",
+      "repo": "mobiuslabsgmbh/faster-whisper-large-v3-turbo",
+      "revision": "0a363e9161cbc7ed1431c9597a8ceaf0c4f78fcf",
+      "subfolder": null,
+      "license": "MIT",
+      "source": "openai/whisper-large-v3-turbo",
+      "files": [
+        {
+          "path": "config.json",
+          "size": 2263,
+          "sha256": "b0253ea6c0d3bea6b1e19e91a02acfd3b53f4467362efcb5a3e6b16c9b3a9b7e"
+        },
+        {
+          "path": "model.bin",
+          "size": 1617884929,
+          "sha256": "e76620f83d5f5b69efd3d87e3dc180c1bd21df9fbebacfd4335e5e1efcc018da"
+        },
+        {
+          "path": "preprocessor_config.json",
+          "size": 340,
+          "sha256": "7ccc62c6f2765af1f3b46c00c9b5894426835a05021c8b9c01eecb6dfb542711"
+        },
+        {
+          "path": "tokenizer.json",
+          "size": 2710337,
+          "sha256": "297b13372ac43916285644fb9687add3cc62ee2a1adb60da3dc25cc94c1871fd"
+        },
+        {
+          "path": "vocabulary.json",
+          "size": 1068114,
+          "sha256": "c69260f2ab26d659b7c398f9a2b2b48ed0df16c3b47d7326782fd9cba71690c1"
+        }
+      ]
+    },
+    {
+      "name": "stt-small",
+      "kind": "stt",
+      "repo": "Systran/faster-whisper-small",
+      "revision": "536b0662742c02347bc0e980a01041f333bce120",
+      "subfolder": null,
+      "license": "Apache-2.0",
+      "source": "openai/whisper-small",
+      "files": [
+        {
+          "path": "config.json",
+          "size": 2370,
+          "sha256": "b55496ac7940a7ae47d2c01eab40edfd8701feec1229d9cce3b40014383fb828"
+        },
+        {
+          "path": "model.bin",
+          "size": 483546902,
+          "sha256": "3e305921506d8872816023e4c273e75d2419fb89b24da97b4fe7bce14170d671"
+        },
+        {
+          "path": "tokenizer.json",
+          "size": 2203239,
+          "sha256": "fb7b63191e9bb045082c79fd742a3106a12c99513ab30df4a0d47fa6cb6fd0ab"
+        },
+        {
+          "path": "vocabulary.txt",
+          "size": 459861,
+          "sha256": "34ce3fe1c5041027b3f8d42912270993f986dbc4bb34cf27f951e34a1e453913"
+        }
+      ]
+    },
+    {
+      "name": "stt-hinglish-swift",
+      "kind": "stt",
+      "repo": "MSpider3/whisper-hindi2hinglish-swift-ct2",
+      "revision": "484362f23d657c07c2762ce1c52d7b4a7ab49d25",
+      "subfolder": null,
+      "license": "Apache-2.0",
+      "source": "Oriserve/Whisper-Hindi2Hinglish-Swift",
+      "files": [
+        {
+          "path": "config.json",
+          "size": 2789,
+          "sha256": "7dcc85f06f98312a1146df7f28959c358c87ab3d01c369eacd4b22f1ec2c43e4"
+        },
+        {
+          "path": "model.bin",
+          "size": 76396677,
+          "sha256": "223a6e80ea056a01a7bf748a44e7a1c11ab79601ce5f84720365aac38565b87f"
+        },
+        {
+          "path": "preprocessor_config.json",
+          "size": 339,
+          "sha256": "a6a76d28c93edb273669eb9e0b0636a2bddbb1272c3261e47b7ca6dfdbac1b8d"
+        },
+        {
+          "path": "tokenizer.json",
+          "size": 3930462,
+          "sha256": "7e146198186d5e3b9ce7d9d7f131b69b44569eaed9ad64a5516629a6c6a865c4"
+        },
+        {
+          "path": "vocabulary.json",
+          "size": 1068101,
+          "sha256": "22f3cb2fc2be1545b9a7db8e993ddd59aeccadfbc7d7b00ca517ca8960864766"
+        }
+      ]
+    },
+    {
+      "name": "stt-hinglish-prime",
+      "kind": "stt",
+      "repo": "Hub84/faster-whisper-hinglish-prime",
+      "revision": "da5b871e2b709091d067e7b729515cf49a0d56cf",
+      "subfolder": null,
+      "license": "Apache-2.0",
+      "source": "Oriserve/Whisper-Hindi2Hinglish-Prime",
+      "files": [
+        {
+          "path": "config.json",
+          "size": 13640,
+          "sha256": "2298e85d9c145d4b0b4c3a7a30e78f834736038e0bfb0a91d2f7517a7ae1e770"
+        },
+        {
+          "path": "model.bin",
+          "size": 1551326177,
+          "sha256": "0bc9c3ed2f52deb3cbd6a9f2005eb454c570b67f955404e7ee237badb9bcd6ec"
+        },
+        {
+          "path": "preprocessor_config.json",
+          "size": 340,
+          "sha256": "7ccc62c6f2765af1f3b46c00c9b5894426835a05021c8b9c01eecb6dfb542711"
+        },
+        {
+          "path": "tokenizer.json",
+          "size": 3930645,
+          "sha256": "5c1bf30c9e716e1477bedef846b01be0013daecb89e9e3ef7ab89b23c178df1b"
+        },
+        {
+          "path": "vocabulary.json",
+          "size": 1119981,
+          "sha256": "697ee5a65726e46b4d294d1a243d98e1878f5d81caba17891b1c5ebab7a912a9"
+        }
+      ]
+    },
+    {
+      "name": "stt-hinglish-trelis",
+      "kind": "stt",
+      "repo": "nikh360pro/capsbro-hinglish-ct2",
+      "revision": "87a1f963adb6e7902a766a3d20217fa63d7f018b",
+      "subfolder": "int8",
+      "license": "Apache-2.0",
+      "source": "Trelis/whisper-hinglish-preview",
+      "files": [
+        {
+          "path": "config.json",
+          "size": 2634,
+          "sha256": "f277d9390e65adc1630b349151eca38aaf7420c41c814271928854edcfd6ffbe"
+        },
+        {
+          "path": "model.bin",
+          "size": 1556723863,
+          "sha256": "624bae081b85f4ac433edb73bf64bd5277bb7a4c03fe305d572fe2fd1a89a7d3"
+        },
+        {
+          "path": "preprocessor_config.json",
+          "size": 357,
+          "sha256": "654cf18d3e163b948ceaf9766da56ce0b52de265d58673cf61c9376f126bd499"
+        },
+        {
+          "path": "tokenizer.json",
+          "size": 2480617,
+          "sha256": "6d8cbd7cd0d8d5815e478dac67b85a26bbe77c1f5e0c6d76d1ce2abc0e5f21ca"
+        },
+        {
+          "path": "vocabulary.json",
+          "size": 1120001,
+          "sha256": "e2125783966ea6f3aad20a065a9b2ae5c9c8532438aa80e62e84f7e635adbbda"
+        }
+      ]
+    }
+  ]
+}

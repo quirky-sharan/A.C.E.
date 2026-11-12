@@ -36,8 +36,10 @@ from ace_core.ipc.schemas import (
     StateChangedPayload,
     SystemStoppingPayload,
     TaskEventPayload,
+    TranscriptFinalPayload,
 )
 from ace_core.voice.audio import AudioLevel
+from ace_core.voice.listen import TranscriptFinal
 
 EVENT_PAYLOADS: Final[dict[str, type[BaseModel]]] = {
     "session.ready": SessionReadyPayload,  # sent once, right after a client authenticates
@@ -52,6 +54,7 @@ EVENT_PAYLOADS: Final[dict[str, type[BaseModel]]] = {
     "clarify.requested": ClarifyRequestedPayload,
     "message.created": MessageCreatedPayload,
     "audio.level": AudioLevelPayload,
+    "transcript.final": TranscriptFinalPayload,
     "settings.changed": SettingsChangedPayload,  # the key only: clients re-read the value
 }
 
@@ -87,6 +90,14 @@ def to_ipc_event(event: Event) -> tuple[str, BaseModel] | None:
         )
     if isinstance(event, MessageCreated):
         return "message.created", MessageCreatedPayload(message=message_info(event.message))
+    if isinstance(event, TranscriptFinal):
+        return "transcript.final", TranscriptFinalPayload(
+            text=event.text,
+            confidence=event.confidence,
+            language=event.language,
+            verdict=event.verdict,
+            elapsed_ms=event.elapsed_ms,
+        )
     if isinstance(event, AudioLevel):
         return "audio.level", AudioLevelPayload(level=event.level)
     if isinstance(event, SettingChanged):

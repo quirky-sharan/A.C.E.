@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 
 from ace_core.app.config import Settings
 from ace_core.app.events import EventBus
@@ -25,6 +26,8 @@ from ace_core.skills.apps import AppsPorts
 from ace_core.skills.catalog import build_registry
 from ace_core.skills.registry import SkillRegistry
 from ace_core.voice.audio import AudioService
+from ace_core.voice.listen import TranscriberFactory, VoiceService
+from ace_core.voice.stt import Transcriber
 
 DB_FILE_NAME = "ace.db"
 
@@ -47,6 +50,7 @@ class Container:
     com: ComThread
     apps: AppsPorts | None  # None where app control is unavailable (not Windows)
     audio: AudioService | None  # None where audio is unavailable
+    voice: VoiceService | None  # push-to-talk; None without audio
 
 
 def build_container(settings: Settings, paths: AppPaths) -> Container:
@@ -77,6 +81,19 @@ def build_container(settings: Settings, paths: AppPaths) -> Container:
         settings=settings_store,
     )
     health = HealthRegistry(bus)
+    audio = _audio(settings, bus, state, settings_store, health)
+    voice = None
+    if audio is not None:
+        models_root = settings.models_dir or paths.root / "models"
+        voice = VoiceService(
+            audio,
+            pipeline,
+            state=state,
+            bus=bus,
+            settings=settings_store,
+            factory=_transcriber_factory(models_root),
+            names=lambda: [app.name for app in apps.index.apps if app.launch_count] if apps else [],
+        )
     return Container(
         settings=settings,
         paths=paths,
@@ -93,7 +110,8 @@ def build_container(settings: Settings, paths: AppPaths) -> Container:
         pipeline=pipeline,
         com=com,
         apps=apps,
-        audio=_audio(settings, bus, state, settings_store, health),
+        audio=audio,
+        voice=voice,
     )
 
 
@@ -115,6 +133,29 @@ def _audio(
     except Exception:
         return None
     return AudioService(backend, bus=bus, state=state, settings=settings_store, health=health)
+
+
+def _transcriber_factory(models_root: Path) -> TranscriberFactory:
+    """Loads a model from models.lock.json, only if its files are present and verified."""
+
+    def make(name: str, language: str | None) -> Transcriber:
+        from ace_core.models.downloader import model_folder, verify
+        from ace_core.models.lock import load_lock
+        from ace_core.voice.stt import WhisperOptions, WhisperTranscriber
+
+        model = load_lock().get(name)
+        if model is None:
+            raise ValueError(f"unknown speech model: {name}")
+        problems = verify(models_root, model)
+        if problems:
+            raise FileNotFoundError(
+                f"the speech model {name} is not downloaded or not intact ({len(problems)} files)"
+            )
+        return WhisperTranscriber(
+            model_folder(models_root, model), label=name, options=WhisperOptions(language=language)
+        )
+
+    return make
 
 
 def _desktop_ports(db: Database, com: ComThread) -> AppsPorts | None:

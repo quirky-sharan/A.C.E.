@@ -75,8 +75,12 @@ def create_app(
     async def start_audio() -> None:
         if container.audio is not None:
             await container.audio.start()
+        if container.voice is not None:
+            container.voice.start()  # loads the speech model in the background
 
     async def stop_audio() -> None:
+        if container.voice is not None:
+            await container.voice.close()
         if container.audio is not None:
             await container.audio.close()
 

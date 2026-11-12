@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     ipc_port: int = Field(default=0, ge=0, le=65535)  # 0 = a random free port (§5.6)
     safe_mode: bool = False  # set by ace-desktop after repeated crashes (§5.6, D-52)
     audio_enabled: bool = True  # false: no microphone or speaker use at all (tests, servers)
+    models_dir: Path | None = None  # ACE_MODELS_DIR (E:\ACE-Models here); default <root>\models
 
 
 def load_settings(

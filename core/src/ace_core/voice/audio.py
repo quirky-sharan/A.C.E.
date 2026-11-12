@@ -249,6 +249,20 @@ class AudioService:
                 last = level
                 await self._bus.publish(AudioLevel(level=level))
 
+    async def begin_take(self, purpose: str) -> None:
+        """Start collecting captured audio (push-to-talk); ``end_take`` returns it."""
+        self._recording = []
+        try:
+            await self.start_capture(purpose)
+        except Exception:
+            self._recording = None
+            raise
+
+    async def end_take(self, purpose: str) -> Int16:
+        chunks, self._recording = self._recording or [], None
+        await self.stop_capture(purpose)
+        return np.concatenate(chunks) if chunks else np.zeros(0, dtype=np.int16)
+
     async def record(self, seconds: float) -> Int16:
         """Capture ``seconds`` of audio (Devices page test); kept for ``play_recording``."""
         seconds = max(0.5, min(MAX_RECORD_S, seconds))

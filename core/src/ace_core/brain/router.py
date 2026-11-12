@@ -35,6 +35,10 @@ _ORDINALS: Final[tuple[frozenset[str], ...]] = (
     frozenset({"4", "four", "fourth", "chautha", "chautha wala"}),
 )
 _LAST: Final = frozenset({"last", "aakhri", "last wala", "aakhri wala"})
+_YES: Final = frozenset(
+    {"yes", "yeah", "yep", "haan", "haa", "han", "haan ji", "ji haan", "ji", "sahi"}
+)
+_NO: Final = frozenset({"no", "nope", "nah", "nahi", "nahin", "na", "galat"})
 
 
 def pick_option(text: str, options: tuple[tuple[str, str], ...]) -> str | None:
@@ -46,6 +50,11 @@ def pick_option(text: str, options: tuple[tuple[str, str], ...]) -> str | None:
             return options[index][0]
     if wanted in _LAST and options:
         return options[-1][0]
+    ids = {option_id for option_id, _ in options}
+    if wanted in _YES and "yes" in ids:  # yes / no questions ("Did you say ...?")
+        return "yes"
+    if wanted in _NO and "no" in ids:
+        return "no"
     scored = sorted(
         (
             (fuzz.WRatio(wanted, label, processor=utils.default_process), option_id)

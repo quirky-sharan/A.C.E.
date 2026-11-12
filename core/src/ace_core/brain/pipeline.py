@@ -148,11 +148,16 @@ class CommandPipeline:
         self._conversation: _Conversation | None = None
         self._closing = False
         self._clarify_timeout_s = clarify_timeout_s
+        self._unsure: set[str] = set()  # voice tasks to double-check first (S10)
         self._questions: dict[str, tuple[PendingClarification, asyncio.Future[str | None]]] = {}
 
     # ---- public API (IPC methods, later voice / routines / MCP) ----
 
-    async def submit(self, text: str, *, origin: Origin = Origin.TEXT) -> SubmitResult:
+    async def submit(
+        self, text: str, *, origin: Origin = Origin.TEXT, unsure: bool = False
+    ) -> SubmitResult:
+        """``unsure``: speech recognition was not confident; a resulting task first asks
+        "Did you say ...?" (§7.4)."""
         if self._closing:
             raise PipelineClosedError("ace-core is stopping")
         async with self._lock:
@@ -179,7 +184,9 @@ class CommandPipeline:
                 else:
                     route = self._router.route(text)
                     intent = route.intent
-                    task_id = await self._dispatch(route, origin, conversation_id, user_message)
+                    task_id = await self._dispatch(
+                        route, origin, conversation_id, user_message, unsure=unsure
+                    )
             except Exception:
                 log.exception("command failed", intent=intent)
                 await self._reply(conversation_id, responses.internal_error(), user_message.id)
@@ -231,6 +238,13 @@ class CommandPipeline:
             await self._reply(self._conversation.id, responses.stopped(count), None)
         return count
 
+    async def notice(self, spoken: str, detail: str | None = None, *, origin: Origin) -> None:
+        """An ACE message outside any task (e.g. "I didn't catch that")."""
+        async with self._lock:
+            source = MessageSource.VOICE if origin is Origin.VOICE else MessageSource.TEXT
+            conversation_id = await self._conversation_for(source, self._clock())
+            await self._reply(conversation_id, Reply(spoken, detail), None)
+
     async def list_tasks(self, *, limit: int, query: str | None = None) -> list[Task]:
         """Newest first from the database; live tasks show their current in-memory state."""
         stored = await self._history.list_tasks(limit=limit, query=query)
@@ -257,13 +271,19 @@ class CommandPipeline:
     # ---- routing ----
 
     async def _dispatch(
-        self, route: Route, origin: Origin, conversation_id: str, user_message: Message
+        self,
+        route: Route,
+        origin: Origin,
+        conversation_id: str,
+        user_message: Message,
+        *,
+        unsure: bool = False,
     ) -> str | None:
         if route.kind is RouteKind.SKILL and route.skill_id and route.params is not None:
             skill = self._registry.get(route.skill_id)
             if skill is not None:
                 return await self._start_task(
-                    skill, route.params, route, origin, conversation_id, user_message
+                    skill, route.params, route, origin, conversation_id, user_message, unsure
                 )
         if route.kind is RouteKind.STOP:
             count = self._cancel_all()
@@ -287,6 +307,7 @@ class CommandPipeline:
         origin: Origin,
         conversation_id: str,
         user_message: Message,
+        unsure: bool = False,
     ) -> str | None:
         if len(self._live) >= MAX_LIVE_TASKS:
             await self._reply(
@@ -318,6 +339,8 @@ class CommandPipeline:
             )
         )
         self._live[task.id] = task
+        if unsure:
+            self._unsure.add(task.id)
         await self._publish(task, TaskChange.CREATED)
         await self._audit.record(
             actor="user",
@@ -349,6 +372,18 @@ class CommandPipeline:
             task.status = TaskStatus.RUNNING
             task.started_at = self._clock()
             await self._publish(task, TaskChange.UPDATED)
+            if task.id in self._unsure:  # "Did you say ...?" before anything runs (§7.4)
+                self._unsure.discard(task.id)
+                did_you_say = NeedsChoice(
+                    f'Did you say "{task.utterance}"?',
+                    [Choice("yes", "Yes", {}), Choice("no", "No", {})],
+                )
+                answer = await self._ask(task, step, did_you_say, reply_to)
+                if answer is None:
+                    return
+                if answer.id == "no":
+                    await self._finish_cancelled(task, step, CancelReason.CANCEL, None, reply_to)
+                    return
             verdict = self._supervisor.evaluate(
                 skill, params, CapabilityScope.of(task.allowed_caps)
             )
